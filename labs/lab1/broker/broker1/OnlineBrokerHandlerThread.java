@@ -13,13 +13,77 @@ public class OnlineBrokerHandlerThread extends Thread {
         System.out.println("Created new Thread to handle broker client");
     }
 
+    public void run() {
+
+		boolean gotByePacket = false;
+		
+		try {
+			/* stream to read from client */
+			ObjectInputStream fromClient = new ObjectInputStream(socket.getInputStream());
+			BrokerPacket packetFromClient;
+			
+			/* stream to write back to client */
+			ObjectOutputStream toClient = new ObjectOutputStream(socket.getOutputStream());
+			BrokerPacket packetToClient = new BrokerPacket();
+			
+
+			/* create a packet to send reply back to client */
+			while (( packetFromClient = (BrokerPacket) fromClient.readObject()) != null) {
+				
+				/* process message */
+
+                /* client packet is BROKER_REQUEST */
+				if(packetFromClient.type == BrokerPacket.BROKER_REQUEST) {
+
+                    if (packetFromClient.symbol == null || nasdaq.get(packetFromClient.symbol) == null) {
+                        /* valid symbol could not be processed */
+                        packetToClient.type = BrokerPacket.BROKER_ERROR;
+                        packetToClient.type = BrokerPacket.ERROR_INVALID_SYMBOL;
+                    } else {
+                        packetToClient.type = BrokerPacket.BROKER_QUOTE;
+					    System.out.println("From Client: " + packetFromClient.symbol);
+                        packetToClient.symbol = packetFromClient.symbol;
+                        packetToClient.quote = nasdaq.get(packetToClient.symbol);
+                    }
+				
+					/* send reply back to client */
+					toClient.writeObject(packetToClient);
+					
+					/* wait for next packet */
+					continue;
+				}
+				
+				/* Sending an ECHO_NULL || ECHO_BYE means quit */
+				if (packetFromClient.type == BrokerPacket.BROKER_NULL || packetFromClient.type == BrokerPacket.BROKER_BYE) {
+					gotByePacket = true;
+					packetToClient.type = BrokerPacket.BROKER_BYE;
+					System.out.println("Client is exiting");
+					toClient.writeObject(packetToClient);
+					break;
+				}
+				
+				/* if code comes here, there is an error in the packet */
+				System.err.println("ERROR: Unknown ECHO_* packet!!");
+				System.exit(-1);
+			}
+			
+			/* cleanup when client exits */
+			fromClient.close();
+			toClient.close();
+			socket.close();
+
+		} catch (IOException e) {
+			if(!gotByePacket)
+				e.printStackTrace();
+		} catch (ClassNotFoundException e) {
+			if(!gotByePacket)
+				e.printStackTrace();
+		}
+    }
 
     /* Accessors */
     public static void setNasdaq (ConcurrentHashMap <String, Long> quotes) {
         OnlineBrokerHandlerThread.nasdaq = quotes;
     }
-
-
-    
 
 }

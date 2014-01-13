@@ -36,7 +36,7 @@ public class OnlineBroker {
         }
         in.close();
 
-        /* Set nasdaq quotes in OnlineBrokerHandlerClass */
+        /* Set nasdaq quotes in OnlineBrokerHandlerThread */
         OnlineBrokerHandlerThread.setNasdaq(nasdaq);
 
         /* Listen for clients */
