@@ -74,13 +74,13 @@ public class BrokerClient {
 				int isError = packetFromServer.error_code;
 
                                 switch(isError) {
-                                        case ERROR_INVALID_SYMBOL:         System.out.print(packetFromServer.symbol + " invalid.");
+                                        case BrokerPacket.ERROR_INVALID_SYMBOL:         System.out.print(packetFromServer.symbol + " invalid.");
                                                                         continue;
-                                        case ERROR_OUT_OF_RANGE:         System.out.print(packetFromServer.symbol + " out of range.");
+                                        case BrokerPacket.ERROR_OUT_OF_RANGE:         System.out.print(packetFromServer.symbol + " out of range.");
                                                                         continue;
-                                        case ERROR_SYMBOL_EXISTS:         System.out.print(packetFromServer.symbol + " exists.");
+                                        case BrokerPacket.ERROR_SYMBOL_EXISTS:         System.out.print(packetFromServer.symbol + " exists.");
                                                                         continue;        
-                                        case ERROR_INVALID_EXCHANGE:         System.out.print(packetFromServer.symbol + " invalid.");
+                                        case BrokerPacket.ERROR_INVALID_EXCHANGE:         System.out.print(packetFromServer.symbol + " invalid.");
                                                                         continue;   
                                         case 0: System.out.println("Quote from broker: " + String.valueOf(packetFromServer.quote));
                                         default: break; 
