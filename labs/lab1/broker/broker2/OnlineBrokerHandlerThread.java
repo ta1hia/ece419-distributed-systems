@@ -64,13 +64,20 @@ public class OnlineBrokerHandlerThread extends Thread {
                 /* EXCHANGE_ADD */
                 if (packetFromClient.type == BrokerPacket.EXCHANGE_ADD) {
                     packetToClient.type = BrokerPacket.EXCHANGE_REPLY;
-                    if (nasdaq.get(packetFromClient.symbol) == null) {
-                        packetToClient.error_code = BrokerPacket.ERROR_INVALID_SYMBOL;
+
+					System.out.println("From Client: EXCHANGE_ADD ");
+					System.out.println("From Client: " + packetFromClient.symbol);
+
+                    if (nasdaq.get(packetFromClient.symbol) != null) {
+					    System.out.println("ERROR: symbol already exists");
+                        packetToClient.error_code = BrokerPacket.ERROR_SYMBOL_EXISTS;
                         continue;
                     } 
 
                     nasdaq.put(packetFromClient.symbol, Long.valueOf(0));
                     OnlineBrokerHandlerThread.updateNasdaqTable();
+
+					System.out.println("To Client: add success ");
                     packetToClient.symbol = packetFromClient.symbol;
                     packetToClient.error_code = 0;
                     continue;
@@ -80,16 +87,23 @@ public class OnlineBrokerHandlerThread extends Thread {
                 if (packetFromClient.type == BrokerPacket.EXCHANGE_UPDATE) {
                     packetToClient.type = BrokerPacket.EXCHANGE_REPLY;
 
+					System.out.println("From Client: EXCHANGE_UPDATE ");
+					System.out.println("From Client: " + packetFromClient.symbol);
+
                     if (nasdaq.get(packetFromClient.symbol) == null) {
+					    System.out.println("ERROR: symbol does not exist");
                         packetToClient.error_code = BrokerPacket.ERROR_INVALID_SYMBOL;
                         continue;
                     } else if (packetFromClient.quote > 300 || packetFromClient.quote < 1) {
+					    System.out.println("ERROR: quote out of range ");
                         packetToClient.error_code = BrokerPacket.ERROR_OUT_OF_RANGE;
                         continue;
                     }
 
                     nasdaq.put(packetFromClient.symbol, packetFromClient.quote);
                     OnlineBrokerHandlerThread.updateNasdaqTable();
+
+					System.out.println("To Client: update success ");
                     packetToClient.error_code = 0;
                     continue;
                 }
@@ -97,14 +111,20 @@ public class OnlineBrokerHandlerThread extends Thread {
                 /* EXCHANGE_REMOVE */
                 if (packetFromClient.type == BrokerPacket.EXCHANGE_REMOVE) {
                     packetToClient.type = BrokerPacket.EXCHANGE_REPLY;
+                    
+                    System.out.println("From Client: EXCHANGE_REMOVE ");
+					System.out.println("From Client: " + packetFromClient.symbol);
 
                     if (nasdaq.get(packetFromClient.symbol) == null) {
+					    System.out.println("ERROR: symbol does not exist");
                         packetToClient.error_code = BrokerPacket.ERROR_INVALID_SYMBOL;
                         continue;
                     } 
 
                     nasdaq.remove(packetFromClient.symbol);
                     OnlineBrokerHandlerThread.updateNasdaqTable();
+
+					System.out.println("To Client: remove success ");
                     packetToClient.error_code = 0;
                     continue;
                 }
