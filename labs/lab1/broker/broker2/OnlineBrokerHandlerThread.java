@@ -63,14 +63,14 @@ public class OnlineBrokerHandlerThread extends Thread {
 
                 /* EXCHANGE_ADD */
                 if (packetFromClient.type == BrokerPacket.EXCHANGE_ADD) {
-                    packetToClient.type = BrokerType.EXCHANGE_REPLY;
+                    packetToClient.type = BrokerPacket.EXCHANGE_REPLY;
                     if (nasdaq.get(packetFromClient.symbol) == null) {
                         packetToClient.error_code = BrokerPacket.ERROR_INVALID_SYMBOL;
                         continue;
                     } 
 
-                    nasdaq.put(packetFromClient.symbol, 0);
-                    updateNasdaqTable();
+                    nasdaq.put(packetFromClient.symbol, Long.valueOf(0));
+                    OnlineBrokerHandlerThread.updateNasdaqTable();
                     packetToClient.symbol = packetFromClient.symbol;
                     packetToClient.error_code = 0;
                     continue;
@@ -78,7 +78,7 @@ public class OnlineBrokerHandlerThread extends Thread {
 
                 /* EXCHANGE_UPDATE */
                 if (packetFromClient.type == BrokerPacket.EXCHANGE_UPDATE) {
-                    packetToClient.type = BrokerType.EXCHANGE_REPLY;
+                    packetToClient.type = BrokerPacket.EXCHANGE_REPLY;
 
                     if (nasdaq.get(packetFromClient.symbol) == null) {
                         packetToClient.error_code = BrokerPacket.ERROR_INVALID_SYMBOL;
@@ -89,14 +89,14 @@ public class OnlineBrokerHandlerThread extends Thread {
                     }
 
                     nasdaq.put(packetFromClient.symbol, packetFromClient.quote);
-                    updateNasdaqTable();
+                    OnlineBrokerHandlerThread.updateNasdaqTable();
                     packetToClient.error_code = 0;
                     continue;
                 }
                 
                 /* EXCHANGE_REMOVE */
                 if (packetFromClient.type == BrokerPacket.EXCHANGE_REMOVE) {
-                    packetToClient.type = BrokerType.EXCHANGE_REPLY;
+                    packetToClient.type = BrokerPacket.EXCHANGE_REPLY;
 
                     if (nasdaq.get(packetFromClient.symbol) == null) {
                         packetToClient.error_code = BrokerPacket.ERROR_INVALID_SYMBOL;
@@ -104,7 +104,7 @@ public class OnlineBrokerHandlerThread extends Thread {
                     } 
 
                     nasdaq.remove(packetFromClient.symbol);
-                    updateNasdaqTable();
+                    OnlineBrokerHandlerThread.updateNasdaqTable();
                     packetToClient.error_code = 0;
                     continue;
                 }
@@ -133,7 +133,7 @@ public class OnlineBrokerHandlerThread extends Thread {
         OnlineBrokerHandlerThread.nasdaq = quotes;
     }
 
-    private void udpateNasdaqTable() {
+    private static void udpateNasdaqTable() {
         /* Clear nasdaq table and write updated entries */
         try {
             FileOutputStream nasdaqWriter = new FileOutputStream("nasdaq");

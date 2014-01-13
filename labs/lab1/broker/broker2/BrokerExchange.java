@@ -53,21 +53,19 @@ public class BrokerExchange {
 			String command = parts[0].toLowerCase();
 
 			/* Check what type of request it is. */
-			switch(command) {
-				case "add": 	packetToServer.type = BrokerPacket.EXCHANGE_ADD;
-					    	packetToServer.symbol = parts[1];
-						break;
-				case "update": 	packetToServer.type = BrokerPacket.EXCHANGE_UPDATE;
-					    	packetToServer.symbol = parts[1];
-					    	packetToServer.quote= parts[2];
-						break;
-				case "remove": 	packetToServer.type = BrokerPacket.EXCHANGE_REMOVE;
-					    	packetToServer.symbol = parts[1];
-						break;	
-				default: System.out.print("Unknown command...");
-					 continue;
-
-			}
+            if (command.equals("add")) {
+                packetToServer.type = BrokerPacket.EXCHANGE_ADD;
+				packetToServer.symbol = parts[1];
+            } else if (command.equals("update")) {
+                packetToServer.type = BrokerPacket.EXCHANGE_UPDATE;
+				packetToServer.symbol = parts[1];
+				packetToServer.quote= Long.getLong(parts[2]);
+            } else if (command.equals("remove")) {
+                packetToServer.type = BrokerPacket.EXCHANGE_REMOVE;
+				packetToServer.symbol = parts[1];
+            } else {
+				System.out.print("Unknown command...");
+            }
 
 			out.writeObject(packetToServer);
 
@@ -79,28 +77,27 @@ public class BrokerExchange {
 				int isError = packetFromServer.error_code;
 
 				switch(isError) {
-					case ERROR_INVALID_SYMBOL: 	System.out.print(packetFromServer.symbol + " invalid.");
+					case BrokerPacket.ERROR_INVALID_SYMBOL: 	System.out.print(packetFromServer.symbol + " invalid.");
 									continue;
-					case ERROR_OUT_OF_RANGE: 	System.out.print(packetFromServer.symbol + " out of range.");
+					case BrokerPacket.ERROR_OUT_OF_RANGE: 	System.out.print(packetFromServer.symbol + " out of range.");
 									continue;
-					case ERROR_SYMBOL_EXISTS: 	System.out.print(packetFromServer.symbol + " exists.");
+					case BrokerPacket.ERROR_SYMBOL_EXISTS: 	System.out.print(packetFromServer.symbol + " exists.");
 									continue;	
-					case ERROR_INVALID_EXCHANGE: 	System.out.print(packetFromServer.symbol + " invalid.");
+					case BrokerPacket.ERROR_INVALID_EXCHANGE: 	System.out.print(packetFromServer.symbol + " invalid.");
 									continue;	
 					default: break; 
 				}
+            
+            if (command.equals("add")) {
+					System.out.print(packetFromServer.symbol + " added.");
+            } else if (command.equals("update")) {
+					System.out.print(packetFromServer.symbol + " updated to " + packetFromServer.quote + ".");
+            } else if (command.equals("remove")) {
+					System.out.print(packetFromServer.symbol + " removed.");
+            } else {
+					System.out.print("Unknown command...");
+            }
 
-				switch(command) {
-					case "add": 	System.out.print(packetFromServer.symbol + " added.");
-							break;
-					case "update": 	System.out.print(packetFromServer.symbol + " updated to " + packetFromServer.quote + ".");
-							break;
-					case "remove": 	System.out.print(packetFromServer.symbol + " removed.");
-							break;	
-					default: System.out.print("Unknown command...");
-						 break; 
-				}	
-			}	
 		}
 
 		/* tell server that i'm quitting */
