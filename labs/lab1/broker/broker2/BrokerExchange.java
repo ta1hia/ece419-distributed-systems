@@ -48,18 +48,16 @@ public class BrokerExchange {
 			/* make a new request packet */
 			BrokerPacket packetToServer = new BrokerPacket();
 			String command = parts[0].toLowerCase();
+			String symbol = parts[1];
 
 			/* Check what type of request it is. */
             		if (command.equals("add")) {
 				packetToServer.type = BrokerPacket.EXCHANGE_ADD;
-				packetToServer.symbol = parts[1];
 			} else if (command.equals("update")) {
 			    	packetToServer.type = BrokerPacket.EXCHANGE_UPDATE;
-				packetToServer.symbol = parts[1];
 				packetToServer.quote= Long.getLong(parts[2]);
 			} else if (command.equals("remove")) {
 			    	packetToServer.type = BrokerPacket.EXCHANGE_REMOVE;
-				packetToServer.symbol = parts[1];
 			} else {
 				System.out.print("Unknown command...\n");
 
@@ -69,6 +67,8 @@ public class BrokerExchange {
 				continue;			
 			}
 
+
+			packetToServer.symbol = symbol;
 			out.writeObject(packetToServer);
 
 			/* print server reply */
@@ -79,21 +79,21 @@ public class BrokerExchange {
 				int isError = packetFromServer.error_code;
 
 				switch(isError) {
-					case BrokerPacket.ERROR_INVALID_SYMBOL: 	System.out.print(packetFromServer.symbol + " invalid.\n");
+					case BrokerPacket.ERROR_INVALID_SYMBOL: 	System.out.print(symbol + " invalid.\n");
 									continue;
-					case BrokerPacket.ERROR_OUT_OF_RANGE: 	System.out.print(packetFromServer.symbol + " out of range.\n");
+					case BrokerPacket.ERROR_OUT_OF_RANGE: 	System.out.print(symbol + " out of range.\n");
 									continue;
-					case BrokerPacket.ERROR_SYMBOL_EXISTS: 	System.out.print(packetFromServer.symbol + " exists.\n");
+					case BrokerPacket.ERROR_SYMBOL_EXISTS: 	System.out.print(symbol + " exists.\n");
 									continue;	
-					case BrokerPacket.ERROR_INVALID_EXCHANGE: 	System.out.print(packetFromServer.symbol + " invalid.\n");
+					case BrokerPacket.ERROR_INVALID_EXCHANGE: 	System.out.print(symbol + " invalid.\n");
 									continue;	
 					default: break; 
 				}
 
 		    		if (command.equals("add")) {
-					System.out.print(packetFromServer.symbol + " added.\n");
+					System.out.print(symbol + " added.\n");
 			    	} else if (command.equals("update")) {
-					System.out.print(packetFromServer.symbol + " updated to " + packetFromServer.quote + ".\n");
+					System.out.print(symbol + " updated to " + packetFromServer.quote + ".\n");
 			 	} else if (command.equals("remove")) {
 					System.out.print(packetFromServer.symbol + " removed.\n");
 				} else {
