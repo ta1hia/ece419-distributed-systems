@@ -133,13 +133,13 @@ public class OnlineBrokerHandlerThread extends Thread {
         OnlineBrokerHandlerThread.nasdaq = quotes;
     }
 
-    private static void udpateNasdaqTable() {
+    private static void updateNasdaqTable() {
         /* Clear nasdaq table and write updated entries */
         try {
             FileOutputStream nasdaqWriter = new FileOutputStream("nasdaq");
 
             /* Clear contents of nasdaq */
-            nasdaqWriter.write((new String()).getbytes());
+            nasdaqWriter.write("".getBytes());
 
             /* Copy updated contents of hashmap into nasdaq */
             ObjectOutputStream nasdaqOOS = new ObjectOutputStream(nasdaqWriter);

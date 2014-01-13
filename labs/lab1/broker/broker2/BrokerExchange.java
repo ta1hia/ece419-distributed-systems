@@ -53,19 +53,20 @@ public class BrokerExchange {
 			String command = parts[0].toLowerCase();
 
 			/* Check what type of request it is. */
-            if (command.equals("add")) {
-                packetToServer.type = BrokerPacket.EXCHANGE_ADD;
+            		if (command.equals("add")) {
+				packetToServer.type = BrokerPacket.EXCHANGE_ADD;
 				packetToServer.symbol = parts[1];
-            } else if (command.equals("update")) {
-                packetToServer.type = BrokerPacket.EXCHANGE_UPDATE;
+			} else if (command.equals("update")) {
+			    	packetToServer.type = BrokerPacket.EXCHANGE_UPDATE;
 				packetToServer.symbol = parts[1];
 				packetToServer.quote= Long.getLong(parts[2]);
-            } else if (command.equals("remove")) {
-                packetToServer.type = BrokerPacket.EXCHANGE_REMOVE;
+			} else if (command.equals("remove")) {
+			    	packetToServer.type = BrokerPacket.EXCHANGE_REMOVE;
 				packetToServer.symbol = parts[1];
-            } else {
+			} else {
 				System.out.print("Unknown command...");
-            }
+				continue;
+			}
 
 			out.writeObject(packetToServer);
 
@@ -87,16 +88,18 @@ public class BrokerExchange {
 									continue;	
 					default: break; 
 				}
-            
-            if (command.equals("add")) {
+
+		    		if (command.equals("add")) {
 					System.out.print(packetFromServer.symbol + " added.");
-            } else if (command.equals("update")) {
+			    	} else if (command.equals("update")) {
 					System.out.print(packetFromServer.symbol + " updated to " + packetFromServer.quote + ".");
-            } else if (command.equals("remove")) {
+			 	} else if (command.equals("remove")) {
 					System.out.print(packetFromServer.symbol + " removed.");
-            } else {
+				} else {
 					System.out.print("Unknown command...");
-            }
+			    	}
+			}
+
 
 		}
 
