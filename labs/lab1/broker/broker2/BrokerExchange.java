@@ -39,10 +39,12 @@ public class BrokerExchange {
 
 		System.out.print("Enter command or quit for exit:");
 		System.out.print("");
-		System.out.print("> ");
 
 		while ((userInput = stdIn.readLine()) != null && userInput.toLowerCase().indexOf("quit") == -1) {
 
+			/* re-print console prompt */
+			System.out.print("> ");
+			
 			// Split strings into seperate parts
  			String parts[] = userInput.split(" ");
 
@@ -99,9 +101,6 @@ public class BrokerExchange {
 						 break; 
 				}	
 			}	
-
-			/* re-print console prompt */
-			System.out.print("> ");
 		}
 
 		/* tell server that i'm quitting */
