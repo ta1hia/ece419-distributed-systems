@@ -34,6 +34,7 @@ public class OnlineBrokerHandlerThread extends Thread {
 				if(packetFromClient.type == BrokerPacket.BROKER_REQUEST) {
                     if (packetFromClient.symbol == null || nasdaq.get(packetFromClient.symbol) == null) {
                         /* valid symbol could not be processed */
+					    System.out.println("From Client: request error");
                         packetToClient.type = BrokerPacket.BROKER_ERROR;
                         packetToClient.type = BrokerPacket.ERROR_INVALID_SYMBOL;
                     } else {

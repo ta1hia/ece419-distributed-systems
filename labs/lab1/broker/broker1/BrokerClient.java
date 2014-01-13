@@ -55,7 +55,8 @@ public class BrokerClient {
 			if (packetFromServer.type == BrokerPacket.BROKER_QUOTE)
 				System.out.println("Quote from broker: " + String.valueOf(packetFromServer.quote));
             else {
-                System.out.println("Could not recieve quote");
+                /* error returned - this case isn't handled in Broker1 */
+                System.out.println("Quote from broker: 0");
             }
 
 			/* re-print console prompt */
