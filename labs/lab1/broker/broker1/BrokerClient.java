@@ -54,10 +54,10 @@ public class BrokerClient {
 
 			if (packetFromServer.type == BrokerPacket.BROKER_QUOTE)
 				System.out.println("Quote from broker: " + String.valueOf(packetFromServer.quote));
-            else {
-                /* error returned - this case isn't handled in Broker1 */
-                System.out.println("Quote from broker: 0");
-            }
+        		else {
+        			    /* error returned - this case isn't handled in Broker1 */
+        			System.out.println("Quote from broker: 0");
+        		}
 
 			/* re-print console prompt */
 			System.out.print("> ");
