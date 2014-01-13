@@ -56,15 +56,27 @@ public class BrokerClient {
 			BrokerPacket packetFromServer;
 			packetFromServer = (BrokerPacket) in.readObject();
 
-			if (packetFromServer.type == BrokerPacket.BROKER_QUOTE)
-				System.out.println("Quote from broker: " + String.valueOf(packetFromServer.quote));
-            else {
-                /* error returned - this case isn't handled in Broker1 */
-                System.out.println("Quote from broker: 0");
-            }
+			if (packetFromServer.type == BrokerPacket.BROKER_QUOTE){
+				int isError = packetFromServer.error_code;
 
-			/* re-print console prompt */
-			System.out.print("> ");
+                                switch(isError) {
+                                        case ERROR_INVALID_SYMBOL:         System.out.print(packetFromServer.symbol + " invalid.");
+                                                                        continue;
+                                        case ERROR_OUT_OF_RANGE:         System.out.print(packetFromServer.symbol + " out of range.");
+                                                                        continue;
+                                        case ERROR_SYMBOL_EXISTS:         System.out.print(packetFromServer.symbol + " exists.");
+                                                                        continue;        
+                                        case ERROR_INVALID_EXCHANGE:         System.out.print(packetFromServer.symbol + " invalid.");
+                                                                        continue;   
+                                        case 0: System.out.println("Quote from broker: " + String.valueOf(packetFromServer.quote));
+                                        default: break; 
+                                }
+
+				
+			} else {
+                		/* error returned - this case isn't handled in Broker1 */
+                		System.out.println("Quote from broker: 0");
+            		}
 		}
 
 		/* tell server that i'm quitting */
