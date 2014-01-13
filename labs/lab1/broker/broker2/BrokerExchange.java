@@ -1,7 +1,7 @@
 import java.io.*;
 import java.net.*;
 
-public class BrokerClient {
+public class BrokerExchange {
 	public static void main(String[] args) throws IOException,
 			ClassNotFoundException {
 
@@ -37,12 +37,11 @@ public class BrokerClient {
 		BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
 		String userInput;
 
-
 		System.out.print("Enter command or quit for exit:");
 		System.out.print("");
 		System.out.print("> ");
-		while ((userInput = stdIn.readLine()) != null
-				&& userInput.toLowerCase().indexOf("quit") == -1) {
+
+		while ((userInput = stdIn.readLine()) != null && userInput.toLowerCase().indexOf("quit") == -1) {
 
 			// Split strings into seperate parts
  			String parts[] = userInput.split(" ");
@@ -75,10 +74,31 @@ public class BrokerClient {
 			packetFromServer = (BrokerPacket) in.readObject();
 
 			if (packetFromServer.type == BrokerPacket.EXCHANGE_REPLY){
-				System.out.println(packetFromServer.symbol);
+				int isError = packetFromServer.error_code;
 
-			}
+				switch(isError) {
+					case ERROR_INVALID_SYMBOL: 	System.out.print(packetFromServer.symbol + " invalid.");
+									continue;
+					case ERROR_OUT_OF_RANGE: 	System.out.print(packetFromServer.symbol + " out of range.");
+									continue;
+					case ERROR_SYMBOL_EXISTS: 	System.out.print(packetFromServer.symbol + " exists.");
+									continue;	
+					case ERROR_INVALID_EXCHANGE: 	System.out.print(packetFromServer.symbol + " invalid.");
+									continue;	
+					default: break; 
+				}
 
+				switch(command) {
+					case "add": 	System.out.print(packetFromServer.symbol + " added.");
+							break;
+					case "update": 	System.out.print(packetFromServer.symbol + " updated to " + packetFromServer.quote + ".");
+							break;
+					case "remove": 	System.out.print(packetFromServer.symbol + " removed.");
+							break;	
+					default: System.out.print("Unknown command...");
+						 break; 
+				}	
+			}	
 
 			/* re-print console prompt */
 			System.out.print("> ");
