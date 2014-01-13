@@ -14,7 +14,7 @@ public class BrokerClient {
 			String hostname = "localhost";
 			int port = 4444;
 			
-			if(args.length == 2 ) {
+			if(args.length == 2) {
 				hostname = args[0];
 				port = Integer.parseInt(args[1]);
 			} else {
@@ -37,13 +37,15 @@ public class BrokerClient {
 		BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
 		String userInput;
 
-		System.out.print("CONSOLE>");
+
+		System.out.print("Enter queries or x for exit:");
+		System.out.print("> ");
 		while ((userInput = stdIn.readLine()) != null
-				&& userInput.toLowerCase().indexOf("bye") == -1) {
+				&& userInput.toLowerCase().indexOf("x") == -1) {
 			/* make a new request packet */
 			BrokerPacket packetToServer = new BrokerPacket();
 			packetToServer.type = BrokerPacket.BROKER_REQUEST;
-			packetToServer.message = userInput;
+			packetToServer.message = userInput.toLowerCase();
 			out.writeObject(packetToServer);
 
 			/* print server reply */
@@ -51,16 +53,16 @@ public class BrokerClient {
 			packetFromServer = (BrokerPacket) in.readObject();
 
 			if (packetFromServer.type == BrokerPacket.BROKER_QUOTE)
-				System.out.println("echo: " + packetFromServer.message);
+				System.out.println("Quote from broker: " + packetFromServer.message);
 
 			/* re-print console prompt */
-			System.out.print("CONSOLE>");
+			System.out.print("> ");
 		}
 
 		/* tell server that i'm quitting */
 		BrokerPacket packetToServer = new BrokerPacket();
 		packetToServer.type = BrokerPacket.BROKER_BYE;
-		packetToServer.message = "Bye!";
+		//packetToServer.message = "Bye!";
 		out.writeObject(packetToServer);
 
 		out.close();
