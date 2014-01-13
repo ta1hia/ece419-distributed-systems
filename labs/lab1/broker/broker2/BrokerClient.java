@@ -37,15 +37,11 @@ public class BrokerClient {
 		BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
 		String userInput;
 
+		System.out.print("Enter queries or quit for exit:\n");
+		System.out.print("> ");
 
-		System.out.print("Enter queries or quit for exit:");
-		while ((userInput = stdIn.readLine()) != null
-				&& userInput.toLowerCase().indexOf("x") == -1) {
-			
-			
-			/* re-print console prompt */
-			System.out.print("> ");
-	  	
+		while ((userInput = stdIn.readLine()) != null && userInput.toLowerCase().indexOf("x") == -1) {
+						
 			/* make a new request packet */
 			BrokerPacket packetToServer = new BrokerPacket();
 			packetToServer.type = BrokerPacket.BROKER_REQUEST;
@@ -77,6 +73,10 @@ public class BrokerClient {
                 		/* error returned - this case isn't handled in Broker1 */
                 		System.out.println("Quote from broker: 0");
             		}
+
+
+			/* re-print console prompt */
+			System.out.print("> ");
 		}
 
 		/* tell server that i'm quitting */

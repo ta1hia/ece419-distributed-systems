@@ -37,14 +37,11 @@ public class BrokerExchange {
 		BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
 		String userInput;
 
-		System.out.print("Enter command or quit for exit:");
-		System.out.print("");
+		System.out.print("Enter command or quit for exit:\n");
+		System.out.print("> ");
 
 		while ((userInput = stdIn.readLine()) != null && userInput.toLowerCase().indexOf("quit") == -1) {
-
-			/* re-print console prompt */
-			System.out.print("> ");
-			
+	
 			// Split strings into seperate parts
  			String parts[] = userInput.split(" ");
 
@@ -64,8 +61,12 @@ public class BrokerExchange {
 			    	packetToServer.type = BrokerPacket.EXCHANGE_REMOVE;
 				packetToServer.symbol = parts[1];
 			} else {
-				System.out.print("Unknown command...");
-				continue;
+				System.out.print("Unknown command...\n");
+
+				/* re-print console prompt */
+				System.out.print("> ");
+
+				continue;			
 			}
 
 			out.writeObject(packetToServer);
@@ -78,29 +79,31 @@ public class BrokerExchange {
 				int isError = packetFromServer.error_code;
 
 				switch(isError) {
-					case BrokerPacket.ERROR_INVALID_SYMBOL: 	System.out.print(packetFromServer.symbol + " invalid.");
+					case BrokerPacket.ERROR_INVALID_SYMBOL: 	System.out.print(packetFromServer.symbol + " invalid.\n");
 									continue;
-					case BrokerPacket.ERROR_OUT_OF_RANGE: 	System.out.print(packetFromServer.symbol + " out of range.");
+					case BrokerPacket.ERROR_OUT_OF_RANGE: 	System.out.print(packetFromServer.symbol + " out of range.\n");
 									continue;
-					case BrokerPacket.ERROR_SYMBOL_EXISTS: 	System.out.print(packetFromServer.symbol + " exists.");
+					case BrokerPacket.ERROR_SYMBOL_EXISTS: 	System.out.print(packetFromServer.symbol + " exists.\n");
 									continue;	
-					case BrokerPacket.ERROR_INVALID_EXCHANGE: 	System.out.print(packetFromServer.symbol + " invalid.");
+					case BrokerPacket.ERROR_INVALID_EXCHANGE: 	System.out.print(packetFromServer.symbol + " invalid.\n");
 									continue;	
 					default: break; 
 				}
 
 		    		if (command.equals("add")) {
-					System.out.print(packetFromServer.symbol + " added.");
+					System.out.print(packetFromServer.symbol + " added.\n");
 			    	} else if (command.equals("update")) {
-					System.out.print(packetFromServer.symbol + " updated to " + packetFromServer.quote + ".");
+					System.out.print(packetFromServer.symbol + " updated to " + packetFromServer.quote + ".\n");
 			 	} else if (command.equals("remove")) {
-					System.out.print(packetFromServer.symbol + " removed.");
+					System.out.print(packetFromServer.symbol + " removed.\n");
 				} else {
-					System.out.print("Unknown command...");
+					System.out.print("Unknown command...\n");
 			    	}
 			}
 
 
+			/* re-print console prompt */
+			System.out.print("> ");
 		}
 
 		/* tell server that i'm quitting */
