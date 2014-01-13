@@ -71,6 +71,9 @@ public class BrokerPacket implements Serializable {
 	/* report errors */
 	/* for part 2/3 */
 	public int error_code;
+
+	/* testing */
+	public String message;
 	
 	/* exchange lookup */
 	/* for part 3 */

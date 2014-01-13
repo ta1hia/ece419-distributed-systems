@@ -28,14 +28,16 @@ public class OnlineBroker {
         ConcurrentHashMap<String, Long> nasdaq = new ConcurrentHashMap<String, Long>();
         BufferedReader in = new BufferedReader(new FileReader("nasdaq"));
         String line = "";
+        Long quote;
         while ((line = in.readLine()) != null) {
             String parts[] = line.split(" ");
-            nasdaq.put(parts[0], parts[1]);
+            quote = Long.parseLong(parts[1], 10);
+            nasdaq.put(parts[0], quote);
         }
         in.close();
 
         /* Set nasdaq quotes in OnlineBrokerHandlerClass */
-        OnlineBrokerHandlerClass.setNasdaq(nasdaq);
+        OnlineBrokerHandlerThread.setNasdaq(nasdaq);
 
         /* Listen for clients */
         while (listening) {
