@@ -49,7 +49,7 @@ public class BrokerExchange {
 			/* make a new request packet */
 			BrokerPacket packetToServer = new BrokerPacket();
 			String command = parts[0].toLowerCase();
-			String symbol = parts[1];
+			String symbol = parts[1].toLowerCase();
 
 			/* Check what type of request it is. */
             		if (command.equals("add")) {
@@ -90,11 +90,11 @@ public class BrokerExchange {
 									continue;	
 					default: break; 
 				}
-
-		    		if (command.equals("add")) {
-					System.out.print(symbol + " added.\n");
-			    	} else if (command.equals("update")) {
-					System.out.print(symbol + " updated to " + Long.parseLong(packetFromServer.quote, 10) + ".\n");
+                
+                if (command.equals("add")) {
+                    System.out.print(symbol + " added.\n");
+                } else if (command.equals("update")) {
+					System.out.print(symbol + " updated to " + String.valueOf(packetFromServer.quote) + ".\n");
 			 	} else if (command.equals("remove")) {
 					System.out.print(symbol + " removed.\n");
 				} else {

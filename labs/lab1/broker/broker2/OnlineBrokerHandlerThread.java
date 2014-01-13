@@ -35,22 +35,21 @@ public class OnlineBrokerHandlerThread extends Thread {
 				
                 /* BROKER_REQUEST */
 				if(packetFromClient.type == BrokerPacket.BROKER_REQUEST) {
-                    if (packetFromClient.symbol == null || nasdaq.get(packetFromClient.symbol) == null) {
+					System.out.println("From Client: " + packetFromClient.symbol);
+                    if (packetFromClient.symbol == null || !nasdaq.containsKey(packetFromClient.symbol)) {
                         /* valid symbol could not be processed */
 					    System.out.println("From Client: request error");
+                        System.out.println(nasdaq.toString());
+                        System.out.println(nasdaq.get(packetFromClient.symbol));
                         packetToClient.type = BrokerPacket.BROKER_ERROR;
                         packetToClient.type = BrokerPacket.ERROR_INVALID_SYMBOL;
                     } else {
                         packetToClient.type = BrokerPacket.BROKER_QUOTE;
-					    System.out.println("From Client: " + packetFromClient.symbol);
 					    System.out.println("Replying to Client: " + nasdaq.get(packetFromClient.symbol));
                         packetToClient.quote = nasdaq.get(packetFromClient.symbol);
                     }
 				
-					/* send reply back to client */
 					toClient.writeObject(packetToClient);
-					
-					/* wait for next packet */
 					continue;
 				}
 				
@@ -104,6 +103,7 @@ public class OnlineBrokerHandlerThread extends Thread {
                         OnlineBrokerHandlerThread.updateNasdaqTable();
                         System.out.println("To Client: update success ");
                         packetToClient.error_code = 0;
+                        packetToClient.quote = packetFromClient.quote;
                     }
 					toClient.writeObject(packetToClient);
                     continue;
@@ -151,6 +151,10 @@ public class OnlineBrokerHandlerThread extends Thread {
     /* Accessors */
     public static void setNasdaq (ConcurrentHashMap <String, Long> quotes) {
         OnlineBrokerHandlerThread.nasdaq = quotes;
+    }
+
+    private static void updateNasdaq() {
+
     }
 
     private static void updateNasdaqTable() {
