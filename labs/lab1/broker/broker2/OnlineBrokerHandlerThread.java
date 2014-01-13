@@ -91,6 +91,7 @@ public class OnlineBrokerHandlerThread extends Thread {
 
 					System.out.println("From Client: EXCHANGE_UPDATE ");
 					System.out.println("From Client: " + packetFromClient.symbol);
+					System.out.println("From Client: " + packetFromClient.quote);
 
                     if (nasdaq.get(packetFromClient.symbol) == null) {
 					    System.out.println("ERROR: symbol does not exist");

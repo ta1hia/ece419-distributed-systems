@@ -1,5 +1,6 @@
 import java.io.*;
 import java.net.*;
+import java.util.Arrays;
 
 public class BrokerExchange {
 	public static void main(String[] args) throws IOException,
@@ -55,7 +56,7 @@ public class BrokerExchange {
 				packetToServer.type = BrokerPacket.EXCHANGE_ADD;
 			} else if (command.equals("update")) {
 			    	packetToServer.type = BrokerPacket.EXCHANGE_UPDATE;
-				packetToServer.quote= Long.getLong(parts[2]);
+				    packetToServer.quote= Long.parseLong(parts[2], 10);
 			} else if (command.equals("remove")) {
 			    	packetToServer.type = BrokerPacket.EXCHANGE_REMOVE;
 			} else {
@@ -93,7 +94,7 @@ public class BrokerExchange {
 		    		if (command.equals("add")) {
 					System.out.print(symbol + " added.\n");
 			    	} else if (command.equals("update")) {
-					System.out.print(symbol + " updated to " + packetFromServer.quote + ".\n");
+					System.out.print(symbol + " updated to " + Long.parseLong(packetFromServer.quote, 10) + ".\n");
 			 	} else if (command.equals("remove")) {
 					System.out.print(packetFromServer.symbol + " removed.\n");
 				} else {
