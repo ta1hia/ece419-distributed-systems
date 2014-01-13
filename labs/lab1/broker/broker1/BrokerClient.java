@@ -45,7 +45,7 @@ public class BrokerClient {
 			/* make a new request packet */
 			BrokerPacket packetToServer = new BrokerPacket();
 			packetToServer.type = BrokerPacket.BROKER_REQUEST;
-			packetToServer.message = userInput.toLowerCase();
+			packetToServer.symbol = userInput.toLowerCase();
 			out.writeObject(packetToServer);
 
 			/* print server reply */
@@ -53,7 +53,10 @@ public class BrokerClient {
 			packetFromServer = (BrokerPacket) in.readObject();
 
 			if (packetFromServer.type == BrokerPacket.BROKER_QUOTE)
-				System.out.println("Quote from broker: " + packetFromServer.message);
+				System.out.println("Quote from broker: " + String.valueOf(packetFromServer.quote));
+            else {
+                System.out.println("Could not recieve quote");
+            }
 
 			/* re-print console prompt */
 			System.out.print("> ");
