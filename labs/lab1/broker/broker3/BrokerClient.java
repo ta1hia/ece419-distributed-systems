@@ -60,6 +60,7 @@ public class BrokerClient {
                         			continue;
                                 default: 	packetToServer.type = BrokerPacket.BROKER_REQUEST;
 						packetToServer.symbol = userInput.toLowerCase();
+						packetToServer.exchange = exchange;
 						out.writeObject(packetToServer);
                                          	break;
 
