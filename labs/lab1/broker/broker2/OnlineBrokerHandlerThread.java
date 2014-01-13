@@ -2,6 +2,9 @@ import java.net.*;
 import java.io.*; 
 import java.net.ServerSocket;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
 
 public class OnlineBrokerHandlerThread extends Thread {
     private Socket socket = null;
@@ -41,7 +44,6 @@ public class OnlineBrokerHandlerThread extends Thread {
                         packetToClient.type = BrokerPacket.BROKER_QUOTE;
 					    System.out.println("From Client: " + packetFromClient.symbol);
 					    System.out.println("Replying to Client: " + nasdaq.get(packetFromClient.symbol));
-
                         packetToClient.quote = nasdaq.get(packetFromClient.symbol);
                     }
 				
@@ -71,15 +73,15 @@ public class OnlineBrokerHandlerThread extends Thread {
                     if (nasdaq.get(packetFromClient.symbol) != null) {
 					    System.out.println("ERROR: symbol already exists");
                         packetToClient.error_code = BrokerPacket.ERROR_SYMBOL_EXISTS;
-                        continue;
-                    } 
+                    } else {
+                        nasdaq.put(packetFromClient.symbol, Long.valueOf(0));
+                        OnlineBrokerHandlerThread.updateNasdaqTable();
 
-                    nasdaq.put(packetFromClient.symbol, Long.valueOf(0));
-                    OnlineBrokerHandlerThread.updateNasdaqTable();
-
-					System.out.println("To Client: add success ");
-                    packetToClient.symbol = packetFromClient.symbol;
-                    packetToClient.error_code = 0;
+					    System.out.println("To Client: add success ");
+                        packetToClient.symbol = packetFromClient.symbol;
+                        packetToClient.error_code = 0;
+                    }
+					toClient.writeObject(packetToClient);
                     continue;
                 }
 
@@ -93,18 +95,16 @@ public class OnlineBrokerHandlerThread extends Thread {
                     if (nasdaq.get(packetFromClient.symbol) == null) {
 					    System.out.println("ERROR: symbol does not exist");
                         packetToClient.error_code = BrokerPacket.ERROR_INVALID_SYMBOL;
-                        continue;
                     } else if (packetFromClient.quote > 300 || packetFromClient.quote < 1) {
 					    System.out.println("ERROR: quote out of range ");
                         packetToClient.error_code = BrokerPacket.ERROR_OUT_OF_RANGE;
-                        continue;
+                    } else {
+                        nasdaq.put(packetFromClient.symbol, packetFromClient.quote);
+                        OnlineBrokerHandlerThread.updateNasdaqTable();
+                        System.out.println("To Client: update success ");
+                        packetToClient.error_code = 0;
                     }
-
-                    nasdaq.put(packetFromClient.symbol, packetFromClient.quote);
-                    OnlineBrokerHandlerThread.updateNasdaqTable();
-
-					System.out.println("To Client: update success ");
-                    packetToClient.error_code = 0;
+					toClient.writeObject(packetToClient);
                     continue;
                 }
                 
@@ -118,14 +118,13 @@ public class OnlineBrokerHandlerThread extends Thread {
                     if (nasdaq.get(packetFromClient.symbol) == null) {
 					    System.out.println("ERROR: symbol does not exist");
                         packetToClient.error_code = BrokerPacket.ERROR_INVALID_SYMBOL;
-                        continue;
-                    } 
-
-                    nasdaq.remove(packetFromClient.symbol);
-                    OnlineBrokerHandlerThread.updateNasdaqTable();
-
-					System.out.println("To Client: remove success ");
-                    packetToClient.error_code = 0;
+                    } else {
+                        nasdaq.remove(packetFromClient.symbol);
+                        OnlineBrokerHandlerThread.updateNasdaqTable();
+					    System.out.println("To Client: remove success ");
+                        packetToClient.error_code = 0;
+                    }
+					toClient.writeObject(packetToClient);
                     continue;
                 }
 				
@@ -156,17 +155,24 @@ public class OnlineBrokerHandlerThread extends Thread {
     private static void updateNasdaqTable() {
         /* Clear nasdaq table and write updated entries */
         try {
-            FileOutputStream nasdaqWriter = new FileOutputStream("nasdaq");
+            FileWriter nasdaqWriter = new FileWriter("nasdaq");
 
             /* Clear contents of nasdaq */
-            nasdaqWriter.write("".getBytes());
-
             /* Copy updated contents of hashmap into nasdaq */
-            ObjectOutputStream nasdaqOOS = new ObjectOutputStream(nasdaqWriter);
-            nasdaqOOS.writeObject(nasdaq);
+            BufferedWriter out = new BufferedWriter(nasdaqWriter);
+            out.write("");
+            out.flush();
 
-            nasdaqOOS.flush();
-            nasdaqOOS.close();
+            int count = 0;
+            Iterator<Entry<String, Long>> it = nasdaq.entrySet().iterator();
+
+            while (it.hasNext() && count < nasdaq.size()) {
+                Map.Entry<String, Long> pairs = it.next();
+                out.write(pairs.getKey() + " " + pairs.getValue() + "\n");
+                count++;
+            }
+
+            out.close();
             nasdaqWriter.close();
         } catch (Exception e) {
             System.out.println("File (nasdaq) update error");
