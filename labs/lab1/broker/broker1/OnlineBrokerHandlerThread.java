@@ -24,17 +24,14 @@ public class OnlineBrokerHandlerThread extends Thread {
 			
 			/* stream to write back to client */
 			ObjectOutputStream toClient = new ObjectOutputStream(socket.getOutputStream());
-			BrokerPacket packetToClient = new BrokerPacket();
 			
 
-			/* create a packet to send reply back to client */
 			while (( packetFromClient = (BrokerPacket) fromClient.readObject()) != null) {
+			/* create a packet to send reply back to client */
+			    BrokerPacket packetToClient = new BrokerPacket();
 				
-				/* process message */
-
                 /* client packet is BROKER_REQUEST */
 				if(packetFromClient.type == BrokerPacket.BROKER_REQUEST) {
-
                     if (packetFromClient.symbol == null || nasdaq.get(packetFromClient.symbol) == null) {
                         /* valid symbol could not be processed */
                         packetToClient.type = BrokerPacket.BROKER_ERROR;
@@ -42,8 +39,9 @@ public class OnlineBrokerHandlerThread extends Thread {
                     } else {
                         packetToClient.type = BrokerPacket.BROKER_QUOTE;
 					    System.out.println("From Client: " + packetFromClient.symbol);
-                        packetToClient.symbol = packetFromClient.symbol;
-                        packetToClient.quote = nasdaq.get(packetToClient.symbol);
+					    System.out.println("Replying to Client: " + nasdaq.get(packetFromClient.symbol));
+
+                        packetToClient.quote = nasdaq.get(packetFromClient.symbol);
                     }
 				
 					/* send reply back to client */
