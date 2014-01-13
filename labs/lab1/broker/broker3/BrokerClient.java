@@ -8,7 +8,8 @@ public class BrokerClient {
 		Socket brokerSocket = null;
 		ObjectOutputStream out = null;
 		ObjectInputStream in = null;
-
+                String exchange = null; // Save exchange name.
+                
 		try {
 			/* variables for hostname/port */
 			String hostname = "localhost";
@@ -39,18 +40,31 @@ public class BrokerClient {
 
 
 		System.out.print("Enter queries or quit for exit:");
-		while ((userInput = stdIn.readLine()) != null
-				&& userInput.toLowerCase().indexOf("x") == -1) {
+		while ((userInput = stdIn.readLine()) != null && userInput.toLowerCase().indexOf("x") == -1) {
 			
 			
 			/* re-print console prompt */
 			System.out.print("> ");
 	  	
+                        // Split strings into seperate parts
+                         String parts[] = userInput.split(" ");
+                         
 			/* make a new request packet */
 			BrokerPacket packetToServer = new BrokerPacket();
-			packetToServer.type = BrokerPacket.BROKER_REQUEST;
-			packetToServer.symbol = userInput.toLowerCase();
-			out.writeObject(packetToServer);
+			String command = parts[0].toLowerCase();
+			
+			/* Check what type of request it is. */
+                        switch(command) {
+                        	case "local":	exchange = parts[1];
+						System.out.print(exchange + "as local");
+                        			continue;
+                                default: 	packetToServer.type = BrokerPacket.BROKER_REQUEST;
+						packetToServer.symbol = userInput.toLowerCase();
+						packetToServer.exchange = exchange;
+						out.writeObject(packetToServer);
+                                         	break;
+
+                        }
 
 			/* print server reply */
 			BrokerPacket packetFromServer;
@@ -60,13 +74,13 @@ public class BrokerClient {
 				int isError = packetFromServer.error_code;
 
                                 switch(isError) {
-                                        case ERROR_INVALID_SYMBOL:         System.out.print(packetFromServer.symbol + " invalid.");
+                                        case BrokerPacket.ERROR_INVALID_SYMBOL:         System.out.print(packetFromServer.symbol + " invalid.");
                                                                         continue;
-                                        case ERROR_OUT_OF_RANGE:         System.out.print(packetFromServer.symbol + " out of range.");
+                                        case BrokerPacket.ERROR_OUT_OF_RANGE:         System.out.print(packetFromServer.symbol + " out of range.");
                                                                         continue;
-                                        case ERROR_SYMBOL_EXISTS:         System.out.print(packetFromServer.symbol + " exists.");
+                                        case BrokerPacket.ERROR_SYMBOL_EXISTS:         System.out.print(packetFromServer.symbol + " exists.");
                                                                         continue;        
-                                        case ERROR_INVALID_EXCHANGE:         System.out.print(packetFromServer.symbol + " invalid.");
+                                        case BrokerPacket.ERROR_INVALID_EXCHANGE:         System.out.print(packetFromServer.symbol + " invalid.");
                                                                         continue;   
                                         case 0: System.out.println("Quote from broker: " + String.valueOf(packetFromServer.quote));
                                         default: break; 
