@@ -9,3 +9,6 @@
 *.swp
 *.java~
 
+#java file
+java/
+
