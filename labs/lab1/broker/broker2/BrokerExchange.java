@@ -95,7 +95,7 @@ public class BrokerExchange {
 			    	} else if (command.equals("update")) {
 					System.out.print(symbol + " updated to " + packetFromServer.quote + ".\n");
 			 	} else if (command.equals("remove")) {
-					System.out.print(packetFromServer.symbol + " removed.\n");
+					System.out.print(symbol + " removed.\n");
 				} else {
 					System.out.print("Unknown command...\n");
 			    	}
