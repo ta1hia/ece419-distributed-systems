@@ -8,8 +8,7 @@ public class BrokerClient {
 		Socket brokerSocket = null;
 		ObjectOutputStream out = null;
 		ObjectInputStream in = null;
-                String exchange = null; // Save exchange name.
-                
+
 		try {
 			/* variables for hostname/port */
 			String hostname = "localhost";
@@ -38,33 +37,16 @@ public class BrokerClient {
 		BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
 		String userInput;
 
+		System.out.print("Enter queries or quit for exit:\n");
+		System.out.print("> ");
 
-		System.out.print("Enter queries or quit for exit:");
 		while ((userInput = stdIn.readLine()) != null && userInput.toLowerCase().indexOf("x") == -1) {
-			
-			
-			/* re-print console prompt */
-			System.out.print("> ");
-	  	
-                        // Split strings into seperate parts
-                         String parts[] = userInput.split(" ");
-                         
+						
 			/* make a new request packet */
 			BrokerPacket packetToServer = new BrokerPacket();
-			String command = parts[0].toLowerCase();
-			
-			/* Check what type of request it is. */
-                        switch(command) {
-                        	case "local":	exchange = parts[1];
-						System.out.print(exchange + "as local");
-                        			continue;
-                                default: 	packetToServer.type = BrokerPacket.BROKER_REQUEST;
-						packetToServer.symbol = userInput.toLowerCase();
-						packetToServer.exchange = exchange;
-						out.writeObject(packetToServer);
-                                         	break;
-
-                        }
+			packetToServer.type = BrokerPacket.BROKER_REQUEST;
+			packetToServer.symbol = userInput.toLowerCase();
+			out.writeObject(packetToServer);
 
 			/* print server reply */
 			BrokerPacket packetFromServer;
@@ -91,6 +73,10 @@ public class BrokerClient {
                 		/* error returned - this case isn't handled in Broker1 */
                 		System.out.println("Quote from broker: 0");
             		}
+
+
+			/* re-print console prompt */
+			System.out.print("> ");
 		}
 
 		/* tell server that i'm quitting */
