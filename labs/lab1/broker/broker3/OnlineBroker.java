@@ -12,8 +12,8 @@ public class OnlineBroker {
         boolean listening = true;
 
 	Socket lookupSocket = null;
-	ObjectOutputStream out = null;
-	ObjectInputStream in = null;
+	ObjectOutputStream lookupout = null;
+	ObjectInputStream lookupin = null;
     
         /* Create Online Broker server socket */
 	// This is where server will be listening
@@ -43,8 +43,8 @@ public class OnlineBroker {
 		System.exit(-1);
 	    }
 	    lookupSocket = new Socket(hostname, port);
-	    out = new ObjectOutputStream(lookupSocket.getOutputStream());
-	    in = new ObjectInputStream(lookupSocket.getInputStream());
+	    lookupout = new ObjectOutputStream(lookupSocket.getOutputStream());
+	    lookupin = new ObjectInputStream(lookupSocket.getInputStream());
 
 	    // Register broker into BrokerLookup
 	    // $1 = hostname of lookup, $2 = port of BrokerLookupServer, $3 = port where I listen, $4 = key
@@ -56,7 +56,7 @@ public class OnlineBroker {
 	    packetToLookup.locations[0] = new BrokerLocation(InetAddress.getLocalHost().getHostName(), Integer.parseInt(args[2]));
 	    
 	    //System.out.println("The stored locations are: " + packetToLookup.locations[0].broker_host);
-	    out.writeObject(packetToLookup);
+	    lookupout.writeObject(packetToLookup);
 
 	} catch (UnknownHostException e) {
 	    System.err.println("ERROR: Don't know where to connect!!");
@@ -68,7 +68,6 @@ public class OnlineBroker {
 	    System.err.println("ERROR: Null pointer exception.");
 	    System.exit(1);
 	}
-
 
 	// Retrieve brokers from table
         /* Store table into a hashmap */
@@ -84,11 +83,11 @@ public class OnlineBroker {
         input.close();
 
         /* Set table quotes in OnlineBrokerHandlerThread */
-        OnlineBrokerHandlerThread.setNasdaq(table);
+        OnlineBrokerHandlerThread.setTable(table);
 
         /* Listen for clients */
         while (listening) {
-            new OnlineBrokerHandlerThread(brokerSocket.accept()).start();
+            new OnlineBrokerHandlerThread(brokerSocket.accept(), lookupout, lookupin).start();
         }
     }
 }
