@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
    Hastable format
    key (broker name) String, IP (ex. localhost), port (ex. 8000)
 */
-public class BrokerLookup {
+public class BrokerLookupServer {
     public static void main (String[] args) throws IOException {
         ServerSocket lookupSocket = null;
         boolean listening = true;
@@ -31,6 +31,12 @@ public class BrokerLookup {
 
         /* Store loopup table into a hashmap */
         ConcurrentHashMap<String, String> lookup = new ConcurrentHashMap<String, String>();
+
+	// Create file if it doesn't exist
+	File lookupfile = new File("lookuptable");
+	if(!lookupfile.exists())
+	    lookupfile.createNewFile();
+
         BufferedReader in = new BufferedReader(new FileReader("lookuptable"));
         String line = "";
         Long quote;
