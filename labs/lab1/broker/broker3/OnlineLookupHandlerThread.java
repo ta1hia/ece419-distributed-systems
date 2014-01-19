@@ -82,6 +82,31 @@ public class OnlineLookupHandlerThread extends Thread {
 					continue;
 				}
 				
+				/* LOOKUP_REQUEST */
+				if(packetFromClient.type == BrokerPacket.LOOKUP_REQUEST) {
+					System.out.println("From Client/Exchange: " + packetFromClient.symbol);
+					if (packetFromClient.symbol == null || !table.containsKey(packetFromClient.symbol)) {
+						/* valid symbol could not be processed */
+						System.out.println("From Client: request error");
+						System.out.println(table.toString());
+						System.out.println(table.get(packetFromClient.symbol));
+
+						packetToClient.type = BrokerPacket.ERROR_INVALID_SYMBOL;
+					} else {
+						packetToClient.type = BrokerPacket.BROKER_QUOTE;
+
+						System.out.println("Replying to Client: " + table.get(packetFromClient.symbol));						
+
+						String symbol = packetFromClient.symbol;
+						String host = OnlineLookupHandlerThread.getHost(symbol);
+						int port = OnlineLookupHandlerThread.getPort(symbol); 
+						packetToClient.symbol = symbol;
+						packetToClient.locations = new BrokerLocation[1];
+						packetToClient.locations[0] = new BrokerLocation(host, port);						
+					}
+					toClient.writeObject(packetToClient);
+					continue;
+				}
 
              	   		// /* LOOKUP_REGISTER */
 				// if (packetFromClient.type == BrokerPacket.EXCHANGE_ADD) {
@@ -130,19 +155,18 @@ public class OnlineLookupHandlerThread extends Thread {
         OnlineLookupHandlerThread.table = quotes;
     }
 
-    private static String getIP(String broker) {
+    private static String getHost(String broker) {
 	String query = table.get(broker);
 	String parts[] = query.split(" ");
 
 	return parts[0];
     }
 
-
-    private static String getPort(String broker) {
+    private static int getPort(String broker) {
 	String query = table.get(broker);
 	String parts[] = query.split(" ");
 
-	return parts[1];
+	return Integer.valueOf(parts[1]);
     }
 
     private static void updateTable() {
