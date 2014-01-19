@@ -148,7 +148,7 @@ public class OnlineLookupHandlerThread extends Thread {
     private static void updateTable() {
         /* Clear table table and write updated entries */
         try {
-            FileWriter tableWriter = new FileWriter("table");
+            FileWriter tableWriter = new FileWriter("lookuptable");
 
             /* Clear contents of table */
             /* Copy updated contents of hashmap into table */
