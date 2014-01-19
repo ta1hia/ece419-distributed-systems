@@ -37,22 +37,46 @@ public class OnlineLookupHandlerThread extends Thread {
 
 				/* LOOKUP_REQUEST */
 				// Client wants to find a corresponding IP and port for a given broker name
-				if(packetFromClient.type == BrokerPacket.LOOKUP_REQUEST) {
+				if(packetFromClient.type == BrokerPacket.LOOKUP_REGISTER) {
+					System.out.println("From Broker: LOOKUP_REGISTER ");
 					System.out.println("From Client: " + packetFromClient.symbol);
-					if (packetFromClient.symbol == null || !table.containsKey(packetFromClient.symbol)) {
+					if (packetFromClient.symbol == null) { 
 						/* valid symbol could not be processed */
-						System.out.println("From Client: request error");
+						System.out.println("From Broker: request error");
 						System.out.println(table.toString());
 						System.out.println(table.get(packetFromClient.symbol));
 
 						packetToClient.type = BrokerPacket.ERROR_INVALID_SYMBOL;
-					} else {
+					} else if(!table.containsKey(packetFromClient.symbol)){ // New broker is trying to register!
 						packetToClient.type = BrokerPacket.LOOKUP_REPLY;
+						String temp_IP = packetFromClient.locations[0].broker_host;
+						int temp_port = packetFromClient.locations[0].broker_port;
 
-						System.out.println("Lookup replying to client: " + OnlineLookupHandlerThread.getIP(packetFromClient.symbol));
+						System.out.println("Lookup is registering new broker.");
+						System.out.println("IP: " + temp_IP + " Port: " + temp_port);
 
-						System.out.println("Lookup replying to client: " + OnlineLookupHandlerThread.getPort(packetFromClient.symbol));
-						//packetToClient.quote = table.get(packetFromClient.symbol);
+						table.put(packetFromClient.symbol, temp_IP + " " + temp_port );
+						OnlineLookupHandlerThread.updateTable();
+
+						System.out.println("To Broker: registration  success ");
+						packetToClient.symbol = packetFromClient.symbol;
+						packetToClient.error_code = 0;
+
+					} else { // Broker already exists.
+						
+						String temp_IP = packetToClient.locations[0].broker_host;
+						int temp_port = packetToClient.locations[0].broker_port;
+
+						packetToClient.type = BrokerPacket.LOOKUP_REPLY;
+						System.out.println("Re-registering broker.");
+						System.out.println("IP: " + temp_IP + " Port: " + temp_port);
+
+						table.put(packetFromClient.symbol, temp_IP + " " + temp_port );
+						OnlineLookupHandlerThread.updateTable();
+						System.out.println("To Client: update success ");
+						packetToClient.error_code = 0;
+						packetToClient.quote = packetFromClient.quote;
+				        	
 					}
 					toClient.writeObject(packetToClient);
 					continue;
