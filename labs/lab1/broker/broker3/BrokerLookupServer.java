@@ -35,14 +35,14 @@ public class BrokerLookupServer {
 	// Create file if it doesn't exist
 	File lookupfile = new File("lookuptable");
 	if(!lookupfile.exists())
-	    lookupfile.createNewFile();
 
+	lookupfile.createNewFile();
         BufferedReader in = new BufferedReader(new FileReader("lookuptable"));
         String line = "";
         Long quote;
         while ((line = in.readLine()) != null) {
             String parts[] = line.split(" ");
-            lookup.put(parts[0], parts[1]);
+            lookup.put(parts[0], parts[1] + " " + parts[2]);    
         }
         in.close();
 
