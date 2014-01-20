@@ -162,7 +162,6 @@ public class OnlineLookupHandlerThread extends Thread {
 
     private static String getHost(String broker) {
 	String query = table.get(broker);
-	System.err.println("the string is..." + query);
 	String parts[] = query.split(" ");
 
 	return parts[0];
