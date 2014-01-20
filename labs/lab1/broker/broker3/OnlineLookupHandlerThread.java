@@ -122,8 +122,9 @@ public class OnlineLookupHandlerThread extends Thread {
 				    packetToClient.locations = new BrokerLocation[size];
 
 				    for(int i = 0; i < size; i++){
-					String host = keys[i].toString();
-				    	int port = OnlineLookupHandlerThread.getPort(host);
+					String key = keys[i].toString();
+					String host = OnlineLookupHandlerThread.getHost(key);
+				    	int port = OnlineLookupHandlerThread.getPort(key);
 
 				    	System.out.println("Iteration:" + i + "... Saving host: " + host + " port: " + port);
 				    	packetToClient.locations[i] = new BrokerLocation(host, port);				    
@@ -161,6 +162,7 @@ public class OnlineLookupHandlerThread extends Thread {
 
     private static String getHost(String broker) {
 	String query = table.get(broker);
+	System.err.println("the string is..." + query);
 	String parts[] = query.split(" ");
 
 	return parts[0];
