@@ -11,6 +11,7 @@ public class OnlineBrokerHandlerThread extends Thread {
     private static ConcurrentHashMap<String, Long> table; /* thread-safe hashmap structure */
     private ObjectOutputStream lookupout = null;
     private ObjectInputStream lookupin = null;
+    private static String brokerName = null;
 
     public OnlineBrokerHandlerThread(Socket socket, ObjectOutputStream lookupout, ObjectInputStream lookupin) {
         super("OnlineBrokerHandlerThread");
@@ -250,15 +251,16 @@ public class OnlineBrokerHandlerThread extends Thread {
     }
 
     /* Accessors */
-    public static void setTable (ConcurrentHashMap <String, Long> quotes) {
+    public static void setTable (ConcurrentHashMap <String, Long> quotes, String name) {
         OnlineBrokerHandlerThread.table = quotes;
+	brokerName = name;
     }
 
 
     private static void updateTable() {
         /* Clear table table and write updated entries */
         try {
-            FileWriter tableWriter = new FileWriter("table");
+            FileWriter tableWriter = new FileWriter(brokerName);
 
             /* Clear contents of table */
             /* Copy updated contents of hashmap into table */

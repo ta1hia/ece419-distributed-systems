@@ -63,12 +63,11 @@ public class OnlineLookupHandlerThread extends Thread {
 						packetToClient.symbol = packetFromClient.symbol;
 						packetToClient.error_code = 0;
 
-					} else { // Broker already exists.
-						
+					} else { // Broker already exists.						
+						packetToClient.type = BrokerPacket.LOOKUP_REPLY;
 						String temp_IP = packetToClient.locations[0].broker_host;
 						int temp_port = packetToClient.locations[0].broker_port;
 
-						packetToClient.type = BrokerPacket.LOOKUP_REPLY;
 						System.out.println("Re-registering broker.");
 						System.out.println("IP: " + temp_IP + " Port: " + temp_port);
 

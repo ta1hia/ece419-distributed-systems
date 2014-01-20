@@ -72,7 +72,8 @@ public class OnlineBroker {
 	// Retrieve brokers from table
         /* Store table into a hashmap */
         ConcurrentHashMap<String, Long> table = new ConcurrentHashMap<String, Long>();
-        BufferedReader input = new BufferedReader(new FileReader(args[3]));
+	String brokerName = args[3];
+        BufferedReader input = new BufferedReader(new FileReader(brokerName));
         String line = "";
         Long quote;
         while ((line = input.readLine()) != null) {
@@ -83,7 +84,7 @@ public class OnlineBroker {
         input.close();
 
         /* Set table quotes in OnlineBrokerHandlerThread */
-        OnlineBrokerHandlerThread.setTable(table);
+        OnlineBrokerHandlerThread.setTable(table, brokerName);
 
         /* Listen for clients */
         while (listening) {
