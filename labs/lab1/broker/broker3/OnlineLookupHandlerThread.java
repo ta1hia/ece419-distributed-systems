@@ -2,6 +2,7 @@ import java.net.*;
 import java.io.*; 
 import java.net.ServerSocket;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -108,28 +109,31 @@ public class OnlineLookupHandlerThread extends Thread {
 					continue;
 				}
 
-             	   		// /* LOOKUP_REGISTER */
-				// if (packetFromClient.type == BrokerPacket.EXCHANGE_ADD) {
-				//     	packetToClient.type = BrokerPacket.EXCHANGE_REPLY;
+             	   		/* BROKER_FORWARD */
+				// Return all locations of brokers
+				if (packetFromClient.type == BrokerPacket.BROKER_FORWARD) {
+				    packetToClient.type = BrokerPacket.LOOKUP_REPLY;
 
-				// 	System.out.println("From Client: EXCHANGE_ADD ");
-				// 	System.out.println("From Client: " + packetFromClient.symbol);
+				    System.out.println("From Broker: BROKER_FORWARD ");
 
-				//  	if (table.get(packetFromClient.symbol) != null) {
-				// 		System.out.println("ERROR: symbol already exists");
-				// 		packetToClient.error_code = BrokerPacket.ERROR_SYMBOL_EXISTS;
-				//     	} else {
-				// 		table.put(packetFromClient.symbol, Long.valueOf(0));
-				// 		OnlineLookupHandlerThread.updateTable();
+				    String symbol = packetFromClient.symbol;
+				    Object[] keys = table.keySet().toArray();
+				    int size = table.size(); 
+				    packetToClient.symbol = symbol;
 
-				// 		System.out.println("To Client: add success ");
-				// 		packetToClient.symbol = packetFromClient.symbol;
-				// 		packetToClient.error_code = 0;
-				// 	}
+				    for(int i = 0; i < size; i++){
+					if(i == 0){
+				    		packetToClient.locations = new BrokerLocation[size];
+						packetToClient.num_locations = size;
+					}
 
-				// 	toClient.writeObject(packetToClient);
-				//     	continue;
-				// }
+					String host = keys[i].toString();
+				    	int port = OnlineLookupHandlerThread.getPort(host);
+				    	packetToClient.locations[0] = new BrokerLocation(host, port);				    }
+				
+				    toClient.writeObject(packetToClient);
+				    continue;
+				}
 
 				/* if code comes here, there is an error in the packet */
 				System.err.println("ERROR: Unknown packet!!");
