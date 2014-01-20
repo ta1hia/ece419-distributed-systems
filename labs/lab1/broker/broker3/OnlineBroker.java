@@ -29,12 +29,12 @@ public class OnlineBroker {
             System.exit(-1);
         }
 
+	/* Lookup variables. Do not hardwire! */	
+	String hostname = null;
+	int port = 0;
+
 	// Connect to the BrokerLookup thread.
 	try {
-	    /* Lookup variables. Do not hardwire! */
-	    String hostname = null;
-	    int port = 0;
-		
 	    if(args.length == 4) {
 		hostname = args[0];
 		port = Integer.parseInt(args[1]);
@@ -88,7 +88,7 @@ public class OnlineBroker {
 
         /* Listen for clients */
         while (listening) {
-            new OnlineBrokerHandlerThread(brokerSocket.accept(), lookupout, lookupin).start();
+            new OnlineBrokerHandlerThread(brokerSocket.accept(), hostname, port).start();
         }
     }
 }

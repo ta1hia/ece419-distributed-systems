@@ -36,7 +36,7 @@ public class OnlineLookupHandlerThread extends Thread {
 				/* create a packet to send reply back to client */
 			    	BrokerPacket packetToClient = new BrokerPacket();
 
-				/* LOOKUP_REQUEST */
+				/* LOOKUP_REGISTER */
 				// Client wants to find a corresponding IP and port for a given broker name
 				if(packetFromClient.type == BrokerPacket.LOOKUP_REGISTER) {
 					System.out.println("From Broker: LOOKUP_REGISTER ");
@@ -75,7 +75,6 @@ public class OnlineLookupHandlerThread extends Thread {
 						OnlineLookupHandlerThread.updateTable();
 						System.out.println("To Client: update success ");
 						packetToClient.error_code = 0;
-						packetToClient.quote = packetFromClient.quote;
 				        	
 					}
 					toClient.writeObject(packetToClient);
@@ -119,16 +118,15 @@ public class OnlineLookupHandlerThread extends Thread {
 				    Object[] keys = table.keySet().toArray();
 				    int size = table.size(); 
 				    packetToClient.symbol = symbol;
+				    packetToClient.num_locations = size;
+				    packetToClient.locations = new BrokerLocation[size];
 
 				    for(int i = 0; i < size; i++){
-					if(i == 0){
-				    		packetToClient.locations = new BrokerLocation[size];
-						packetToClient.num_locations = size;
-					}
-
 					String host = keys[i].toString();
 				    	int port = OnlineLookupHandlerThread.getPort(host);
-				    	packetToClient.locations[0] = new BrokerLocation(host, port);				    
+
+				    	System.out.println("Iteration:" + i + "... Saving host: " + host + " port: " + port);
+				    	packetToClient.locations[i] = new BrokerLocation(host, port);				    
 				    }
 				
 				    System.out.println("From Broker: Sending list of brokers back.");

@@ -9,15 +9,15 @@ import java.util.Map.Entry;
 public class OnlineBrokerHandlerThread extends Thread {
     private Socket socket = null;
     private static ConcurrentHashMap<String, Long> table; /* thread-safe hashmap structure */
-    private ObjectOutputStream lookupout = null;
-    private ObjectInputStream lookupin = null;
+    private String lookupHostname = null;
+    private int lookupPort = -1;
     private static String brokerName = null;
 
-    public OnlineBrokerHandlerThread(Socket socket, ObjectOutputStream lookupout, ObjectInputStream lookupin) {
+    public OnlineBrokerHandlerThread(Socket socket, String hostname, int port) {
         super("OnlineBrokerHandlerThread");
         this.socket = socket;
-	this.lookupout = lookupout;
-	this.lookupin = lookupin;
+	this.lookupHostname = hostname;
+	this.lookupPort = port;
         System.out.println("Created new Thread to handle broker client");
     }
 
@@ -26,6 +26,11 @@ public class OnlineBrokerHandlerThread extends Thread {
 	boolean gotByePacket = false;
 		
 	try {
+	    // Connect to lookup!
+	    Socket lookupSocket= new Socket(lookupHostname, lookupPort);;
+	    ObjectOutputStream lookupout = new ObjectOutputStream(lookupSocket.getOutputStream());
+	    ObjectInputStream lookupin = new ObjectInputStream(lookupSocket.getInputStream());
+
 	    /* stream to read from client */
 	    ObjectInputStream fromClient = new ObjectInputStream(socket.getInputStream());
 	    BrokerPacket packetFromClient;
@@ -87,7 +92,7 @@ public class OnlineBrokerHandlerThread extends Thread {
 			    // Traverse brokers until until symbol is found
 			    int num_locations = packetFromLookup.num_locations;
 
-			System.out.println("num_locations from lookup " + num_locations); 
+			    System.out.println("num_locations from lookup " + num_locations); 
 			    for(int i = 0; i < num_locations; i++){						    
 				// Connect to brokers.
 
