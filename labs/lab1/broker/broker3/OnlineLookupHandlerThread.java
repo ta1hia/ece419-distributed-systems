@@ -94,15 +94,15 @@ public class OnlineLookupHandlerThread extends Thread {
 						packetToClient.type = BrokerPacket.ERROR_INVALID_SYMBOL;
 					} else {
 						packetToClient.type = BrokerPacket.BROKER_QUOTE;
-
-						System.out.println("Replying to Client: " + table.get(packetFromClient.symbol));						
-
+						
 						String symbol = packetFromClient.symbol;
 						String host = OnlineLookupHandlerThread.getHost(symbol);
 						int port = OnlineLookupHandlerThread.getPort(symbol); 
 						packetToClient.symbol = symbol;
 						packetToClient.locations = new BrokerLocation[1];
-						packetToClient.locations[0] = new BrokerLocation(host, port);						
+						packetToClient.locations[0] = new BrokerLocation(host, port);	
+
+						System.out.println("Replying to Client: " + symbol + " " + host + " " + port);					
 					}
 					toClient.writeObject(packetToClient);
 					continue;

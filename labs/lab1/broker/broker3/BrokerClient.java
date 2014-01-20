@@ -66,7 +66,7 @@ public class BrokerClient {
 			    // Make a lookup packet request
 			    BrokerPacket packetToLookup = new BrokerPacket();
 			    packetToLookup.type = BrokerPacket.LOOKUP_REQUEST;
-			    packetToLookup.symbol = args[2];
+			    packetToLookup.symbol = symbol;
 			    lookupout.writeObject(packetToLookup);
 
 			    // Get reply from lookup
@@ -91,6 +91,11 @@ public class BrokerClient {
 				System.err.println("ERROR: Couldn't get I/O for the connection.");
 				System.exit(1);
 			    }
+
+			    
+			    System.out.print(symbol + "as local.\n");
+			    /* re-print console prompt */
+			    System.out.print("> ");
 
 			    continue;
 			}
