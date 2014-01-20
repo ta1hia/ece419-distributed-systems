@@ -63,9 +63,8 @@ public class OnlineBrokerHandlerThread extends Thread {
 		    System.out.println("From Client: " + packetFromClient.symbol);
 		    if (packetFromClient.symbol == null || !table.containsKey(packetFromClient.symbol)) {
 			/* valid symbol could not be processed */
-			System.out.println("From Client: Could not find symbol");
+			System.out.println("From Client: Could not find symbol " + packetFromClient.symbol);
 			System.out.println(table.toString());
-			System.out.println(table.get(packetFromClient.symbol));
 					     
 			// Search other brokers if they have it
 			System.out.println("Find symbol in other brokers via Lookup."); 
@@ -83,10 +82,12 @@ public class OnlineBrokerHandlerThread extends Thread {
 	  	
 			boolean resultFound  = false;
 
+			System.out.println("Searching all brokers..."); 
 			if(packetFromLookup.type == BrokerPacket.LOOKUP_REPLY){
 			    // Traverse brokers until until symbol is found
 			    int num_locations = packetFromLookup.num_locations;
 
+			System.out.println("num_locations from lookup " + num_locations); 
 			    for(int i = 0; i < num_locations; i++){						    
 				// Connect to brokers.
 
@@ -98,8 +99,11 @@ public class OnlineBrokerHandlerThread extends Thread {
 				String temp_hostname = null;
 				int temp_port = -1;
 
-				temp_hostname = packetFromLookup.locations[0].broker_host;
-				temp_port = packetFromLookup.locations[0].broker_port;	
+				temp_hostname = packetFromLookup.locations[i].broker_host;
+				temp_port = packetFromLookup.locations[i].broker_port;	
+
+
+				System.out.println("Iteration:" + i + " Host: " + temp_hostname + " Port: " + temp_port); 
 
 				// Connect to broker
 				try {
@@ -138,6 +142,7 @@ public class OnlineBrokerHandlerThread extends Thread {
 			    }
 			}
 
+			System.out.println("Searching complete..."); 
 			if(resultFound)
 			    packetToClient.type = BrokerPacket.BROKER_QUOTE;	
 			else

@@ -128,8 +128,11 @@ public class OnlineLookupHandlerThread extends Thread {
 
 					String host = keys[i].toString();
 				    	int port = OnlineLookupHandlerThread.getPort(host);
-				    	packetToClient.locations[0] = new BrokerLocation(host, port);				    }
+				    	packetToClient.locations[0] = new BrokerLocation(host, port);				    
+				    }
 				
+				    System.out.println("From Broker: Sending list of brokers back.");
+				    System.out.println("num_locations is " + packetToClient.num_locations);
 				    toClient.writeObject(packetToClient);
 				    continue;
 				}

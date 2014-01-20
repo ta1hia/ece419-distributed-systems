@@ -59,10 +59,11 @@ public class BrokerClient {
 
                         /* make a new request packet */
                         String command = parts[0].toLowerCase();
-                        String symbol = parts[1].toLowerCase();
 
 		    	/* make a new request packet */
 		    	if(command.equals("local")){ // Check if it's a request to lookup
+			    String symbol = parts[1].toLowerCase();
+
 			    // Make a lookup packet request
 			    BrokerPacket packetToLookup = new BrokerPacket();
 			    packetToLookup.type = BrokerPacket.LOOKUP_REQUEST;
