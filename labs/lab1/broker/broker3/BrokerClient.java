@@ -93,7 +93,7 @@ public class BrokerClient {
 			    }
 
 			    
-			    System.out.print(symbol + "as local.\n");
+			    System.out.print(symbol + " as local.\n");
 			    /* re-print console prompt */
 			    System.out.print("> ");
 
