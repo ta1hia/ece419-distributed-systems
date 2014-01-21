@@ -112,11 +112,9 @@ public class BrokerClient {
                    packetToServer.symbol = userInput.toLowerCase();
                    out.writeObject(packetToServer);
 
-
                    /* print server reply */
                    BrokerPacket packetFromServer;
                    packetFromServer = (BrokerPacket) in.readObject();
-
 
                    if (packetFromServer.type == BrokerPacket.BROKER_QUOTE){
                        int isError = packetFromServer.error_code;
@@ -144,7 +142,6 @@ public class BrokerClient {
 
                /* tell server that i'm quitting */
                if (out != null) {
-                   System.out.println("YO");
                    BrokerPacket packetToServer = new BrokerPacket();
                    packetToServer.type = BrokerPacket.BROKER_BYE;
                    out.writeObject(packetToServer);
