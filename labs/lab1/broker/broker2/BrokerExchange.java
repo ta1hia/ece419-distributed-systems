@@ -64,8 +64,13 @@ public class BrokerExchange {
                    if (command.equals("add")) {
                        packetToServer.type = BrokerPacket.EXCHANGE_ADD;
                    } else if (command.equals("update")) {
-                       packetToServer.type = BrokerPacket.EXCHANGE_UPDATE;
-                       packetToServer.quote= Long.parseLong(parts[2], 10);
+                       try {
+                           packetToServer.type = BrokerPacket.EXCHANGE_UPDATE;
+                           packetToServer.quote= Long.parseLong(parts[2], 10);
+                       } catch (Exception e) {
+                           System.out.print("Invalid arguments...\n> ");
+                           continue;
+                       }
                    } else if (command.equals("remove")) {
                        packetToServer.type = BrokerPacket.EXCHANGE_REMOVE;
                    } else {
