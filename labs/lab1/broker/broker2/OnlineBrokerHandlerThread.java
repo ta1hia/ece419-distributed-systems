@@ -18,69 +18,70 @@ public class OnlineBrokerHandlerThread extends Thread {
 
     public void run() {
 
-		boolean gotByePacket = false;
+	boolean gotByePacket = false;
 		
-		try {
-			/* stream to read from client */
-			ObjectInputStream fromClient = new ObjectInputStream(socket.getInputStream());
-			BrokerPacket packetFromClient;
+	try {
+	    /* stream to read from client */
+	    ObjectInputStream fromClient = new ObjectInputStream(socket.getInputStream());
+	    BrokerPacket packetFromClient;
 			
-			/* stream to write back to client */
-			ObjectOutputStream toClient = new ObjectOutputStream(socket.getOutputStream());
+	    /* stream to write back to client */
+	    ObjectOutputStream toClient = new ObjectOutputStream(socket.getOutputStream());
 			
 
-			while (( packetFromClient = (BrokerPacket) fromClient.readObject()) != null) {
-			/* create a packet to send reply back to client */
-			    BrokerPacket packetToClient = new BrokerPacket();
+	    while (( packetFromClient = (BrokerPacket) fromClient.readObject()) != null) {
+		/* create a packet to send reply back to client */
+		BrokerPacket packetToClient = new BrokerPacket();
 				
-                /* BROKER_REQUEST */
-				if(packetFromClient.type == BrokerPacket.BROKER_REQUEST) {
-					System.out.println("From Client: " + packetFromClient.symbol);
-                    if (packetFromClient.symbol == null || !nasdaq.containsKey(packetFromClient.symbol)) {
-                        /* valid symbol could not be processed */
-					    System.out.println("From Client: request error");
+		/* BROKER_REQUEST */
+		if(packetFromClient.type == BrokerPacket.BROKER_REQUEST) {
+		    System.out.println("From Client: " + packetFromClient.symbol);
+
+		    packetToClient.type = BrokerPacket.BROKER_QUOTE;
+		    if (packetFromClient.symbol == null || !nasdaq.containsKey(packetFromClient.symbol)) {
+			/* valid symbol could not be processed */
+			System.out.println("From Client: request error");
                         System.out.println(nasdaq.toString());
                         System.out.println(nasdaq.get(packetFromClient.symbol));
-                        packetToClient.type = BrokerPacket.BROKER_ERROR;
-                        packetToClient.type = BrokerPacket.ERROR_INVALID_SYMBOL;
+                        packetToClient.error_code = BrokerPacket.ERROR_INVALID_SYMBOL;
                     } else {
-                        packetToClient.type = BrokerPacket.BROKER_QUOTE;
-					    System.out.println("Replying to Client: " + nasdaq.get(packetFromClient.symbol));
+                        packetToClient.error_code = 0;
+			System.out.println("Replying to Client: " + nasdaq.get(packetFromClient.symbol));
                         packetToClient.quote = nasdaq.get(packetFromClient.symbol);
                     }
 				
-					toClient.writeObject(packetToClient);
-					continue;
-				}
+		    toClient.writeObject(packetToClient);
+		    continue;
+		}
 				
-				/* BROKER_NULL || BROKER_BYE */
-				if (packetFromClient.type == BrokerPacket.BROKER_NULL || packetFromClient.type == BrokerPacket.BROKER_BYE) {
-					gotByePacket = true;
-					packetToClient.type = BrokerPacket.BROKER_BYE;
-					System.out.println("Client is exiting");
-					toClient.writeObject(packetToClient);
-					break;
-				}
+		/* BROKER_NULL || BROKER_BYE */
+		if (packetFromClient.type == BrokerPacket.BROKER_NULL || packetFromClient.type == BrokerPacket.BROKER_BYE) {
+		    gotByePacket = true;
+		    packetToClient.type = BrokerPacket.BROKER_BYE;
+		    System.out.println("Client is exiting");
+		    toClient.writeObject(packetToClient);
+		    break;
+		}
 
                 /* EXCHANGE_ADD */
                 if (packetFromClient.type == BrokerPacket.EXCHANGE_ADD) {
                     packetToClient.type = BrokerPacket.EXCHANGE_REPLY;
 
-					System.out.println("From Client: EXCHANGE_ADD ");
-					System.out.println("From Client: " + packetFromClient.symbol);
+		    System.out.println("From Client: EXCHANGE_ADD ");
+		    System.out.println("From Client: " + packetFromClient.symbol);
 
                     if (nasdaq.get(packetFromClient.symbol) != null) {
-					    System.out.println("ERROR: symbol already exists");
+			System.out.println("ERROR: symbol already exists");
                         packetToClient.error_code = BrokerPacket.ERROR_SYMBOL_EXISTS;
                     } else {
                         nasdaq.put(packetFromClient.symbol, Long.valueOf(0));
                         OnlineBrokerHandlerThread.updateNasdaqTable();
 
-					    System.out.println("To Client: add success ");
+			System.out.println("To Client: add success ");
                         packetToClient.symbol = packetFromClient.symbol;
                         packetToClient.error_code = 0;
                     }
-					toClient.writeObject(packetToClient);
+		    toClient.writeObject(packetToClient);
                     continue;
                 }
 
@@ -88,15 +89,15 @@ public class OnlineBrokerHandlerThread extends Thread {
                 if (packetFromClient.type == BrokerPacket.EXCHANGE_UPDATE) {
                     packetToClient.type = BrokerPacket.EXCHANGE_REPLY;
 
-					System.out.println("From Client: EXCHANGE_UPDATE ");
-					System.out.println("From Client: " + packetFromClient.symbol);
-					System.out.println("From Client: " + packetFromClient.quote);
+		    System.out.println("From Client: EXCHANGE_UPDATE ");
+		    System.out.println("From Client: " + packetFromClient.symbol);
+		    System.out.println("From Client: " + packetFromClient.quote);
 
                     if (nasdaq.get(packetFromClient.symbol) == null) {
-					    System.out.println("ERROR: symbol does not exist");
+			System.out.println("ERROR: symbol does not exist");
                         packetToClient.error_code = BrokerPacket.ERROR_INVALID_SYMBOL;
                     } else if (packetFromClient.quote > 300 || packetFromClient.quote < 1) {
-					    System.out.println("ERROR: quote out of range ");
+			System.out.println("ERROR: quote out of range ");
                         packetToClient.error_code = BrokerPacket.ERROR_OUT_OF_RANGE;
                     } else {
                         nasdaq.put(packetFromClient.symbol, packetFromClient.quote);
@@ -105,7 +106,7 @@ public class OnlineBrokerHandlerThread extends Thread {
                         packetToClient.error_code = 0;
                         packetToClient.quote = packetFromClient.quote;
                     }
-					toClient.writeObject(packetToClient);
+		    toClient.writeObject(packetToClient);
                     continue;
                 }
                 
@@ -114,38 +115,38 @@ public class OnlineBrokerHandlerThread extends Thread {
                     packetToClient.type = BrokerPacket.EXCHANGE_REPLY;
                     
                     System.out.println("From Client: EXCHANGE_REMOVE ");
-					System.out.println("From Client: " + packetFromClient.symbol);
+		    System.out.println("From Client: " + packetFromClient.symbol);
 
                     if (nasdaq.get(packetFromClient.symbol) == null) {
-					    System.out.println("ERROR: symbol does not exist");
+			System.out.println("ERROR: symbol does not exist");
                         packetToClient.error_code = BrokerPacket.ERROR_INVALID_SYMBOL;
                     } else {
                         nasdaq.remove(packetFromClient.symbol);
                         OnlineBrokerHandlerThread.updateNasdaqTable();
-					    System.out.println("To Client: remove success ");
+			System.out.println("To Client: remove success ");
                         packetToClient.error_code = 0;
                     }
-					toClient.writeObject(packetToClient);
+		    toClient.writeObject(packetToClient);
                     continue;
                 }
 				
-				/* if code comes here, there is an error in the packet */
-				System.err.println("ERROR: Unknown packet!!");
-				System.exit(-1);
-			}
+		/* if code comes here, there is an error in the packet */
+		System.err.println("ERROR: Unknown packet!!");
+		System.exit(-1);
+	    }
 			
-			/* cleanup when client exits */
-			fromClient.close();
-			toClient.close();
-			socket.close();
+	    /* cleanup when client exits */
+	    fromClient.close();
+	    toClient.close();
+	    socket.close();
 
-		} catch (IOException e) {
-			if(!gotByePacket)
-				e.printStackTrace();
-		} catch (ClassNotFoundException e) {
-			if(!gotByePacket)
-				e.printStackTrace();
-		}
+	} catch (IOException e) {
+	    if(!gotByePacket)
+		e.printStackTrace();
+	} catch (ClassNotFoundException e) {
+	    if(!gotByePacket)
+		e.printStackTrace();
+	}
     }
 
     /* Accessors */

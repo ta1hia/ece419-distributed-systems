@@ -40,12 +40,13 @@ public class BrokerClient {
 		System.out.print("Enter queries or quit for exit:\n");
 		System.out.print("> ");
 
-		while ((userInput = stdIn.readLine()) != null && userInput.toLowerCase().indexOf("x") == -1) {
+		while ((userInput = stdIn.readLine()) != null && !userInput.toLowerCase().equals("x") && !userInput.toLowerCase().equals("exit")) {
 						
 			/* make a new request packet */
 			BrokerPacket packetToServer = new BrokerPacket();
 			packetToServer.type = BrokerPacket.BROKER_REQUEST;
-			packetToServer.symbol = userInput.toLowerCase();
+			String originalSymbol = userInput;
+			packetToServer.symbol = userInput.toUpperCase();
 			out.writeObject(packetToServer);
 
 			/* print server reply */
@@ -56,22 +57,22 @@ public class BrokerClient {
 				int isError = packetFromServer.error_code;
 
                                 switch(isError) {
-                                        case BrokerPacket.ERROR_INVALID_SYMBOL:         System.out.print(packetFromServer.symbol + " invalid.");
-                                                                        continue;
-                                        case BrokerPacket.ERROR_OUT_OF_RANGE:         System.out.print(packetFromServer.symbol + " out of range.");
-                                                                        continue;
-                                        case BrokerPacket.ERROR_SYMBOL_EXISTS:         System.out.print(packetFromServer.symbol + " exists.");
-                                                                        continue;        
-                                        case BrokerPacket.ERROR_INVALID_EXCHANGE:         System.out.print(packetFromServer.symbol + " invalid.");
-                                                                        continue;   
+                                        case BrokerPacket.ERROR_INVALID_SYMBOL:         System.out.print(originalSymbol + " invalid.\n");
+					    break;
+                                        case BrokerPacket.ERROR_OUT_OF_RANGE:         System.out.print(originalSymbol + " out of range.\n");
+					    break;
+                                        case BrokerPacket.ERROR_SYMBOL_EXISTS:         System.out.print(originalSymbol + " exists.\n");
+					    break;
+                                        case BrokerPacket.ERROR_INVALID_EXCHANGE:         System.out.print(originalSymbol + " invalid.\n");
+					    break;         
                                         case 0: System.out.println("Quote from broker: " + String.valueOf(packetFromServer.quote));
                                         default: break; 
                                 }
 
 				
 			} else {
-                		/* error returned - this case isn't handled in Broker1 */
-                		System.out.println("Quote from broker: 0");
+			    	/* Recieved  a different kind of packet type... What is it?! */
+                		System.out.println("Quote from broker: 0\n");
             		}
 
 
