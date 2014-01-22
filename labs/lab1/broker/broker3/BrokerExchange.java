@@ -109,7 +109,7 @@ public class BrokerExchange {
 		packetToServer.type = BrokerPacket.EXCHANGE_UPDATE;
 		try{
 			packetToServer.quote= Long.parseLong(quote, 10);
-		} catch (NullPointerException e) {
+		} catch (NumberFormatException e) {
 
 		    System.out.print("Invalid arguments...\n> ");
 		}
