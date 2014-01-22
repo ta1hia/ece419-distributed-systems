@@ -56,7 +56,7 @@ public class OnlineLookupHandlerThread extends Thread {
                         System.out.println("Lookup is registering new broker.");
                         System.out.println("IP: " + temp_IP + " Port: " + temp_port);
 
-                        table.put(packetFromClient.symbol, temp_IP + " " + temp_port );
+                        table.put(packetFromClient.symbol, temp_IP + " " + temp_port);
                         OnlineLookupHandlerThread.updateTable();
 
                         System.out.println("To Broker: registration  success ");
@@ -84,7 +84,7 @@ public class OnlineLookupHandlerThread extends Thread {
                 /* LOOKUP_REQUEST */
                 if(packetFromClient.type == BrokerPacket.LOOKUP_REQUEST) {
                     System.out.println("From Client/Exchange: " + packetFromClient.symbol);
-                    if (packetFromClient.symbol == null || !table.containsKey(packetFromClient.symbol)) {
+                    if (packetFromClient.symbol == null || !table.containsKey(packetFromClient.symbol) || table.isEmpty()) {
                         /* valid symbol could not be processed */
                         System.out.println("From Client: request error");
                         System.out.println(table.toString());

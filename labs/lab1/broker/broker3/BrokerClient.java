@@ -54,7 +54,7 @@ public class BrokerClient {
 
                while ((userInput = stdIn.readLine()) != null && !userInput.toLowerCase().equals("x") && !userInput.toLowerCase().equals("equals")) {
 
-                   // Split strings into seperate parts
+                   // Split strings into seperate parts		   
                    String parts[] = userInput.split(" ");
 
                    /* make a new request packet */
@@ -75,6 +75,12 @@ public class BrokerClient {
                        // Get reply from lookup
                        BrokerPacket packetFromLookup;
                        packetFromLookup = (BrokerPacket) lookupin.readObject();
+
+		       if(packetFromLookup.type == BrokerPacket.ERROR_INVALID_SYMBOL){
+			   System.out.println("Broker does not exist...");			    	
+			   System.out.print("> ");
+			   continue;
+		       }
 
                        /* global variables for hostname/port */
                        hostname = packetFromLookup.locations[0].broker_host;

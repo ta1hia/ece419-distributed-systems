@@ -35,7 +35,7 @@ public class BrokerExchange {
 	} catch (IOException e) {
 	    System.err.println("ERROR: Couldn't get I/O for the connection.");
 	    System.exit(1);
-	}
+	} 
 
 	// Make a lookup packet request
 	BrokerPacket packetToLookup = new BrokerPacket();
@@ -46,6 +46,11 @@ public class BrokerExchange {
 	// Get reply from lookup
 	BrokerPacket packetFromLookup;
 	packetFromLookup = (BrokerPacket) lookupin.readObject();
+
+	if(packetFromLookup.type == BrokerPacket.ERROR_INVALID_SYMBOL){	    
+		System.out.print("No brokers exist...\n");
+	    	System.exit(1);
+	}
 	  
 	// Get IP and port from lookup		
 	Socket brokerSocket = null;
@@ -70,6 +75,7 @@ public class BrokerExchange {
 	    System.err.println("ERROR: Couldn't get I/O for the connection.");
 	    System.exit(1);
 	}
+
 
 	BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
 	String userInput;
