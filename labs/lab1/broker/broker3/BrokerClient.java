@@ -49,10 +49,10 @@ public class BrokerClient {
                BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
                String userInput;
 
-               System.out.print("Enter queries or quit for exit:\n");
+               System.out.print("Enter symbol or quit for exit:\n");
                System.out.print("> ");
 
-               while ((userInput = stdIn.readLine()) != null && !userInput.toLowerCase().equals("x") && !userInput.toLowerCase().equals("equals")) {
+               while ((userInput = stdIn.readLine()) != null && !userInput.toLowerCase().equals("x") && !userInput.toLowerCase().equals("quit")) {
 
                    // Split strings into seperate parts		   
                    String parts[] = userInput.split(" ");
