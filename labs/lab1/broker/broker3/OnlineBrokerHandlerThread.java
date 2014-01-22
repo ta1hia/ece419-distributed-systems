@@ -52,7 +52,7 @@ public class OnlineBrokerHandlerThread extends Thread {
                         System.out.println("From Client: request error");
                         System.out.println(table.toString());
                         System.out.println(table.get(packetFromClient.symbol));
-                        packetToClient.type = BrokerPacket.ERROR_INVALID_SYMBOL;
+                        packetToClient.error_code = BrokerPacket.ERROR_INVALID_SYMBOL;
                     } else {
                         packetToClient.type = BrokerPacket.BROKER_QUOTE;
                         System.out.println("Replying to Client: " + table.get(packetFromClient.symbol));
@@ -65,6 +65,7 @@ public class OnlineBrokerHandlerThread extends Thread {
 
                 /* BROKER_REQUEST */
                 if(packetFromClient.type == BrokerPacket.BROKER_REQUEST) {
+		    packetToClient.type = BrokerPacket.BROKER_QUOTE;
                     System.out.println("From Client: " + packetFromClient.symbol);
                     if (packetFromClient.symbol == null || !table.containsKey(packetFromClient.symbol)) {
                         /* valid symbol could not be processed */
@@ -140,6 +141,7 @@ public class OnlineBrokerHandlerThread extends Thread {
                                 if(packetFromBroker.type  == BrokerPacket.BROKER_QUOTE){
                                     resultFound = true;
                                     packetToClient.quote = packetFromBroker.quote;
+				    packetToClient.error_code = 0;
                                     break;
                                 }
 
@@ -149,9 +151,9 @@ public class OnlineBrokerHandlerThread extends Thread {
 
                         System.out.println("Searching complete..."); 
                         if(resultFound)
-                            packetToClient.type = BrokerPacket.BROKER_QUOTE;	
+                            packetToClient.error_code = 0;	
                         else
-                            packetToClient.type = BrokerPacket.ERROR_INVALID_SYMBOL;
+                            packetToClient.error_code = BrokerPacket.ERROR_INVALID_SYMBOL;
 
 
                     } else {

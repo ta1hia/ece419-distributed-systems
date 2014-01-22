@@ -103,7 +103,7 @@ public class BrokerClient {
                    }
 
                    if(hostname == null || port < 0) { // Client is currently not connected
-                       System.out.println("Client is currently not connected to a broker... Use command 'local'.\ncc");			    	
+                       System.out.println("Client is currently not connected to a broker... Use command 'local'.");			    	
                        System.out.print("> ");
                        continue;
                    }
@@ -130,12 +130,12 @@ public class BrokerClient {
 			       break;        
                            case BrokerPacket.ERROR_INVALID_EXCHANGE:         System.out.print(input + " invalid.\n");
 			       break;   
-                           case 0: System.out.println("Quote from broker: " + String.valueOf(packetFromServer.quote));
+		       case 0: System.out.println("Quote from broker: " + String.valueOf(packetFromServer.quote)); break;
                            default: System.out.print("Invalid error...\n"); break; 
                        }
                    } else {
                        /* error returned - this case isn't handled in Broker1 */
-                       System.out.println("Unknown packet type...\n");
+                       System.out.println("Unknown packet type...");
                    }
 
                    /* re-print console prompt */
