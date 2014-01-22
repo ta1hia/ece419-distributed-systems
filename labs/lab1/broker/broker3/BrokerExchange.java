@@ -101,9 +101,10 @@ public class BrokerExchange {
 		symbol = parts[1].toLowerCase();
 
 		if(command.equals("update"))
-		   quote = parts[2];
-	    } catch (NullPointerException e) {
+		   quote = parts[2];	    
+	    } catch (Exception e) {
 		System.out.print("Invalid arguments...\n> ");
+		continue;
 	    }
 		
 
@@ -115,7 +116,7 @@ public class BrokerExchange {
 		packetToServer.type = BrokerPacket.EXCHANGE_UPDATE;
 		try{
 			packetToServer.quote= Long.parseLong(quote, 10);
-		} catch (NumberFormatException e) {
+		} catch (Exception e) {
 
 		    System.out.print("Invalid arguments...\n> ");
 		}
