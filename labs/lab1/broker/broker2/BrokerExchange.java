@@ -41,10 +41,11 @@ public class BrokerExchange {
                System.out.print("Enter command or quit for exit:\n");
                System.out.print("> ");
 
-               while ((userInput = stdIn.readLine()) != null && userInput.toLowerCase().indexOf("quit") == -1) {
+               while ((userInput = stdIn.readLine()) != null && !userInput.toLowerCase().equals("quit") && !userInput.toLowerCase().equals("x")) {
 
                    BrokerPacket packetToServer = null;
                    String command = null;
+		   String originalSymbol = null;
                    String symbol = null;
                    String parts[] = userInput.split(" ");
 
@@ -53,6 +54,7 @@ public class BrokerExchange {
 
                        /* make a new request packet */
                        packetToServer = new BrokerPacket();
+		       originalSymbol = parts[1];
                        command = parts[0].toLowerCase();
                        symbol = parts[1].toLowerCase();
                    } catch (Exception e) {
@@ -94,23 +96,23 @@ public class BrokerExchange {
                        int isError = packetFromServer.error_code;
 
                        switch(isError) {
-                           case BrokerPacket.ERROR_INVALID_SYMBOL: 	System.out.print(symbol + " invalid.\n");
+                           case BrokerPacket.ERROR_INVALID_SYMBOL: 	System.out.print(originalSymbol + " invalid.\n> ");
                                                                     continue;
-                           case BrokerPacket.ERROR_OUT_OF_RANGE: 	System.out.print(symbol + " out of range.\n");
+                           case BrokerPacket.ERROR_OUT_OF_RANGE: 	System.out.print(originalSymbol + " out of range.\n> ");
                                                                     continue;
-                           case BrokerPacket.ERROR_SYMBOL_EXISTS: 	System.out.print(symbol + " exists.\n");
+                           case BrokerPacket.ERROR_SYMBOL_EXISTS: 	System.out.print(originalSymbol + " exists.\n> ");
                                                                     continue;	
-                           case BrokerPacket.ERROR_INVALID_EXCHANGE: 	System.out.print(symbol + " invalid.\n");
+                           case BrokerPacket.ERROR_INVALID_EXCHANGE: 	System.out.print(originalSymbol + " invalid.\n> ");
                                                                         continue;	
                            default: break; 
                        }
 
                        if (command.equals("add")) {
-                           System.out.print(symbol + " added.\n");
+                           System.out.print(originalSymbol + " added.\n");
                        } else if (command.equals("update")) {
-                           System.out.print(symbol + " updated to " + String.valueOf(packetFromServer.quote) + ".\n");
+                           System.out.print(originalSymbol + " updated to " + String.valueOf(packetFromServer.quote) + ".\n");
                        } else if (command.equals("remove")) {
-                           System.out.print(symbol + " removed.\n");
+                           System.out.print(originalSymbol + " removed.\n");
                        } else {
                            System.out.print("Unknown command...\n");
                        }
