@@ -46,7 +46,7 @@ public class BrokerClient {
 			BrokerPacket packetToServer = new BrokerPacket();
 			packetToServer.type = BrokerPacket.BROKER_REQUEST;
 			String originalSymbol = userInput;
-			packetToServer.symbol = userInput.toUpperCase();
+			packetToServer.symbol = userInput.toLowerCase();
 			out.writeObject(packetToServer);
 
 			/* print server reply */
@@ -72,7 +72,7 @@ public class BrokerClient {
 				
 			} else {
 			    	/* Recieved  a different kind of packet type... What is it?! */
-                		System.out.println("Quote from broker: 0\n");
+                		System.out.println("Unknown packet type...\n");
             		}
 
 

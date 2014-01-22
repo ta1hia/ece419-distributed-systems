@@ -52,16 +52,18 @@ public class BrokerClient {
                System.out.print("Enter queries or quit for exit:\n");
                System.out.print("> ");
 
-               while ((userInput = stdIn.readLine()) != null && userInput.toLowerCase().indexOf("x") == -1) {
+               while ((userInput = stdIn.readLine()) != null && !userInput.toLowerCase().equals("x") && !userInput.toLowerCase().equals("equals")) {
 
                    // Split strings into seperate parts
                    String parts[] = userInput.split(" ");
 
                    /* make a new request packet */
+		   String input = parts[0];
                    String command = parts[0].toLowerCase();
 
                    /* make a new request packet */
                    if(command.equals("local")){ // Check if it's a request to lookup
+		       String originalSymbol = parts[1];
                        String symbol = parts[1].toLowerCase();
 
                        // Make a lookup packet request
@@ -86,14 +88,14 @@ public class BrokerClient {
                            in = new ObjectInputStream(brokerSocket.getInputStream());
 
                        } catch (UnknownHostException e) {
-                           System.err.println("ERROR: Don't know where to connect!!");
+                           System.err.println("ERROR: Don't know where to connect!!\n");
                            System.exit(1);
                        } catch (IOException e) {
-                           System.err.println("ERROR: Couldn't get I/O for the connection.");
+                           System.err.println("ERROR: Couldn't get I/O for the connection.\n");
                            System.exit(1);
                        }
 
-                       System.out.print(symbol + " as local.\n");
+                       System.out.print(originalSymbol + " as local.\n");
                        /* re-print console prompt */
                        System.out.print("> ");
 
@@ -101,7 +103,7 @@ public class BrokerClient {
                    }
 
                    if(hostname == null || port < 0) { // Client is currently not connected
-                       System.out.println("Client is currently not connected to a broker... Use command 'local'.");			    	
+                       System.out.println("Client is currently not connected to a broker... Use command 'local'.\ncc");			    	
                        System.out.print("> ");
                        continue;
                    }
@@ -120,20 +122,20 @@ public class BrokerClient {
                        int isError = packetFromServer.error_code;
 
                        switch(isError) {
-                           case BrokerPacket.ERROR_INVALID_SYMBOL:         System.out.print(packetFromServer.symbol + " invalid.");
-                                                                           continue;
-                           case BrokerPacket.ERROR_OUT_OF_RANGE:         System.out.print(packetFromServer.symbol + " out of range.");
-                                                                         continue;
-                           case BrokerPacket.ERROR_SYMBOL_EXISTS:         System.out.print(packetFromServer.symbol + " exists.");
-                                                                          continue;        
-                           case BrokerPacket.ERROR_INVALID_EXCHANGE:         System.out.print(packetFromServer.symbol + " invalid.");
-                                                                             continue;   
+                           case BrokerPacket.ERROR_INVALID_SYMBOL:         System.out.print(input + " invalid.\n");
+			       break;
+                           case BrokerPacket.ERROR_OUT_OF_RANGE:         System.out.print(input + " out of range.\n");
+			       break;
+		       case BrokerPacket.ERROR_SYMBOL_EXISTS:         System.out.print(input + " exists.\n");
+			       break;        
+                           case BrokerPacket.ERROR_INVALID_EXCHANGE:         System.out.print(input + " invalid.\n");
+			       break;   
                            case 0: System.out.println("Quote from broker: " + String.valueOf(packetFromServer.quote));
-                           default: break; 
+                           default: System.out.print("Invalid error...\n"); break; 
                        }
                    } else {
                        /* error returned - this case isn't handled in Broker1 */
-                       System.out.println("Quote from broker: 0");
+                       System.out.println("Unknown packet type...\n");
                    }
 
                    /* re-print console prompt */

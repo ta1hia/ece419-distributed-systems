@@ -10,9 +10,9 @@ public class BrokerClient {
 		ObjectInputStream in = null;
 
 		try {
-			/* variables for hostname/port */
-			String hostname = "localhost";
-			int port = 4444;
+			/* variables for hostname/port Don't hardwire */ 
+			String hostname = null;
+			int port = -1;
 			
 			if(args.length == 2) {
 				hostname = args[0];

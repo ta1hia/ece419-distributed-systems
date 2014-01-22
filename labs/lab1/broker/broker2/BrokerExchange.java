@@ -50,7 +50,7 @@ public class BrokerExchange {
 			BrokerPacket packetToServer = new BrokerPacket();
 			String command = parts[0].toLowerCase();
 			String originalSymbol = parts[1];
-			String symbol = parts[1].toUpperCase();
+			String symbol = parts[1].toLowerCase();
 
 			/* Check what type of request it is. */
             		if (command.equals("add")) {
