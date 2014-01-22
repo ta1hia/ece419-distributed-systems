@@ -40,7 +40,7 @@ public class BrokerClient {
 		System.out.print("Enter symbol or quit for exit:\n");
 		System.out.print("> ");
 
-		while ((userInput = stdIn.readLine()) != null && !userInput.toLowerCase().equals("x") && !userInput.toLowerCase().equals("exit")) {
+		while ((userInput = stdIn.readLine()) != null && !userInput.toLowerCase().equals("x") && !userInput.toLowerCase().equals("quit")) {
 						
 			/* make a new request packet */
 			BrokerPacket packetToServer = new BrokerPacket();
