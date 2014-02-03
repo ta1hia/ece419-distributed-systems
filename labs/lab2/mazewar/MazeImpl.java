@@ -36,6 +36,10 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.HashMap;
 
+import java.io.*;
+import java.net.*;
+import java.net.ServerSocket;
+
 /**
  * A concrete implementation of a {@link Maze}.  
  * @author Geoffrey Washburn &lt;<a href="mailto:geoffw@cis.upenn.edu">geoffw@cis.upenn.edu</a>&gt;
@@ -43,6 +47,44 @@ import java.util.HashMap;
  */
 
 public class MazeImpl extends Maze implements Serializable, ClientListener, Runnable {
+
+
+    Socket echoSocket = null;
+    ObjectOutputStream out = null;
+    ObjectInputStream in = null;
+
+    // Initialize socket connection with Mazeware server
+    public boolean initializeSocket(){
+	// Connect to central game server.
+	try {
+	    String hostname = "localhost";
+	    int port = 4444;
+
+	    echoSocket = new Socket(hostname,port);
+
+	} catch (Exception e) {
+	    System.exit(1);
+	}
+
+	return true;
+
+    }
+
+    // Register client to main server.
+    public boolean registerClient(){
+	MazePacket packetToServer = new MazePacket();
+	packetToServer.client_command = MazePacket.CLIENT_REGISTER;
+
+	try{
+	packetToServer.client_host = InetAddress.getLocalHost().getHostName();
+	out.writeObject(packetToServer);
+
+	}catch (Exception e){
+
+	}
+
+	return true;
+    }
 
         /**
          * Create a {@link Maze}.
