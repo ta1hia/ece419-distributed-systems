@@ -1,4 +1,7 @@
 import java.net.ServerSocket;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 
 
 /* MazewarServer class
@@ -25,12 +28,18 @@ public class MazewarServer {
             System.err.println("ERROR: Could not listen on port!");
             System.exit(-1);
         }
+
+        /* Listen for new remote clients */
+        while (listening) {
+            //new MazewarServerHandlerThread();
+        }
+        mazewarServer.close();
     }
 
-    /* Listen for new remote clients */
-    while (listening) {
-        //new MazewarServerHandlerThread();
+    public static class ServerData implements Serializable {
+        //eventqueue
+        //clientqueue
+        BlockingQueue<MazePacket> eventQueue = new LinkedBlockingQueue();
+        ConcurrentMap<String, String> clientTable = new ConcurrentHashMap<>(); //Might need reference to actual thread here, for dispatcher
     }
-
-    mazewarServer.close();
 }
