@@ -116,4 +116,9 @@ public abstract class Maze {
      */
     public abstract void removeMazeListener(MazeListener ml);
     
+
+    // Lab 2 additions!
+    // Register client.    
+    public abstract boolean initializeSocket();
+    public abstract boolean registerClient();
 }
