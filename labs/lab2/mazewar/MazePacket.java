@@ -1,4 +1,5 @@
-import java.io.Serializable;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
 
 import java.io.*;
 import java.net.*;
@@ -8,16 +9,6 @@ import java.net.*;
    Contains basic variables that client and server shall use to communicate with each other.
    */
 
-// Contains an event that the client/robot shall take.
-class MazeEvent implements Serializable {
-    public String client_host;
-    public int client_port;
-
-    public MazeEvent(String host, int port){
-        this.client_host = host;
-        this.client_port = port;
-    }
-}
 
 public class MazePacket implements Serializable {
     // Actions
@@ -42,7 +33,7 @@ public class MazePacket implements Serializable {
 
     // Game data
     BlockingQueue<MazeEvent> event_list;
-    ConcurrentMap<String, String> client_list;
+    ConcurrentHashMap<String, String> client_list;
 
     // Packet data
     int sequence_num;

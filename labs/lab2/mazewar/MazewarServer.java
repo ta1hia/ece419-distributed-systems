@@ -3,6 +3,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
+import java.io.*;
+import java.net.*;
 
 /* MazewarServer class
  *
@@ -36,7 +38,7 @@ public class MazewarServer {
 
         /* Listen for new remote clients */
         while (listening) {
-            //new MazewarServerHandlerThread();
+            new MazewarServerHandlerThread(mazewarServer.accept(), gameData);
         }
         mazewarServer.close();
     }
@@ -47,7 +49,7 @@ public static class ServerData implements Serializable {
     //eventqueue
     //clientqueue
     BlockingQueue<MazeEvent> eventQueue = new LinkedBlockingQueue();
-    ConcurrentMap<String, String> clientTable = new ConcurrentHashMap<>(); //Might need reference to actual thread here, for dispatcher
+    ConcurrentHashMap<String, String> clientTable = new ConcurrentHashMap<>(); //Might need reference to actual thread here, for dispatcher
 
     public void addClientToTable(String name, Point position) {
         if (!clientTable.containsKey(name)) {

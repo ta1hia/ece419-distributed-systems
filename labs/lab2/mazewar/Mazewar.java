@@ -27,6 +27,9 @@ import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
 import javax.swing.BorderFactory;
 import java.io.Serializable;
+import java.util.Random;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
 
 import java.io.*;
 import java.net.*;
@@ -84,7 +87,7 @@ public class Mazewar extends JFrame {
 
     /* ADDING - game data */
     BlockingQueue<MazeEvent> eventQueue;
-    ConcurrentMap<String, String> clientTable;
+    ConcurrentHashMap<String, String> clientTable;
 
     /** 
      * Create the textpane statically so that we can 
@@ -279,16 +282,20 @@ public class Mazewar extends JFrame {
 
             packetToServer.packet_type = MazePacket.CLIENT_REGISTER;
             packetToServer.sequence_num = rand.nextInt(1000) + 1; /* Where to store ? should this even be in Maze.java? (not user data) */
-            packetToServer.client_name = "Kanye"        /* Using a hardcoded value for now - add to GUI interface eventually */
+            packetToServer.client_name = "Kanye";        /* Using a hardcoded value for now - add to GUI interface eventually */
                 out.writeObject(packetToServer);
 
             /* Wait for server acknowledgement */
-            packetFromServer = in.readObject();
-            if (packetFromServer == null || packetFromServer.packet_type != MazePacket.SERVER_ACK) {
-                System.out.println("Server did not verify connection");
+            packetFromServer = (MazePacket) in.readObject();
+            if (packetFromServer == null || 
+                    packetFromServer.client_list == null ||
+                    //packetFromServer.event_list == null ||
+                    packetFromServer.packet_type != MazePacket.SERVER_ACK) {
+                System.out.println("Error - could not connect to server");
             }
 
-
+            clientTable = packetFromServer.client_list;
+            eventQueue = packetFromServer.event_list;
 
             System.out.println("Server verified connection!");
 

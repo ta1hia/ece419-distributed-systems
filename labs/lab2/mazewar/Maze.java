@@ -119,6 +119,6 @@ public abstract class Maze {
 
     // Lab 2 additions!
     // Register client.    
-    public abstract boolean initializeSocket();
-    public abstract boolean registerClient();
+    //public abstract boolean initializeSocket();
+    //public abstract boolean registerClient();
 }
