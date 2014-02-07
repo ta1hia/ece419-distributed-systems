@@ -82,6 +82,10 @@ public class Mazewar extends JFrame {
     ObjectOutputStream out = null; 
     ObjectInputStream in = null;
 
+    /* ADDING - game data */
+    BlockingQueue<MazeEvent> eventQueue;
+    ConcurrentMap<String, String> clientTable;
+
     /** 
      * Create the textpane statically so that we can 
      * write to it globally using
@@ -164,7 +168,7 @@ public class Mazewar extends JFrame {
         this.addKeyListener(guiClient);
 
         // Register client to server over socket
-        maze.registerClient();
+        registerClient();
 
         // Use braces to force constructors not to be called at the beginning of the
         // constructor.
@@ -264,5 +268,36 @@ public class Mazewar extends JFrame {
         return true;
 
     }
+
+    public boolean registerClient(){
+        MazePacket packetToServer = new MazePacket();
+        MazePacket packetFromServer = new MazePacket();
+
+        try{
+            /* Initialize handshaking with server */
+            Random rand = new Random();
+
+            packetToServer.packet_type = MazePacket.CLIENT_REGISTER;
+            packetToServer.sequence_num = rand.nextInt(1000) + 1; /* Where to store ? should this even be in Maze.java? (not user data) */
+            packetToServer.client_name = "Kanye"        /* Using a hardcoded value for now - add to GUI interface eventually */
+                out.writeObject(packetToServer);
+
+            /* Wait for server acknowledgement */
+            packetFromServer = in.readObject();
+            if (packetFromServer == null || packetFromServer.packet_type != MazePacket.SERVER_ACK) {
+                System.out.println("Server did not verify connection");
+            }
+
+
+
+            System.out.println("Server verified connection!");
+
+        }catch (Exception e){
+
+        }
+
+        return true;
+    }
+
 
 }

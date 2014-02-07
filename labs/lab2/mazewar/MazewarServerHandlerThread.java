@@ -54,9 +54,6 @@ public class MazewarServerHandlerThread extends Thread {
              */
             while ((packetFromRC = cin.readObject()) != null) {
                 switch (packetFromRC.packet_type) {
-                    case MazePacket.CLIENT_REGISTER:
-                        //client_register();
-                        break;
                     default:
                         System.out.println("Could not recognize packet type");
                 }

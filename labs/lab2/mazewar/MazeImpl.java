@@ -73,28 +73,30 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
 
     }*/
 
+    /*
     // Register client to main server.
     public boolean registerClient(ObjectOutputStream out, ObjectInputStream in){
         MazePacket packetToServer = new MazePacket();
         MazePacket packetFromServer = new MazePacket();
 
         try{
-            /* Initialize handshaking with server */
+            // Initialize handshaking with server 
             //packetToServer.client_host = InetAddress.getLocalHost().getHostName();
             Random rand = new Random();
 
             packetToServer.packet_type = MazePacket.CLIENT_REGISTER;
-            packetToServer.sequence_num = rand.nextInt(1000) + 1; /* Where to store ? should this even be in Maze.java? (not user data) */
-            packetToServer.client_name = "Kanye"        /* Using a hardcoded value for now - add to GUI interface eventually */
+            packetToServer.sequence_num = rand.nextInt(1000) + 1; // Where to store ? should this even be in Maze.java? (not user data) 
+            packetToServer.client_name = "Kanye"        // Using a hardcoded value for now - add to GUI interface eventually 
             out.writeObject(packetToServer);
 
-            /* Wait for server acknowledgement */
+            // Wait for server acknowledgement 
             packetFromServer = in.readObject();
             if (packetFromServer == null || packetFromServer.packet_type != MazePacket.SERVER_ACK) {
                 System.out.println("Server did not verify connection");
             }
 
             // need to get client list at this point and use data to set up maze
+
 
             System.out.println("Server verified connection!");
 
@@ -103,7 +105,7 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
         }
 
         return true;
-    }
+    } */
 
     /**
      * Create a {@link Maze}.
