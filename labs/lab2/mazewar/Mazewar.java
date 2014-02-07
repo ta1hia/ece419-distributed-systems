@@ -28,6 +28,9 @@ import java.awt.GridBagConstraints;
 import javax.swing.BorderFactory;
 import java.io.Serializable;
 
+import java.io.*;
+import java.net.*;
+
 /**
  * The entry point and glue code for the game.  It also contains some helpful
  * global utility methods.
@@ -141,12 +144,16 @@ public class Mazewar extends JFrame {
                 
                 // You may want to put your network initialization code somewhere in
                 // here.
-                
+		maze.initializeSocket();             
+
                 // Create the GUIClient and connect it to the KeyListener queue
                 guiClient = new GUIClient(name);
                 maze.addClient(guiClient);
                 this.addKeyListener(guiClient);
                 
+		// Register client to server over socket
+		maze.registerClient();
+
                 // Use braces to force constructors not to be called at the beginning of the
                 // constructor.
                 {
