@@ -29,6 +29,9 @@ public class MazewarServer {
             System.exit(-1);
         }
 
+        /* Init game resources */
+        ServerData gameData = new ServerData();
+
         /* Spawn single dispather thread? */
 
         /* Listen for new remote clients */
@@ -38,10 +41,11 @@ public class MazewarServer {
         mazewarServer.close();
     }
 
-    public static class ServerData implements Serializable {
-        //eventqueue
-        //clientqueue
-        BlockingQueue<MazePacket> eventQueue = new LinkedBlockingQueue();
-        ConcurrentMap<String, String> clientTable = new ConcurrentHashMap<>(); //Might need reference to actual thread here, for dispatcher
-    }
+}
+
+public static class ServerData implements Serializable {
+    //eventqueue
+    //clientqueue
+    BlockingQueue<MazePacket> eventQueue = new LinkedBlockingQueue();
+    ConcurrentMap<String, String> clientTable = new ConcurrentHashMap<>(); //Might need reference to actual thread here, for dispatcher
 }
