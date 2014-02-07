@@ -1,5 +1,5 @@
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.concurrent.ConcurrentHashMap;
 import java.io.*;
@@ -15,17 +15,20 @@ public class MazewarServerHandlerThread extends Thread {
     Socket rcSocket = null;
     ServerData data = null;
 
-    DataInputStream cin;
-    DataOutputStream cout;
+    ObjectInputStream cin;
+    ObjectOutputStream cout;
 
-    public MazewarServerHandlerThread (Socket socket, ServerData sdata) {
+    public MazewarServerHandlerThread (Socket socket, ServerData sdata) throws IOException {
         super("MazewarServerHandlerThread");
-        rcSocket = socket;
-        cin = new DataInputStream(rcSocket.getInputStream());
-        cout = new DataOutputStream(rcSocket.getOutputStream());
-        cid = clientID;
-        data = sdata;
+        try {
+        this.rcSocket = socket;
+        this.cout = new ObjectOutputStream(rcSocket.getOutputStream());
+        this.cin = new ObjectInputStream(rcSocket.getInputStream());
+        this.data = sdata;
         System.out.println("Created new MazewarServerHandlerThread to handle remote client ");
+        } catch (IOException e) {
+            System.out.println("IO Exception");
+        }
     }
 
     public void run() {
@@ -37,7 +40,7 @@ public class MazewarServerHandlerThread extends Thread {
         try {
             /* Wait for handshaking packet from client, store client state in 
              * global client table */
-            packetFromRC = cin.readObject();
+            packetFromRC = (MazePacket) cin.readObject();
             
             if (packetFromRC == null) {
                 System.out.print("Error connecting client");
@@ -45,7 +48,7 @@ public class MazewarServerHandlerThread extends Thread {
             }
 
             /* Add to client list and give it a random start position */
-            String rc_name = packetFromClient.client_name;
+            String rc_name = packetFromRC.client_name;
             System.out.println("Connected with " + rc_name);
 
 
@@ -56,13 +59,13 @@ public class MazewarServerHandlerThread extends Thread {
 
             packetToRC.event_list = data.eventQueue;
             packetToRC.client_list = data.clientTable;
-            packetToRC.packetType = MazePacket.SERVER_ACK;
+            packetToRC.packet_type = MazePacket.SERVER_ACK;
             packetToRC.ack_num = packetFromRC.sequence_num;
-            out.writeObject(packetToRC);
+            cout.writeObject(packetToRC);
 
             /* Loop: 
              */
-            while ((packetFromRC = cin.readObject()) != null) {
+            while ((packetFromRC = (MazePacket) cin.readObject()) != null) {
                 switch (packetFromRC.packet_type) {
                     default:
                         System.out.println("Could not recognize packet type");

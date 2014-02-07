@@ -33,7 +33,7 @@ public class MazePacket implements Serializable {
 
     // Game data
     BlockingQueue<MazeEvent> event_list;
-    ConcurrentHashMap<String, String> client_list;
+    ConcurrentHashMap<String, Point> client_list;
 
     // Packet data
     int sequence_num;

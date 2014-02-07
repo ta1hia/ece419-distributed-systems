@@ -87,7 +87,7 @@ public class Mazewar extends JFrame {
 
     /* ADDING - game data */
     BlockingQueue<MazeEvent> eventQueue;
-    ConcurrentHashMap<String, String> clientTable;
+    ConcurrentHashMap<String, Point> clientTable;
 
     /** 
      * Create the textpane statically so that we can 
@@ -257,6 +257,8 @@ public class Mazewar extends JFrame {
         /* Connect to central game server. */
         try {
             /* Using this hardcoded port for now, eventually make this userinput at GUI interface in Mazewar.java*/
+            System.out.println("Connecting to Mazewar Server...");
+
             String hostname = "localhost";
             int port = 4444;
 
@@ -265,6 +267,7 @@ public class Mazewar extends JFrame {
             in = new ObjectInputStream(mwsSocket.getInputStream());
 
         } catch (Exception e) {
+            System.out.println("Client error initializing socket");
             System.exit(1);
         }
 
@@ -283,7 +286,7 @@ public class Mazewar extends JFrame {
             packetToServer.packet_type = MazePacket.CLIENT_REGISTER;
             packetToServer.sequence_num = rand.nextInt(1000) + 1; /* Where to store ? should this even be in Maze.java? (not user data) */
             packetToServer.client_name = "Kanye";        /* Using a hardcoded value for now - add to GUI interface eventually */
-                out.writeObject(packetToServer);
+            out.writeObject(packetToServer);
 
             /* Wait for server acknowledgement */
             packetFromServer = (MazePacket) in.readObject();
@@ -291,8 +294,8 @@ public class Mazewar extends JFrame {
                     packetFromServer.client_list == null ||
                     //packetFromServer.event_list == null ||
                     packetFromServer.packet_type != MazePacket.SERVER_ACK) {
-                System.out.println("Error - could not connect to server");
-            }
+                System.out.println("Client error registering with server");
+                    }
 
             clientTable = packetFromServer.client_list;
             eventQueue = packetFromServer.event_list;
@@ -300,6 +303,7 @@ public class Mazewar extends JFrame {
             System.out.println("Server verified connection!");
 
         }catch (Exception e){
+            System.out.println("Client error registering with server");
 
         }
 

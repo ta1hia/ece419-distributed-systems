@@ -1,7 +1,6 @@
 import java.net.ServerSocket;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.BlockingQueue;
 
 import java.io.*;
 import java.net.*;
@@ -15,7 +14,7 @@ import java.net.*;
 public class MazewarServer {
 
     public static void main(String[] args) throws IOException {
-        SocketServer mazewarServer = null;
+        ServerSocket mazewarServer = null;
         boolean listening = true;
 
         /* Create MazewarServer socket */
@@ -45,18 +44,3 @@ public class MazewarServer {
 
 }
 
-public static class ServerData implements Serializable {
-    //eventqueue
-    //clientqueue
-    BlockingQueue<MazeEvent> eventQueue = new LinkedBlockingQueue();
-    ConcurrentHashMap<String, String> clientTable = new ConcurrentHashMap<>(); //Might need reference to actual thread here, for dispatcher
-
-    public void addClientToTable(String name, Point position) {
-        if (!clientTable.containsKey(name)) {
-            clientTable.put(name, position);
-        } else {
-            System.out.println("Client with name " + name + " already exists.");
-        }
-
-    }
-}
