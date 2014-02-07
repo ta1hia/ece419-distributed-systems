@@ -45,6 +45,7 @@ public class MazewarServerHandlerThread extends Thread {
             /* Add to client list */
 
             /* Send game state to client */
+            // need to send  list of players/locations
             packetToRC.packetType = MazePacket.SERVER_ACK;
             packetToRC.ack_num = packetFromRC.sequence_num;
             out.writeObject(packetToRC);

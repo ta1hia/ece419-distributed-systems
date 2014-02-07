@@ -19,7 +19,7 @@ public class MazewarServer {
         /* Create MazewarServer socket */
         try { 
             if (args.length == 1) {
-                brokerSocket = new ServerSocket(Integer.parseInt(args[0]));
+                mazewarServer = new ServerSocket(Integer.parseInt(args[0]));
             } else {
                 System.err.println("Error: Invalid arguments!");
                 System.exit(-1);
@@ -46,6 +46,15 @@ public class MazewarServer {
 public static class ServerData implements Serializable {
     //eventqueue
     //clientqueue
-    BlockingQueue<MazePacket> eventQueue = new LinkedBlockingQueue();
+    BlockingQueue<MazeEvent> eventQueue = new LinkedBlockingQueue();
     ConcurrentMap<String, String> clientTable = new ConcurrentHashMap<>(); //Might need reference to actual thread here, for dispatcher
+
+    public void addClientToTable(String name, Point position) {
+        if (!clientTable.containsKey(name)) {
+            clientTable.put(name, position);
+        } else {
+            System.out.println("Client with name " + name + " already exists.");
+        }
+
+    }
 }

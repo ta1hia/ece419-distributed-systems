@@ -6,7 +6,7 @@ import java.net.*;
 /* MazePacket
 
    Contains basic variables that client and server shall use to communicate with each other.
-*/
+   */
 
 // Contains an event that the client/robot shall take.
 class MazeEvent implements Serializable {
@@ -14,8 +14,8 @@ class MazeEvent implements Serializable {
     public int client_port;
 
     public MazeEvent(String host, int port){
-	this.client_host = host;
-	this.client_port = port;
+        this.client_host = host;
+        this.client_port = port;
     }
 }
 
@@ -32,14 +32,17 @@ public class MazePacket implements Serializable {
     public String client_name;
 
     public int error_code;
-    
+
     //Server actions
     int ack_num;
     int remote_client_id; /* For now I'm making this a server-assigned client id instead (instead of client sending their own IP)*/
 
     // Event
-    // Contains an event that will occur    
     public MazeEvent event;
+
+    // Game data
+    BlockingQueue<MazeEvent> event_list;
+    ConcurrentMap<String, String> client_list;
 
     // Packet data
     int sequence_num;

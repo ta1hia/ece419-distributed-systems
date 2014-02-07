@@ -77,6 +77,11 @@ public class Mazewar extends JFrame {
      */
     private JTable scoreTable = null;
 
+    /* ADDING - network resources */
+    Socket mwsSocket = null;
+    ObjectOutputStream out = null; 
+    ObjectInputStream in = null;
+
     /** 
      * Create the textpane statically so that we can 
      * write to it globally using
@@ -142,9 +147,16 @@ public class Mazewar extends JFrame {
             Mazewar.quit();
         }
 
+        //pass into initialize socket after error checking. port, host, name
+        /*String host = JOptionPane.showInputDialog("Enter host name");
+          if((host == null) || (host.length() == 0)) {
+          Mazewar.quit();
+          }*/
+
         // You may want to put your network initialization code somewhere in
         // here.
-        maze.initializeSocket();             
+
+        initializeSocket();             
 
         // Create the GUIClient and connect it to the KeyListener queue
         guiClient = new GUIClient(name);
@@ -233,4 +245,24 @@ public class Mazewar extends JFrame {
         /* Create the GUI */
         new Mazewar();
     }
+
+    public boolean initializeSocket(){
+        /* Connect to central game server. */
+        try {
+            /* Using this hardcoded port for now, eventually make this userinput at GUI interface in Mazewar.java*/
+            String hostname = "localhost";
+            int port = 4444;
+
+            mwsSocket = new Socket(hostname,port);
+            out = new ObjectOutputStream(mwsSocket.getOutputStream());
+            in = new ObjectInputStream(mwsSocket.getInputStream());
+
+        } catch (Exception e) {
+            System.exit(1);
+        }
+
+        return true;
+
+    }
+
 }

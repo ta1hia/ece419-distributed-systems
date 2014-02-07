@@ -53,11 +53,11 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
     ObjectOutputStream out = null; /* need to keep track of these */
     ObjectInputStream in = null;
 
+    /* Moving this to Mazewar.java so that game data can be stored from the user side
     // Initialize socket connection with Mazeware server
     public boolean initializeSocket(){
         // Connect to central game server.
         try {
-            /* Using this hardcoded port for now, eventually make this userinput at GUI interface in Mazewar.java*/
             String hostname = "localhost";
             int port = 4444;
 
@@ -71,7 +71,7 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
 
         return true;
 
-    }
+    }*/
 
     // Register client to main server.
     public boolean registerClient(ObjectOutputStream out, ObjectInputStream in){
@@ -93,6 +93,8 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
             if (packetFromServer == null || packetFromServer.packet_type != MazePacket.SERVER_ACK) {
                 System.out.println("Server did not verify connection");
             }
+
+            // need to get client list at this point and use data to set up maze
 
             System.out.println("Server verified connection!");
 
