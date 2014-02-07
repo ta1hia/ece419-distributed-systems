@@ -49,8 +49,8 @@ import java.net.ServerSocket;
 public class MazeImpl extends Maze implements Serializable, ClientListener, Runnable {
 
 
-    Socket mws_socket = null;
-    ObjectOutputStream out = null;
+    Socket mwsSocket = null;
+    ObjectOutputStream out = null; /* need to keep track of these */
     ObjectInputStream in = null;
 
     // Initialize socket connection with Mazeware server
@@ -61,9 +61,9 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
             String hostname = "localhost";
             int port = 4444;
 
-            mws_socket = new Socket(hostname,port);
-            out = new ObjectOutputStream(mws_socket.getOutputStream());
-            in = new ObjectInputStream(mws_socket.getInputStream());
+            mwsSocket = new Socket(hostname,port);
+            out = new ObjectOutputStream(mwsSocket.getOutputStream());
+            in = new ObjectInputStream(mwsSocket.getInputStream());
 
         } catch (Exception e) {
             System.exit(1);
@@ -74,21 +74,27 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
     }
 
     // Register client to main server.
-    public boolean registerClient(){
-        MazePacket packet_to_server = new MazePacket();
-        packet_to_server.packet_type = MazePacket.CLIENT_REGISTER;
+    public boolean registerClient(ObjectOutputStream out, ObjectInputStream in){
+        MazePacket packetToServer = new MazePacket();
+        MazePacket packetFromServer = new MazePacket();
 
         try{
             /* Initialize handshaking with server */
-            //packet_to_server.client_host = InetAddress.getLocalHost().getHostName();
+            //packetToServer.client_host = InetAddress.getLocalHost().getHostName();
             Random rand = new Random();
 
-            packet_to_server.sequence_num = rand.nextInt(1000) + 1; /* Where to store ? should this even be in Maze.java? (not user data) */
-            packet_to_server.client_name = "Kanye"        /* Using a hardcoded value for now - add to GUI interface eventually */
-            out.writeObject(packet_to_server);
+            packetToServer.packet_type = MazePacket.CLIENT_REGISTER;
+            packetToServer.sequence_num = rand.nextInt(1000) + 1; /* Where to store ? should this even be in Maze.java? (not user data) */
+            packetToServer.client_name = "Kanye"        /* Using a hardcoded value for now - add to GUI interface eventually */
+            out.writeObject(packetToServer);
 
             /* Wait for server acknowledgement */
+            packetFromServer = in.readObject();
+            if (packetFromServer == null || packetFromServer.packet_type != MazePacket.SERVER_ACK) {
+                System.out.println("Server did not verify connection");
+            }
 
+            System.out.println("Server verified connection!");
 
         }catch (Exception e){
 

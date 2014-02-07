@@ -9,19 +9,18 @@ import java.net.Socket;
  */
 
 public class MazewarServerHandlerThread extends Thread {
-    Socket rc_socket = null;
+    Socket rcSocket = null;
     ServerData data = null;
     int cid = -1;
-    int lastSeqNum;
 
     DataInputStream cin;
     DataOutputStream cout;
 
     public MazewarServerHandlerThread (Socket socket, ServerData sdata, int clientID) {
         super("MazewarServerHandlerThread");
-        rc_socket = socket;
-        cin = new DataInputStream(rc_socket.getInputStream());
-        cout = new DataOutputStream(rc_socket.getOutputStream());
+        rcSocket = socket;
+        cin = new DataInputStream(rcSocket.getInputStream());
+        cout = new DataOutputStream(rcSocket.getOutputStream());
         cid = clientID;
         data = sdata;
         System.out.println("Created new MazewarServerHandlerThread to handle remote client ");
@@ -29,14 +28,31 @@ public class MazewarServerHandlerThread extends Thread {
 
     public void run() {
         System.out.println("Connecting to client " + cid);
-        MazePacket packet_from_rc = new MazePacket();
-        MazePacket packet_to_rc = new MazePacket();
+        int lastPacketNum;
+        MazePacket packetFromRC = new MazePacket();
+        MazePacket packetToRC = new MazePacket();
 
         try {
             /* Wait for handshaking packet from client, store client state in 
              * global client table */
-            while ((packet_from_rc = cin.readObject()) != null) {
-                switch (packet_from_rc.packet_type) {
+            packetFromRC = cin.readObject();
+            
+            if (packetFromRC == null) {
+                System.out.print("Error connecting client");
+                return;
+            }
+
+            /* Add to client list */
+
+            /* Send game state to client */
+            packetToRC.packetType = MazePacket.SERVER_ACK;
+            packetToRC.ack_num = packetFromRC.sequence_num;
+            out.writeObject(packetToRC);
+
+            /* Loop: 
+             */
+            while ((packetFromRC = cin.readObject()) != null) {
+                switch (packetFromRC.packet_type) {
                     case MazePacket.CLIENT_REGISTER:
                         //client_register();
                         break;
@@ -44,16 +60,6 @@ public class MazewarServerHandlerThread extends Thread {
                         System.out.println("Could not recognize packet type");
                 }
             }
-
-
-
-
-            /* Send game state to client */
-
-            /* Loop: 
-             * Wait for client event
-             * Add event to global event queue
-             */
         } catch (Exception e) {
             System.out.println("server done broke");
         }
