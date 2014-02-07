@@ -159,6 +159,7 @@ MazeListener.class : Point.java
 MazeListener.class : Point.class
 MazeListener.class : Direction.java
 MazeListener.class : Direction.class
+MazePacket.class: MazePacket.java
 Mazewar.class : Mazewar.java
 Mazewar.class : RobotClient.java
 Mazewar.class : RobotClient.class
@@ -196,6 +197,18 @@ Mazewar.class : Direction.java
 Mazewar.class : Direction.class
 Mazewar.class : ClientEvent.java
 Mazewar.class : ClientEvent.class
+Mazewar.class : MazewarServer.java
+Mazewar.class : MazewarServer.class
+MazewarServer.class : MazewarServer.java
+MazewarServer.class : ServerData.java
+MazewarServer.class : ServerData.class
+MazewarServer.class : MazewarServerHandlerThread.java
+MazewarServer.class : MazewarServerHandlerThread.class
+MazeWarServerHandlerThread.class: MazewarServerHandlerThread.java
+MazeWarServerHandlerThread.class: MazePacket.java
+MazeWarServerHandlerThread.class: MazePacket.class
+MazeWarServerHandlerThread.class: ServerData.java
+MazeWarServerHandlerThread.class: ServerData.class
 OverheadMazePanel.class : OverheadMazePanel.java
 OverheadMazePanel.class : RobotClient.java
 OverheadMazePanel.class : RobotClient.class
@@ -344,4 +357,5 @@ ScoreTableModel.class : Direction.java
 ScoreTableModel.class : Direction.class
 ScoreTableModel.class : ClientEvent.java
 ScoreTableModel.class : ClientEvent.class
+ServerData.class: ServerData.java
 SortedMultiSet.class : SortedMultiSet.java
