@@ -29,6 +29,8 @@ public class MazewarServer {
             System.exit(-1);
         }
 
+        /* Spawn single dispather thread? */
+
         /* Listen for new remote clients */
         while (listening) {
             //new MazewarServerHandlerThread();
