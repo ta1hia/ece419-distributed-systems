@@ -47,6 +47,8 @@ public class MazewarServerHandlerThread extends Thread {
             /* Loop: 
             */
             while ((packetFromRC = (MazePacket) cin.readObject()) != null) {
+
+                /* Process each packet */
                 switch (packetFromRC.packet_type) {
                     case MazePacket.CLIENT_REGISTER:
                         registerClient();
@@ -54,6 +56,7 @@ public class MazewarServerHandlerThread extends Thread {
                     default:
                         System.out.println("Could not recognize packet type");
                 }
+                
             }
         } catch (Exception e) {
             System.out.println("server done broke");
@@ -68,18 +71,22 @@ public class MazewarServerHandlerThread extends Thread {
         try {
             /* Wait for handshaking packet from client, store client state in 
              * global client table */
+            MazePacket eventPacket = new MazePacket();
 
             /* Add to client list */
             String rc_name = packetFromRC.client_name;
             Point rc_point = packetFromRC.client_location;
             System.out.println("Connected with " + rc_name);
-            data.addClientToTable(rc_name, rc_point);
+            data.addClientToTable(rc_name, rc_point, cout);
 
-            /* Send game state to client */
-            packetToRC.client_list = data.clientTable;
-            packetToRC.packet_type = MazePacket.SERVER_ACK;
-            packetToRC.ack_num = packetFromRC.sequence_num;
-            cout.writeObject(packetToRC);
+            /* Prepare event packet for event queue */
+            eventPacket.client_name = rc_name;
+            eventPacket.client_location = rc_point;
+            eventPacket.packet_type = MazePacket.CLIENT_REGISTER;
+            eventPacket.client_list = data.clientTable; //Add client list to event packet
+
+            /* Add packet to event queue */
+            data.addEventToQueue(eventPacket);
 
         } catch (Exception e) {
             e.printStackTrace();

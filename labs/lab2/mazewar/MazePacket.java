@@ -16,6 +16,10 @@ public class MazePacket implements Serializable {
     public static final int SERVER_CLIENT_LIST = 101;
     public static final int SERVER_EVENT_LIST = 102;
 
+    /**
+     * Client sends packet with name, position (?)
+     * Server adds to event queue with client list included
+     */
     public static final int CLIENT_REGISTER = 201; // Client wants to register! IP of client shall be passed in.
     public static final int CLIENT_FORWARD = 202;
     public static final int CLIENT_BACK = 203;
@@ -38,7 +42,7 @@ public class MazePacket implements Serializable {
     public MazeEvent event;
 
     // Game data
-    ConcurrentHashMap<String, Point> client_list;
+    ConcurrentHashMap<String, ClientData> client_list;
 
     // Packet data
     int sequence_num;

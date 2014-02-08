@@ -21,7 +21,7 @@ public class ClientHandlerThread extends Thread {
     ObjectOutputStream out;
     ObjectInputStream in;
     BlockingQueue<MazeEvent> eventQueue;
-    ConcurrentHashMap<String, Point> clientTable;
+    ConcurrentHashMap<String, ClientData> clientTable;
 
     public ClientHandlerThread(String host, int port){
         /* Connect to central game server. */

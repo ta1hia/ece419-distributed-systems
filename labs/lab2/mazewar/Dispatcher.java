@@ -1,5 +1,8 @@
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.Set;
+import java.io.*;
 
 /* Dispatcher class
  * Dispatches messages from event queue and broadcasts
@@ -7,33 +10,48 @@ import java.util.concurrent.LinkedBlockingQueue;
  *
  */
 public class Dispatcher extends Thread {
-    ServerData data = null; /* eventQueue and clientTable are accessed through here */
+    BlockingQueue<MazePacket> eventQueue = null;
+    ConcurrentHashMap<String, ClientData> clientTable = null;
 
-    public Dispatcher(ServerData gameData) {
-        this.data = gameData;
+    public Dispatcher(ServerData data) {
+        this.eventQueue = data.eventQueue;
+        this.clientTable = data.clientTable;
     }
 
     // Continually check eventqueue
     // Broadcast whenever queue is not empty
     public void run(){
-        boolean new_event;
+        MazePacket event;
         int seqNum = 0;
 
-        while(true){ //???
-         //   if(new_event = eventQueue.peek() != null){
-                // Go through each client	    
-             //   for(int i=0;i < clientTable.size(); i++){
-             //       clientTable.get(i).send(seqNum, command);
-               // }
-                seqNum++;
-                if(seqNum == 501)
-                    seqNum = 0;
-           // }
-           // Thread.sleep(500);
+        try {
+
+            while(true){ //???
+                if(eventQueue.peek() != null){
+                    event = eventQueue.take();
+
+                    // Go through each client	    
+                    Set<String> clientSet = clientTable.keySet();
+
+                    for (String client: clientSet) {
+                        clientTable.get(client).csocket_out.writeObject(event);
+
+                    }
+                    //   for(int i=0;i < clientTable.size(); i++){
+                    //       clientTable.get(i).send(seqNum, command);
+                    // }
+                    seqNum++;
+                    if(seqNum == 501)
+                        seqNum = 0;
+                }
+                // Thread.sleep(500);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
 
     }
-
-
 }
 
