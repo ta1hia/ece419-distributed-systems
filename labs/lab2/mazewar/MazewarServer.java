@@ -40,7 +40,7 @@ public class MazewarServer {
             new MazewarServerHandlerThread(mazewarServer.accept(), gameData);
         }
         mazewarServer.close();
-    }
+
 
 }
 

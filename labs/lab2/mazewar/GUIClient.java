@@ -41,6 +41,11 @@ public class GUIClient extends LocalClient implements KeyListener {
          * @param e The {@link KeyEvent} that occurred.
          */
         public void keyPressed(KeyEvent e) {
+            chandler.handleKeyPress(e);
+        }
+
+        /*
+        public void keyPressed(KeyEvent e) {
                 // If the user pressed Q, invoke the cleanup code and quit. 
                 if((e.getKeyChar() == 'q') || (e.getKeyChar() == 'Q')) {
                         Mazewar.quit();
@@ -61,6 +66,7 @@ public class GUIClient extends LocalClient implements KeyListener {
                         fire();
                 }
         }
+         */
         
         /**
          * Handle a key release. Not needed by {@link GUIClient}.

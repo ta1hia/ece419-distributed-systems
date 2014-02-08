@@ -17,6 +17,11 @@ public class MazePacket implements Serializable {
     public static final int SERVER_EVENT_LIST = 102;
 
     public static final int CLIENT_REGISTER = 201; // Client wants to register! IP of client shall be passed in.
+    public static final int CLIENT_FORWARD = 202;
+    public static final int CLIENT_BACK = 203;
+    public static final int CLIENT_LEFT = 204;
+    public static final int CLIENT_RIGHT = 205;
+    public static final int CLIENT_FIRE = 206;
 
     // Error code
     public static final int ERROR_INVALID_ARG = -101;

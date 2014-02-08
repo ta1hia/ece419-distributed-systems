@@ -1,3 +1,4 @@
+import java.awt.event.KeyEvent;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.concurrent.BlockingQueue;
@@ -92,7 +93,40 @@ public class ClientHandlerThread extends Thread {
     /* Process server packet events */
 
 
+
     /* Listen for client keypress and send server packets */
+    public void handleKeyPress(KeyEvent e) {
+        // If the user pressed Q, invoke the cleanup code and quit. 
+        if((e.getKeyChar() == 'q') || (e.getKeyChar() == 'Q')) {
+            //Mazewar.quit();
+            // Up-arrow moves forward.
+        } else if(e.getKeyCode() == KeyEvent.VK_UP) {
+            sendPacketToServer(MazePacket.CLIENT_FORWARD);
+            //forward();
+            // Down-arrow moves backward.
+        } else if(e.getKeyCode() == KeyEvent.VK_DOWN) {
+            sendPacketToServer(MazePacket.CLIENT_BACK);
+            //backup();
+            // Left-arrow turns left.
+        } else if(e.getKeyCode() == KeyEvent.VK_LEFT) {
+            sendPacketToServer(MazePacket.CLIENT_LEFT);
+            //turnLeft();
+            // Right-arrow turns right.
+        } else if(e.getKeyCode() == KeyEvent.VK_RIGHT) {
+            sendPacketToServer(MazePacket.CLIENT_RIGHT);
+            turnRight();
+            // Spacebar fires.
+        } else if(e.getKeyCode() == KeyEvent.VK_SPACE) {
+            sendPacketToServer(MazePacket.CLIENT_FIRE);
+            //fire();
+        }
+    }
+
+    private void sendPacketToServer(String packetType) {
+        MazePacket packetToServer = new MazePacket();
+        packetToServer.packet_type = packetType;
+        packetToServer.client_name = me.getName();
+    }
 }
 
 
