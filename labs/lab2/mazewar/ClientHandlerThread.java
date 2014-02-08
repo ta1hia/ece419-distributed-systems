@@ -114,7 +114,7 @@ public class ClientHandlerThread extends Thread {
             // Right-arrow turns right.
         } else if(e.getKeyCode() == KeyEvent.VK_RIGHT) {
             sendPacketToServer(MazePacket.CLIENT_RIGHT);
-            turnRight();
+            //turnRight();
             // Spacebar fires.
         } else if(e.getKeyCode() == KeyEvent.VK_SPACE) {
             sendPacketToServer(MazePacket.CLIENT_FIRE);
@@ -122,7 +122,7 @@ public class ClientHandlerThread extends Thread {
         }
     }
 
-    private void sendPacketToServer(String packetType) {
+    private void sendPacketToServer(int packetType) {
         MazePacket packetToServer = new MazePacket();
         packetToServer.packet_type = packetType;
         packetToServer.client_name = me.getName();

@@ -34,12 +34,15 @@ public class MazewarServer {
         ServerData gameData = new ServerData();
 
         /* Spawn single dispather thread? */
+        Dispatcher dispatcher = new Dispatcher(gameData);
+        dispatcher.start();
 
         /* Listen for new remote clients */
         while (listening) {
             new MazewarServerHandlerThread(mazewarServer.accept(), gameData);
         }
         mazewarServer.close();
+    }
 
 
 }
