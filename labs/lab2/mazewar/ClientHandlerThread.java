@@ -38,7 +38,7 @@ public class ClientHandlerThread extends Thread {
         }
     }
 
-    public registerMaze(Maze maze) {
+    public void registerMaze(Maze maze) {
         this.maze = maze;
     }
 
@@ -66,7 +66,6 @@ public class ClientHandlerThread extends Thread {
                     }
 
             clientTable = packetFromServer.client_list;
-            eventQueue = packetFromServer.event_list;
 
             System.out.println("Server verified connection!");
 
@@ -83,7 +82,7 @@ public class ClientHandlerThread extends Thread {
         MazePacket packetToServer = new MazePacket();
 
         try {
-            while(packetFromServer = (MazePacket) in.readObject() != null) {
+            while((packetFromServer = (MazePacket) in.readObject()) != null) {
             }
         } catch (Exception e) {
             e.printStackTrace();

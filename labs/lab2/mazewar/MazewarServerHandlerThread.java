@@ -73,10 +73,9 @@ public class MazewarServerHandlerThread extends Thread {
             String rc_name = packetFromRC.client_name;
             Point rc_point = packetFromRC.client_location;
             System.out.println("Connected with " + rc_name);
-            data.addClient(rc_name, rc_position);
+            data.addClientToTable(rc_name, rc_point);
 
             /* Send game state to client */
-            packetToRC.event_list = data.eventQueue;
             packetToRC.client_list = data.clientTable;
             packetToRC.packet_type = MazePacket.SERVER_ACK;
             packetToRC.ack_num = packetFromRC.sequence_num;
@@ -88,3 +87,4 @@ public class MazewarServerHandlerThread extends Thread {
         }
 
     }
+}
