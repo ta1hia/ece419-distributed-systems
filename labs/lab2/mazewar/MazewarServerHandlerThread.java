@@ -50,8 +50,6 @@ public class MazewarServerHandlerThread extends Thread {
             /* Add to client list and give it a random start position */
             String rc_name = packetFromRC.client_name;
             System.out.println("Connected with " + rc_name);
-
-
             
 
             /* Send game state to client */

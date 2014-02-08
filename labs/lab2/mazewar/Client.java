@@ -95,6 +95,11 @@ public abstract class Client {
         public void removeClientListener(ClientListener cl) {
                 listenerSet.remove(cl);
         }
+
+        public void addClientHandler(ClientHandlerThread ch) {
+            this.chandler = ch;
+        }
+
         
         /* Internals ******************************************************/        
         
@@ -103,6 +108,11 @@ public abstract class Client {
          * presently in a maze.
          */
         protected Maze maze = null;
+
+        /**
+         * ADDING Client Handler 
+         * */
+        ClientHandlerThread chandler = null;
 
         /**
          * Maintain a set of listeners.

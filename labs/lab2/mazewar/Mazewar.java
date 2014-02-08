@@ -163,15 +163,13 @@ public class Mazewar extends JFrame {
         // You may want to put your network initialization code somewhere in
         // here.
 
-        initializeSocket();             
+        ClientHandlerThread clientHandler = new ClientHandlerThread("localhost", 4444);
 
         // Create the GUIClient and connect it to the KeyListener queue
         guiClient = new GUIClient(name);
+        guiClient.addClientHandler(clientHandler);
         maze.addClient(guiClient);
         this.addKeyListener(guiClient);
-
-        // Register client to server over socket
-        registerClient();
 
         // Use braces to force constructors not to be called at the beginning of the
         // constructor.
@@ -253,62 +251,7 @@ public class Mazewar extends JFrame {
         new Mazewar();
     }
 
-    public boolean initializeSocket(){
-        /* Connect to central game server. */
-        try {
-            /* Using this hardcoded port for now, eventually make this userinput at GUI interface in Mazewar.java*/
-            System.out.println("Connecting to Mazewar Server...");
 
-            String hostname = "localhost";
-            int port = 4444;
-
-            mwsSocket = new Socket(hostname,port);
-            out = new ObjectOutputStream(mwsSocket.getOutputStream());
-            in = new ObjectInputStream(mwsSocket.getInputStream());
-
-        } catch (Exception e) {
-            System.out.println("Client error initializing socket");
-            System.exit(1);
-        }
-
-        return true;
-
-    }
-
-    public boolean registerClient(){
-        MazePacket packetToServer = new MazePacket();
-        MazePacket packetFromServer = new MazePacket();
-
-        try{
-            /* Initialize handshaking with server */
-            Random rand = new Random();
-
-            packetToServer.packet_type = MazePacket.CLIENT_REGISTER;
-            packetToServer.sequence_num = rand.nextInt(1000) + 1; /* Where to store ? should this even be in Maze.java? (not user data) */
-            packetToServer.client_name = "Kanye";        /* Using a hardcoded value for now - add to GUI interface eventually */
-            out.writeObject(packetToServer);
-
-            /* Wait for server acknowledgement */
-            packetFromServer = (MazePacket) in.readObject();
-            if (packetFromServer == null || 
-                    packetFromServer.client_list == null ||
-                    //packetFromServer.event_list == null ||
-                    packetFromServer.packet_type != MazePacket.SERVER_ACK) {
-                System.out.println("Client error registering with server");
-                    }
-
-            clientTable = packetFromServer.client_list;
-            eventQueue = packetFromServer.event_list;
-
-            System.out.println("Server verified connection!");
-
-        }catch (Exception e){
-            System.out.println("Client error registering with server");
-
-        }
-
-        return true;
-    }
 
 
 }
