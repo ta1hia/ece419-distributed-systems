@@ -171,6 +171,9 @@ public class Mazewar extends JFrame {
         maze.addClient(guiClient);
         this.addKeyListener(guiClient);
 
+        clientHandler.me = guiClient;
+        clientHandler.registerClient();
+
         // Use braces to force constructors not to be called at the beginning of the
         // constructor.
         {

@@ -13,7 +13,10 @@ import java.net.*;
 public class MazePacket implements Serializable {
     // Actions
     public static final int SERVER_ACK = 100; 
-    public static final int CLIENT_REGISTER = 101; // Client wants to register! IP of client shall be passed in.
+    public static final int SERVER_CLIENT_LIST = 101;
+    public static final int SERVER_EVENT_LIST = 102;
+
+    public static final int CLIENT_REGISTER = 201; // Client wants to register! IP of client shall be passed in.
 
     // Error code
     public static final int ERROR_INVALID_ARG = -101;
@@ -21,12 +24,10 @@ public class MazePacket implements Serializable {
     // Client actions
     public String client_host;
     public String client_name;
-
-    public int error_code;
+    public Point client_location;
 
     //Server actions
     int ack_num;
-    int remote_client_id; /* For now I'm making this a server-assigned client id instead (instead of client sending their own IP)*/
 
     // Event
     public MazeEvent event;
@@ -38,5 +39,6 @@ public class MazePacket implements Serializable {
     // Packet data
     int sequence_num;
     int packet_type;
+    public int error_code;
 
 }

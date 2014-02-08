@@ -7,7 +7,7 @@ import java.util.concurrent.BlockingQueue;
 public class ServerData implements Serializable {
     //eventqueue
     //clientqueue
-    BlockingQueue<MazeEvent> eventQueue = new LinkedBlockingQueue();
+    BlockingQueue<MazePacket> eventQueue = new LinkedBlockingQueue();
     ConcurrentHashMap<String, Point> clientTable = new ConcurrentHashMap<>(); //Might need reference to actual thread here, for dispatcher
 
     public void addClientToTable(String name, Point position) {

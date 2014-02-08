@@ -15,6 +15,8 @@ import java.net.*;
 
 public class ClientHandlerThread extends Thread {
     Socket cSocket;
+    Client me;
+    Maze maze;
     ObjectOutputStream out;
     ObjectInputStream in;
     BlockingQueue<MazeEvent> eventQueue;
@@ -30,16 +32,17 @@ public class ClientHandlerThread extends Thread {
             out = new ObjectOutputStream(cSocket.getOutputStream());
             in = new ObjectInputStream(cSocket.getInputStream());
 
-            registerClient();
-
         } catch (Exception e) {
             e.printStackTrace();
             System.exit(1);
         }
     }
 
+    public registerMaze(Maze maze) {
+        this.maze = maze;
+    }
 
-    private void registerClient(){
+    public void registerClientWithMazewar(){
         MazePacket packetToServer = new MazePacket();
         MazePacket packetFromServer = new MazePacket();
 
@@ -50,6 +53,7 @@ public class ClientHandlerThread extends Thread {
             packetToServer.packet_type = MazePacket.CLIENT_REGISTER;
             packetToServer.sequence_num = rand.nextInt(1000) + 1; /* Where to store ? should this even be in Maze.java? (not user data) */
             packetToServer.client_name = "Kanye";        /* Using a hardcoded value for now - add to GUI interface eventually */
+            packetToServer.client_location = maze.getClientPoint(me);
             out.writeObject(packetToServer);
 
             /* Wait for server acknowledgement */
@@ -73,7 +77,23 @@ public class ClientHandlerThread extends Thread {
 
     }
 
+    public void run() {
+        /* Listen for packets */
+        MazePacket packetFromServer = new MazePacket();
+        MazePacket packetToServer = new MazePacket();
 
+        try {
+            while(packetFromServer = (MazePacket) in.readObject() != null) {
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /* Process server packet events */
+
+
+    /* Listen for client keypress and send server packets */
 }
 
 
