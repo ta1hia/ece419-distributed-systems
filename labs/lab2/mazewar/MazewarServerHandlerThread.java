@@ -174,7 +174,7 @@ public class MazewarServerHandlerThread extends Thread {
             String rc_name = packetFromRC.client_name;
             Point rc_point = packetFromRC.client_location;
             System.out.println("Connected with " + rc_name);
-            data.addClientToTable(rc_name, rc_point, cout);
+            data.addClientToTable(rc_name, rc_point, ClientData.REMOTE);
 
             /* Prepare event packet for event queue */
             eventPacket.client_name = rc_name;

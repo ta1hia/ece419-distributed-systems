@@ -42,7 +42,7 @@ public class Dispatcher extends Thread {
                     if(seqNum == 501)
                         seqNum = 0;
                 }
-                 Thread.sleep(500);
+                Thread.sleep(200);
             }
         } catch (IOException e) {
             e.printStackTrace();

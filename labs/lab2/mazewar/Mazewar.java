@@ -58,7 +58,7 @@ public class Mazewar extends JFrame {
      * All implementations of the same protocol must use 
      * the same seed value, or your mazes will be different.
      */
-    private final int mazeSeed = 42;
+    private final int mazeSeed = (int) System.currentTimeMillis();//42;
 
     /**
      * The {@link Maze} that the game uses.
@@ -175,6 +175,7 @@ public class Mazewar extends JFrame {
         maze.addClient(guiClient);
         this.addKeyListener(guiClient);
 
+        clientHandler.registerMaze(maze);
         clientHandler.me = guiClient;
         clientHandler.registerClientWithMazewar();
 

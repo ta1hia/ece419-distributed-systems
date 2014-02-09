@@ -8,5 +8,9 @@ import java.util.concurrent.BlockingQueue;
  * each clientTable key holds maps to ClientData 
  */
 public class ClientData implements Serializable {
+    public static final int ROBOT = 1;
+    public static final int REMOTE = 2;
+
     Point client_location;
+    int client_type;
 }

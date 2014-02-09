@@ -4,6 +4,7 @@ import java.io.ObjectOutputStream;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.Random;
+import java.util.Map;
 import java.io.*;
 import java.net.*;
 
@@ -116,13 +117,46 @@ public class ClientHandlerThread extends Thread {
 
         if (name.equals(me.getName())) {
             System.out.println("Server added me!");
-            return;
         }
 
         // else server is telling you to add a new client
         // create new clients into clientTable based on any
         // new clients seen in clientTableFromServer
         // which we won't implement till lab 3
+
+        System.out.print("CLIENT: updating clientTable: ");
+        for (Map.Entry<String, ClientData> entry : clientTableFromServer.entrySet()) {
+            String key = entry.getKey();
+            System.out.print(key);
+            if (!clientTable.containsKey(key)) {
+                ClientData cData = entry.getValue();
+                
+                switch (cData.client_type) {
+                    case ClientData.REMOTE:
+                        //add remote client
+                        RemoteClient c = new RemoteClient(key);
+                        clientTable.put(key, c);
+                        System.out.println("CLIENT: adding remote client on add client event");
+                        maze.addClient(c);
+                        break;
+                    case ClientData.ROBOT:
+                        //add robot client
+                        break;
+                    default:
+                        System.out.println("CLIENT: no new clients on add client event");
+                        break;
+                }
+            }
+        }
+        System.out.print("\n");
+
+        //debug
+        System.out.print("CLIENT: printing clientTable - ");
+        for (String key : clientTable.keySet()) {
+            System.out.print(key + " ");
+        }
+        System.out.print("\n");
+
     }
 
     private void clientForwardEvent() {
