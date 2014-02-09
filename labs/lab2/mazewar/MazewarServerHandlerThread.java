@@ -29,7 +29,7 @@ public class MazewarServerHandlerThread extends Thread {
         try {
             this.rcSocket = socket;
             this.cout = new ObjectOutputStream(rcSocket.getOutputStream());
-            this.cin = new ObjectInputStream(rcSocket.getInputStream());
+            //this.cin = new ObjectInputStream(rcSocket.getInputStream());
             this.data = sdata;
             data.addSocketOutToList(cout);
             System.out.println("Created new MazewarServerHandlerThread to handle remote client ");
@@ -41,25 +41,45 @@ public class MazewarServerHandlerThread extends Thread {
     public void run() {
         System.out.println("Connecting to client...");
         int lastPacketNum;
-        packetToRC = new MazePacket();
-        packetFromRC = new MazePacket();
 
         try {
             /* Loop: 
             */
+            cin = new ObjectInputStream(rcSocket.getInputStream());
             while ((packetFromRC = (MazePacket) cin.readObject()) != null) {
+                System.out.println("S_HANDLER: packet type is " + packetFromRC.packet_type);
 
                 /* Process each packet */
                 switch (packetFromRC.packet_type) {
                     case MazePacket.CLIENT_REGISTER:
-                        registerClient();
+                        registerClientEvent();
+                        break;
+                    case MazePacket.CLIENT_FORWARD:
+                        clientForwardEvent();
                         break;
                     default:
-                        System.out.println("Could not recognize packet type");
+                        System.out.println("S_HANDLER: Could not recognize packet type");
                 }
                 
             }
         } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("server done broke");
+        }
+    }
+
+    private void clientForwardEvent() {
+        try { 
+            MazePacket eventPacket = new MazePacket();
+            String rc_name = packetFromRC.client_name;
+            System.out.println("S_HANDLER: " + rc_name + " forward");
+
+            eventPacket.client_name = rc_name;
+            eventPacket.packet_type = MazePacket.CLIENT_FORWARD;
+
+            data.addEventToQueue(eventPacket);
+        } catch (Exception e) {
+            e.printStackTrace();
             System.out.println("server done broke");
         }
     }
@@ -68,7 +88,7 @@ public class MazewarServerHandlerThread extends Thread {
      * - add to client list
      * - send client list 
      */
-    private void registerClient() {
+    private void registerClientEvent() {
         try {
             /* Wait for handshaking packet from client, store client state in 
              * global client table */
@@ -93,6 +113,5 @@ public class MazewarServerHandlerThread extends Thread {
             e.printStackTrace();
             System.out.println("server done broke");
         }
-
     }
 }

@@ -21,7 +21,7 @@ public class ClientHandlerThread extends Thread {
     ObjectOutputStream out;
     ObjectInputStream in;
     BlockingQueue<MazeEvent> eventQueue;
-    ConcurrentHashMap<String, ClientData> clientTable;
+    ConcurrentHashMap<String, Client> clientTable;
 
 
     MazePacket packetFromServer;
@@ -35,6 +35,7 @@ public class ClientHandlerThread extends Thread {
             cSocket = new Socket(host,port);
             out = new ObjectOutputStream(cSocket.getOutputStream());
             in = new ObjectInputStream(cSocket.getInputStream());
+            clientTable = new ConcurrentHashMap();
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -50,7 +51,8 @@ public class ClientHandlerThread extends Thread {
         MazePacket packetToServer = new MazePacket();
 
         try{
-            System.out.println("CLIENT: Registering 1");
+            System.out.println("CLIENT: Registering ");
+
             /* Initialize handshaking with server */
             Random rand = new Random();
 
@@ -58,7 +60,9 @@ public class ClientHandlerThread extends Thread {
             packetToServer.client_name = me.getName();
             //packetToServer.client_location = maze.getClientPoint(me);
             out.writeObject(packetToServer);
-            System.out.println("CLIENT: Registering 2");
+
+            /* Init client table with yourself */
+            clientTable.put(me.getName(), me);
 
         }catch (IOException e){
             e.printStackTrace();
@@ -74,10 +78,13 @@ public class ClientHandlerThread extends Thread {
         try {
             while((packetFromServer = (MazePacket) in.readObject()) != null) {
 
-                
+
                 switch (packetFromServer.packet_type) {
                     case MazePacket.CLIENT_REGISTER:
-                        addClient();
+                        addClientEvent();
+                        break;
+                    case MazePacket.CLIENT_FORWARD:
+                        clientForwardEvent();
                         break;
                     default:
                         System.out.println("Could not recognize packet type");
@@ -88,27 +95,48 @@ public class ClientHandlerThread extends Thread {
         }
     }
 
-    /* Process server packet events */
-
-    private void addClient() {
+    /**
+     * Process server packet eventsi
+     * */
+    private void addClientEvent() {
         String name = packetFromServer.client_name;
+        ConcurrentHashMap<String, ClientData> clientTableFromServer = packetFromServer.client_list;
 
-        if (name == me.getName()) {
+        if (name.equals(me.getName())) {
             System.out.println("Server added me!");
             return;
         }
 
         // else server is telling you to add a new client
+        // create new clients into clientTable based on any
+        // new clients seen in clientTableFromServer
         // which we won't implement till lab 3
     }
 
-    /* Listen for client keypress and send server packets */
+    private void clientForwardEvent() {
+        // get client with name from client list
+        // client.foward
+        String name = packetFromServer.client_name;
+
+        if (clientTable.containsKey(name)) { 
+            clientTable.get(name).forward();
+        } else {
+            System.out.println("CLIENT: no client named " + name + " in forward");
+        }
+
+
+    }
+
+    /**
+     * Listen for client keypress and send server packets 
+     * */
     public void handleKeyPress(KeyEvent e) {
         // If the user pressed Q, invoke the cleanup code and quit. 
         if((e.getKeyChar() == 'q') || (e.getKeyChar() == 'Q')) {
             //Mazewar.quit();
             // Up-arrow moves forward.
         } else if(e.getKeyCode() == KeyEvent.VK_UP) {
+            System.out.println("CLIENT: sending event forward");
             sendPacketToServer(MazePacket.CLIENT_FORWARD);
             //forward();
             // Down-arrow moves backward.
@@ -131,9 +159,14 @@ public class ClientHandlerThread extends Thread {
     }
 
     private void sendPacketToServer(int packetType) {
-        MazePacket packetToServer = new MazePacket();
-        packetToServer.packet_type = packetType;
-        packetToServer.client_name = me.getName();
+        try {
+            MazePacket packetToServer = new MazePacket();
+            packetToServer.packet_type = packetType;
+            packetToServer.client_name = me.getName();
+            out.writeObject(packetToServer);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
 
