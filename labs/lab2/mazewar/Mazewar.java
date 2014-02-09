@@ -154,16 +154,20 @@ public class Mazewar extends JFrame {
             Mazewar.quit();
         }
 
-        //pass into initialize socket after error checking. port, host, name
-        /*String host = JOptionPane.showInputDialog("Enter host name");
-          if((host == null) || (host.length() == 0)) {
-          Mazewar.quit();
-          }*/
+        String host = JOptionPane.showInputDialog("Enter host name");
+        if((host == null) || (host.length() == 0)) {
+            Mazewar.quit();
+        }
 
+        String portStr = JOptionPane.showInputDialog("Enter host name");
+        if((portStr == null) || (portStr.length() == 0)) {
+            Mazewar.quit();
+        }
+        int port = Integer.parseInt(portStr);
         // You may want to put your network initialization code somewhere in
         // here.
 
-        ClientHandlerThread clientHandler = new ClientHandlerThread("localhost", 4444);
+        ClientHandlerThread clientHandler = new ClientHandlerThread(host, port);
 
         // Create the GUIClient and connect it to the KeyListener queue
         guiClient = new GUIClient(name);
@@ -177,10 +181,10 @@ public class Mazewar extends JFrame {
         // Use braces to force constructors not to be called at the beginning of the
         // constructor.
         {
-//            maze.addClient(new RobotClient("Norby"));
-//            maze.addClient(new RobotClient("Robbie"));
-//            maze.addClient(new RobotClient("Clango"));
-//            maze.addClient(new RobotClient("Marvin"));
+            //            maze.addClient(new RobotClient("Norby"));
+            //            maze.addClient(new RobotClient("Robbie"));
+            //            maze.addClient(new RobotClient("Clango"));
+            //            maze.addClient(new RobotClient("Marvin"));
         }
 
 
