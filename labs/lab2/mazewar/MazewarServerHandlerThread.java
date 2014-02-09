@@ -29,7 +29,6 @@ public class MazewarServerHandlerThread extends Thread {
         try {
             this.rcSocket = socket;
             this.cout = new ObjectOutputStream(rcSocket.getOutputStream());
-            //this.cin = new ObjectInputStream(rcSocket.getInputStream());
             this.data = sdata;
             data.addSocketOutToList(cout);
             System.out.println("Created new MazewarServerHandlerThread to handle remote client ");
@@ -175,12 +174,15 @@ public class MazewarServerHandlerThread extends Thread {
             String rc_name = packetFromRC.client_name;
             Point rc_point = packetFromRC.client_location;
             Direction rc_direction = packetFromRC.client_direction;
+            int rc_type = packetFromRC.client_type;
             System.out.println("S_HANDLER: Connected with " + rc_name );
-            data.addClientToTable(rc_name, rc_point, rc_direction, ClientData.REMOTE);
+            data.addClientToTable(rc_name, rc_point, rc_direction, ClientData.REMOTE); //need to organize this
 
             /* Prepare event packet for event queue */
             eventPacket.client_name = rc_name;
             eventPacket.client_location = rc_point;
+            eventPacket.client_direction = rc_direction;
+            eventPacket.client_type = rc_type;
             eventPacket.packet_type = MazePacket.CLIENT_REGISTER;
             eventPacket.client_list = data.clientTable; //Add client list to event packet
 

@@ -30,10 +30,15 @@ public class MazePacket implements Serializable {
     // Error code
     public static final int ERROR_INVALID_ARG = -101;
 
+    // Client type
+    public static final int ROBOT = 1;
+    public static final int REMOTE = 2;
+
     // Client actions
     public String client_host;
     public String client_name;
     public Point client_location;
+    public int client_type;
     public Direction client_direction;
 
     //Server actions

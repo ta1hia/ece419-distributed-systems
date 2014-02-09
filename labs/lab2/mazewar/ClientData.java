@@ -7,6 +7,8 @@ import java.util.concurrent.BlockingQueue;
  * wrapper for clientTable entries
  * each clientTable key holds maps to ClientData 
  */
+
+//might not need this naymore
 public class ClientData implements Serializable {
     public static final int ROBOT = 1;
     public static final int REMOTE = 2;

@@ -36,5 +36,5 @@ public class ServerData implements Serializable {
         socketOutList.add(out);
     }
 
-    
+
 }

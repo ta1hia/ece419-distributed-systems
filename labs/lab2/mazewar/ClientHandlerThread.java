@@ -60,6 +60,7 @@ public class ClientHandlerThread extends Thread {
             packetToServer.client_name = me.getName();
             packetToServer.client_location = maze.getClientPoint(me);
             packetToServer.client_direction = me.getOrientation();
+            packetToServer.client_type = MazePacket.REMOTE;
             System.out.println("CLIENT REGISTER: " + me.getName());
             out.writeObject(packetToServer);
 
@@ -115,17 +116,38 @@ public class ClientHandlerThread extends Thread {
     private void addClientEvent() {
         String name = packetFromServer.client_name;
         ConcurrentHashMap<String, ClientData> clientTableFromServer = packetFromServer.client_list;
+        System.out.println("CLIENT: Server sent addClient event");
 
         if (name.equals(me.getName())) {
             System.out.println("CLIENT: Server added me!");
         }
+        else {
+            System.out.println("CLIENT: Server adding new client " + name);
+            int clientType = packetFromServer.client_type;
+
+            switch (clientType) {
+                case ClientData.REMOTE:
+                    //add remote client
+                    RemoteClient c = new RemoteClient(name);
+                    clientTable.put(name, c);
+                    maze.addRemoteClient(c, packetFromServer.client_location, packetFromServer.client_direction);
+                    break;
+                case ClientData.ROBOT:
+                    //add robot client
+                    break;
+                default:
+                    System.out.println("CLIENT: no new clients on add client event");
+                    break;
+            }
+        }
+    
 
         // else server is telling you to add a new client
         // create new clients into clientTable based on any
         // new clients seen in clientTableFromServer
         for (Map.Entry<String, ClientData> entry : clientTableFromServer.entrySet()) {
             String key = entry.getKey();
-            System.out.print(key);
+            System.out.println(key);
             if (!clientTable.containsKey(key)) {
                 ClientData cData = entry.getValue();
                 
@@ -140,20 +162,10 @@ public class ClientHandlerThread extends Thread {
                         //add robot client
                         break;
                     default:
-                        System.out.println("CLIENT: no new clients on add client event");
                         break;
                 }
             }
         }
-
-        /*//debug
-        System.out.print("CLIENT: printing clientTable - ");
-        for (String key : clientTable.keySet()) {
-            System.out.print(key + " ");
-        }
-        System.out.print("\n");
-        */
-
     }
 
     private void clientForwardEvent() {
