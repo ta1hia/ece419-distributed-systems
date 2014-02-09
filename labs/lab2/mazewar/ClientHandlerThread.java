@@ -52,14 +52,15 @@ public class ClientHandlerThread extends Thread {
         MazePacket packetToServer = new MazePacket();
 
         try{
-            System.out.println("CLIENT: Registering ");
 
             /* Initialize handshaking with server */
             Random rand = new Random();
 
             packetToServer.packet_type = MazePacket.CLIENT_REGISTER;
             packetToServer.client_name = me.getName();
-            //packetToServer.client_location = maze.getClientPoint(me);
+            packetToServer.client_location = maze.getClientPoint(me);
+            packetToServer.client_direction = me.getOrientation();
+            System.out.println("CLIENT REGISTER: " + me.getName());
             out.writeObject(packetToServer);
 
             /* Init client table with yourself */
@@ -116,15 +117,12 @@ public class ClientHandlerThread extends Thread {
         ConcurrentHashMap<String, ClientData> clientTableFromServer = packetFromServer.client_list;
 
         if (name.equals(me.getName())) {
-            System.out.println("Server added me!");
+            System.out.println("CLIENT: Server added me!");
         }
 
         // else server is telling you to add a new client
         // create new clients into clientTable based on any
         // new clients seen in clientTableFromServer
-        // which we won't implement till lab 3
-
-        System.out.print("CLIENT: updating clientTable: ");
         for (Map.Entry<String, ClientData> entry : clientTableFromServer.entrySet()) {
             String key = entry.getKey();
             System.out.print(key);
@@ -136,8 +134,7 @@ public class ClientHandlerThread extends Thread {
                         //add remote client
                         RemoteClient c = new RemoteClient(key);
                         clientTable.put(key, c);
-                        System.out.println("CLIENT: adding remote client on add client event");
-                        maze.addClient(c);
+                        maze.addRemoteClient(c, cData.client_location, cData.client_direction);
                         break;
                     case ClientData.ROBOT:
                         //add robot client
@@ -148,14 +145,14 @@ public class ClientHandlerThread extends Thread {
                 }
             }
         }
-        System.out.print("\n");
 
-        //debug
+        /*//debug
         System.out.print("CLIENT: printing clientTable - ");
         for (String key : clientTable.keySet()) {
             System.out.print(key + " ");
         }
         System.out.print("\n");
+        */
 
     }
 
@@ -219,6 +216,7 @@ public class ClientHandlerThread extends Thread {
             System.out.println("CLIENT: no client named " + name + " in fire");
         }
     }
+
     /**
      * Listen for client keypress and send server packets 
      * */

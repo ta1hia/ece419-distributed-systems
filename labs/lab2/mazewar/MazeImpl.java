@@ -48,72 +48,13 @@ import java.net.ServerSocket;
 
 public class MazeImpl extends Maze implements Serializable, ClientListener, Runnable {
 
-
-    Socket mwsSocket = null;
-    ObjectOutputStream out = null; /* need to keep track of these */
-    ObjectInputStream in = null;
-
-    /* Moving this to Mazewar.java so that game data can be stored from the user side
-    // Initialize socket connection with Mazeware server
-    public boolean initializeSocket(){
-        // Connect to central game server.
-        try {
-            String hostname = "localhost";
-            int port = 4444;
-
-            mwsSocket = new Socket(hostname,port);
-            out = new ObjectOutputStream(mwsSocket.getOutputStream());
-            in = new ObjectInputStream(mwsSocket.getInputStream());
-
-        } catch (Exception e) {
-            System.exit(1);
-        }
-
-        return true;
-
-    }*/
-
-    /*
-    // Register client to main server.
-    public boolean registerClient(ObjectOutputStream out, ObjectInputStream in){
-        MazePacket packetToServer = new MazePacket();
-        MazePacket packetFromServer = new MazePacket();
-
-        try{
-            // Initialize handshaking with server 
-            //packetToServer.client_host = InetAddress.getLocalHost().getHostName();
-            Random rand = new Random();
-
-            packetToServer.packet_type = MazePacket.CLIENT_REGISTER;
-            packetToServer.sequence_num = rand.nextInt(1000) + 1; // Where to store ? should this even be in Maze.java? (not user data) 
-            packetToServer.client_name = "Kanye"        // Using a hardcoded value for now - add to GUI interface eventually 
-            out.writeObject(packetToServer);
-
-            // Wait for server acknowledgement 
-            packetFromServer = in.readObject();
-            if (packetFromServer == null || packetFromServer.packet_type != MazePacket.SERVER_ACK) {
-                System.out.println("Server did not verify connection");
-            }
-
-            // need to get client list at this point and use data to set up maze
-
-
-            System.out.println("Server verified connection!");
-
-        }catch (Exception e){
-
-        }
-
-        return true;
-    } */
-
     /**
      * Create a {@link Maze}.
      * @param point Treat the {@link Point} as a magintude specifying the
      * size of the maze.
      * @param seed Initial seed for the random number generator.
      */
-    public MazeImpl(Point point, long seed) {
+    public MazeImpl(Point point, long seed1, long seed2) {
         maxX = point.getX();
         assert(maxX > 0);
         maxY = point.getY();
@@ -134,10 +75,13 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
         thread = new Thread(this);
 
         // Initialized the random number generator
-        randomGen = new Random(seed);
+        randomGen = new Random(seed1);
 
         // Build the maze starting at the corner
         buildMaze(new Point(0,0));
+
+        // Set second seed
+        pointSeed = (int) seed2;
 
         thread.start();
     }
@@ -259,14 +203,22 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
     public synchronized void addClient(Client client) {
         assert(client != null);
         // Pick a random starting point, and check to see if it is already occupied
-        Point point = new Point(randomGen.nextInt(maxX),randomGen.nextInt(maxY));
+        Random rand = new Random(pointSeed);
+        Point point = new Point(rand.nextInt(maxX),rand.nextInt(maxY));
         CellImpl cell = getCellImpl(point);
+                
         // Repeat until we find an empty cell
         while(cell.getContents() != null) {
-            point = new Point(randomGen.nextInt(maxX),randomGen.nextInt(maxY));
+            point = new Point(rand.nextInt(maxX),rand.nextInt(maxY));
             cell = getCellImpl(point);
         } 
-        addClient(client, point);
+        addClient(client, point, null);
+    }
+
+    public synchronized void addRemoteClient(Client client, Point point, Direction direction) {
+        assert(client != null);
+
+        addClient(client, point, direction);
     }
 
     public synchronized Point getClientPoint(Client client) {
@@ -483,13 +435,16 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
      * @param client The {@link Client} to be added.
      * @param point The location the {@link Client} should be added.
      */
-    private synchronized void addClient(Client client, Point point) {
+    private synchronized void addClient(Client client, Point point, Direction direction) {
         assert(client != null);
         assert(checkBounds(point));
         CellImpl cell = getCellImpl(point);
-        Direction d = Direction.random();
-        while(cell.isWall(d)) {
+        Direction d = direction;
+        if (d == null) {
             d = Direction.random();
+            while(cell.isWall(d)) {
+                d = Direction.random();
+            }
         }
         cell.setContents(client);
         clientMap.put(client, new DirectedPoint(point, d));

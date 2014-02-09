@@ -34,6 +34,7 @@ public class MazePacket implements Serializable {
     public String client_host;
     public String client_name;
     public Point client_location;
+    public Direction client_direction;
 
     //Server actions
     int ack_num;

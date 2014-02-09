@@ -12,5 +12,6 @@ public class ClientData implements Serializable {
     public static final int REMOTE = 2;
 
     Point client_location;
+    Direction client_direction;
     int client_type;
 }

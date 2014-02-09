@@ -26,7 +26,7 @@ import java.io.Serializable;
  * @version $Id: DirectedPoint.java 339 2004-01-23 20:06:22Z geoffw $
  */
 
-public class DirectedPoint extends Point {
+public class DirectedPoint extends Point implements Serializable {
 
         /**
          * The {@link Direction}

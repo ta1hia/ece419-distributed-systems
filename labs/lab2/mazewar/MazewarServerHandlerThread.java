@@ -160,6 +160,7 @@ public class MazewarServerHandlerThread extends Thread {
             System.out.println("server done broke");
         }
     }
+
     /* Register new client
      * - add to client list
      * - send client list 
@@ -173,8 +174,9 @@ public class MazewarServerHandlerThread extends Thread {
             /* Add to client list */
             String rc_name = packetFromRC.client_name;
             Point rc_point = packetFromRC.client_location;
-            System.out.println("Connected with " + rc_name);
-            data.addClientToTable(rc_name, rc_point, ClientData.REMOTE);
+            Direction rc_direction = packetFromRC.client_direction;
+            System.out.println("S_HANDLER: Connected with " + rc_name );
+            data.addClientToTable(rc_name, rc_point, rc_direction, ClientData.REMOTE);
 
             /* Prepare event packet for event queue */
             eventPacket.client_name = rc_name;

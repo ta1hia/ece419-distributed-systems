@@ -58,7 +58,8 @@ public class Mazewar extends JFrame {
      * All implementations of the same protocol must use 
      * the same seed value, or your mazes will be different.
      */
-    private final int mazeSeed = (int) System.currentTimeMillis();//42;
+    private final int pointSeed = (int) System.currentTimeMillis();//42;
+    private final int mazeSeed = 42;
 
     /**
      * The {@link Maze} that the game uses.
@@ -139,7 +140,7 @@ public class Mazewar extends JFrame {
         consolePrintLn("ECE419 Mazewar started!");
 
         // Create the maze
-        maze = new MazeImpl(new Point(mazeWidth, mazeHeight), mazeSeed);
+        maze = new MazeImpl(new Point(mazeWidth, mazeHeight), mazeSeed, pointSeed);
         assert(maze != null);
 
         // Have the ScoreTableModel listen to the maze to find

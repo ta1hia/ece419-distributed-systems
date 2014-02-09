@@ -12,11 +12,12 @@ public class ServerData implements Serializable {
     ConcurrentHashMap<String, ClientData> clientTable = new ConcurrentHashMap<>(); //Might need reference to actual thread here, for dispatcher
     ArrayList socketOutList = new ArrayList();
 
-    public void addClientToTable(String name, Point position, int type) {
+    public void addClientToTable(String name, Point position, Direction direction, int type) {
         if (!clientTable.containsKey(name)) {
             /* Create ClientData */
             ClientData clientData = new ClientData();
             clientData.client_location = position;
+            clientData.client_direction = direction;
             clientData.client_type = type;
 
             /* Add to table */
