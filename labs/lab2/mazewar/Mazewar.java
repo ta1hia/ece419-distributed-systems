@@ -173,7 +173,6 @@ public class Mazewar extends JFrame {
 
         clientHandler.me = guiClient;
         clientHandler.registerClientWithMazewar();
-        clientHandler.run();
 
         // Use braces to force constructors not to be called at the beginning of the
         // constructor.
@@ -242,6 +241,7 @@ public class Mazewar extends JFrame {
         setVisible(true);
         overheadPanel.repaint();
         this.requestFocusInWindow();
+        clientHandler.start();
     }
 
 

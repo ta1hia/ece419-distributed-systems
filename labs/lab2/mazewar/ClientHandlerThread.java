@@ -50,6 +50,7 @@ public class ClientHandlerThread extends Thread {
         MazePacket packetToServer = new MazePacket();
 
         try{
+            System.out.println("CLIENT: Registering 1");
             /* Initialize handshaking with server */
             Random rand = new Random();
 
@@ -57,11 +58,11 @@ public class ClientHandlerThread extends Thread {
             packetToServer.client_name = me.getName();
             //packetToServer.client_location = maze.getClientPoint(me);
             out.writeObject(packetToServer);
+            System.out.println("CLIENT: Registering 2");
 
         }catch (IOException e){
             e.printStackTrace();
             System.out.println("ERROR: registering with server");
-
         }
 
     }

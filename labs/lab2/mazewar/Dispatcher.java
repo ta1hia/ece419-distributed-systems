@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -12,10 +13,12 @@ import java.io.*;
 public class Dispatcher extends Thread {
     BlockingQueue<MazePacket> eventQueue = null;
     ConcurrentHashMap<String, ClientData> clientTable = null;
+    ArrayList socketOutList = null;
 
     public Dispatcher(ServerData data) {
         this.eventQueue = data.eventQueue;
         this.clientTable = data.clientTable;
+        this.socketOutList = data.socketOutList;
     }
 
     // Continually check eventqueue
@@ -29,22 +32,17 @@ public class Dispatcher extends Thread {
             while(true){ //???
                 if(eventQueue.peek() != null){
                     event = eventQueue.take();
+                    System.out.println("DISPATCHER: sending packet type " + event.packet_type);
 
                     // Go through each client	    
-                    Set<String> clientSet = clientTable.keySet();
-
-                    for (String client: clientSet) {
-                        clientTable.get(client).csocket_out.writeObject(event);
-
+                    for(int i=0;i < socketOutList.size(); i++){
+                        ((ObjectOutputStream)socketOutList.get(i)).writeObject(event);
                     }
-                    //   for(int i=0;i < clientTable.size(); i++){
-                    //       clientTable.get(i).send(seqNum, command);
-                    // }
                     seqNum++;
                     if(seqNum == 501)
                         seqNum = 0;
                 }
-                // Thread.sleep(500);
+                 Thread.sleep(500);
             }
         } catch (IOException e) {
             e.printStackTrace();

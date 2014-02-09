@@ -31,6 +31,7 @@ public class MazewarServerHandlerThread extends Thread {
             this.cout = new ObjectOutputStream(rcSocket.getOutputStream());
             this.cin = new ObjectInputStream(rcSocket.getInputStream());
             this.data = sdata;
+            data.addSocketOutToList(cout);
             System.out.println("Created new MazewarServerHandlerThread to handle remote client ");
         } catch (IOException e) {
             System.out.println("IO Exception");
