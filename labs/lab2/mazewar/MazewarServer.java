@@ -40,7 +40,7 @@ public class MazewarServer {
 
         /* Listen for new remote clients */
         while (listening) {
-            new MazewarServerHandlerThread(mazewarServer.accept(), gameData);
+            new MazewarServerHandlerThread(mazewarServer.accept(), gameData).start();
         }
         mazewarServer.close();
     }
