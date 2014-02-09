@@ -21,6 +21,7 @@ public class MazewarServer {
         try { 
             if (args.length == 1) {
                 mazewarServer = new ServerSocket(Integer.parseInt(args[0]));
+                System.out.println("Mazewar server started");
             } else {
                 System.err.println("Error: Invalid arguments!");
                 System.exit(-1);

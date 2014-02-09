@@ -23,6 +23,9 @@ public class ClientHandlerThread extends Thread {
     BlockingQueue<MazeEvent> eventQueue;
     ConcurrentHashMap<String, ClientData> clientTable;
 
+
+    MazePacket packetFromServer;
+
     public ClientHandlerThread(String host, int port){
         /* Connect to central game server. */
         try {
@@ -45,33 +48,19 @@ public class ClientHandlerThread extends Thread {
 
     public void registerClientWithMazewar(){
         MazePacket packetToServer = new MazePacket();
-        MazePacket packetFromServer = new MazePacket();
 
         try{
             /* Initialize handshaking with server */
             Random rand = new Random();
 
             packetToServer.packet_type = MazePacket.CLIENT_REGISTER;
-            packetToServer.sequence_num = rand.nextInt(1000) + 1; /* Where to store ? should this even be in Maze.java? (not user data) */
-            packetToServer.client_name = "Kanye";        /* Using a hardcoded value for now - add to GUI interface eventually */
-            packetToServer.client_location = maze.getClientPoint(me);
+            packetToServer.client_name = me.getName();
+            //packetToServer.client_location = maze.getClientPoint(me);
             out.writeObject(packetToServer);
 
-            /* Wait for server acknowledgement */
-            packetFromServer = (MazePacket) in.readObject();
-            if (packetFromServer == null || 
-                    packetFromServer.client_list == null ||
-                    //packetFromServer.event_list == null ||
-                    packetFromServer.packet_type != MazePacket.SERVER_ACK) {
-                System.out.println("Client error registering with server");
-                    }
-
-            clientTable = packetFromServer.client_list;
-
-            System.out.println("Server verified connection!");
-
-        }catch (Exception e){
-            System.out.println("Client error registering with server");
+        }catch (IOException e){
+            e.printStackTrace();
+            System.out.println("ERROR: registering with server");
 
         }
 
@@ -79,11 +68,19 @@ public class ClientHandlerThread extends Thread {
 
     public void run() {
         /* Listen for packets */
-        MazePacket packetFromServer = new MazePacket();
-        MazePacket packetToServer = new MazePacket();
+        packetFromServer = new MazePacket();
 
         try {
             while((packetFromServer = (MazePacket) in.readObject()) != null) {
+
+                
+                switch (packetFromServer.packet_type) {
+                    case MazePacket.CLIENT_REGISTER:
+                        addClient();
+                        break;
+                    default:
+                        System.out.println("Could not recognize packet type");
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -92,7 +89,17 @@ public class ClientHandlerThread extends Thread {
 
     /* Process server packet events */
 
+    private void addClient() {
+        String name = packetFromServer.client_name;
 
+        if (name == me.getName()) {
+            System.out.println("Server added me!");
+            return;
+        }
+
+        // else server is telling you to add a new client
+        // which we won't implement till lab 3
+    }
 
     /* Listen for client keypress and send server packets */
     public void handleKeyPress(KeyEvent e) {
