@@ -57,6 +57,18 @@ public class MazewarServerHandlerThread extends Thread {
                     case MazePacket.CLIENT_FORWARD:
                         clientForwardEvent();
                         break;
+                    case MazePacket.CLIENT_BACK:
+                        clientBackEvent();
+                        break;
+                    case MazePacket.CLIENT_LEFT:
+                        clientLeftEvent();
+                        break;
+                    case MazePacket.CLIENT_RIGHT:
+                        clientRightEvent();
+                        break;
+                    case MazePacket.CLIENT_FIRE:
+                        clientFireEvent();
+                        break;
                     default:
                         System.out.println("S_HANDLER: Could not recognize packet type");
                 }
@@ -84,6 +96,70 @@ public class MazewarServerHandlerThread extends Thread {
         }
     }
 
+
+    private void clientBackEvent() {
+        try { 
+            MazePacket eventPacket = new MazePacket();
+            String rc_name = packetFromRC.client_name;
+            System.out.println("S_HANDLER: " + rc_name + " back");
+
+            eventPacket.client_name = rc_name;
+            eventPacket.packet_type = MazePacket.CLIENT_BACK;
+
+            data.addEventToQueue(eventPacket);
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("server done broke");
+        }
+    }
+
+    private void clientLeftEvent() {
+        try { 
+            MazePacket eventPacket = new MazePacket();
+            String rc_name = packetFromRC.client_name;
+            System.out.println("S_HANDLER: " + rc_name + " left");
+
+            eventPacket.client_name = rc_name;
+            eventPacket.packet_type = MazePacket.CLIENT_LEFT;
+
+            data.addEventToQueue(eventPacket);
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("server done broke");
+        }
+    }
+
+    private void clientRightEvent() {
+        try { 
+            MazePacket eventPacket = new MazePacket();
+            String rc_name = packetFromRC.client_name;
+            System.out.println("S_HANDLER: " + rc_name + " right");
+
+            eventPacket.client_name = rc_name;
+            eventPacket.packet_type = MazePacket.CLIENT_RIGHT;
+
+            data.addEventToQueue(eventPacket);
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("server done broke");
+        }
+    }
+
+    private void clientFireEvent() {
+        try { 
+            MazePacket eventPacket = new MazePacket();
+            String rc_name = packetFromRC.client_name;
+            System.out.println("S_HANDLER: " + rc_name + " fire");
+
+            eventPacket.client_name = rc_name;
+            eventPacket.packet_type = MazePacket.CLIENT_FIRE;
+
+            data.addEventToQueue(eventPacket);
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("server done broke");
+        }
+    }
     /* Register new client
      * - add to client list
      * - send client list 

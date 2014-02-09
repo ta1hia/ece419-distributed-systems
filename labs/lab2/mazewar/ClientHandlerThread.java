@@ -86,6 +86,18 @@ public class ClientHandlerThread extends Thread {
                     case MazePacket.CLIENT_FORWARD:
                         clientForwardEvent();
                         break;
+                    case MazePacket.CLIENT_BACK:
+                        clientBackEvent();
+                        break;
+                    case MazePacket.CLIENT_LEFT:
+                        clientLeftEvent();
+                        break;
+                    case MazePacket.CLIENT_RIGHT:
+                        clientRightEvent();
+                        break;
+                    case MazePacket.CLIENT_FIRE:
+                        clientFireEvent();
+                        break;
                     default:
                         System.out.println("Could not recognize packet type");
                 }
@@ -123,10 +135,56 @@ public class ClientHandlerThread extends Thread {
         } else {
             System.out.println("CLIENT: no client named " + name + " in forward");
         }
-
-
     }
 
+    private void clientBackEvent() {
+        // get client with name from client list
+        // client.foward
+        String name = packetFromServer.client_name;
+
+        if (clientTable.containsKey(name)) { 
+            clientTable.get(name).backup();
+        } else {
+            System.out.println("CLIENT: no client named " + name + " in backup");
+        }
+    }
+
+    private void clientLeftEvent() {
+        // get client with name from client list
+        // client.foward
+        String name = packetFromServer.client_name;
+
+        if (clientTable.containsKey(name)) { 
+            clientTable.get(name).turnLeft();
+        } else {
+            System.out.println("CLIENT: no client named " + name + " in left");
+        }
+    }
+
+    private void clientRightEvent() {
+        // get client with name from client list
+        // client.foward
+        String name = packetFromServer.client_name;
+
+        if (clientTable.containsKey(name)) { 
+            clientTable.get(name).turnRight();
+        } else {
+            System.out.println("CLIENT: no client named " + name + " in right");
+        }
+    }
+
+
+    private void clientFireEvent() {
+        // get client with name from client list
+        // client.foward
+        String name = packetFromServer.client_name;
+
+        if (clientTable.containsKey(name)) { 
+            clientTable.get(name).fire();
+        } else {
+            System.out.println("CLIENT: no client named " + name + " in fire");
+        }
+    }
     /**
      * Listen for client keypress and send server packets 
      * */
@@ -136,9 +194,7 @@ public class ClientHandlerThread extends Thread {
             //Mazewar.quit();
             // Up-arrow moves forward.
         } else if(e.getKeyCode() == KeyEvent.VK_UP) {
-            System.out.println("CLIENT: sending event forward");
             sendPacketToServer(MazePacket.CLIENT_FORWARD);
-            //forward();
             // Down-arrow moves backward.
         } else if(e.getKeyCode() == KeyEvent.VK_DOWN) {
             sendPacketToServer(MazePacket.CLIENT_BACK);
