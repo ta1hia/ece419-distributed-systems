@@ -74,6 +74,31 @@ public class ClientHandlerThread extends Thread {
 
     }
 
+    public void registerRobotWithMazewar(Client name){
+        MazePacket packetToServer = new MazePacket();
+
+        try{
+
+            /* Initialize handshaking with server */
+            Random rand = new Random();
+
+            packetToServer.packet_type = MazePacket.CLIENT_REGISTER;
+            packetToServer.client_name = me.getName();
+            packetToServer.client_location = maze.getClientPoint(name);
+            packetToServer.client_direction = me.getOrientation();
+            packetToServer.client_type = MazePacket.REMOTE;
+            System.out.println("CLIENT REGISTER: " + me.getName());
+            out.writeObject(packetToServer);
+
+            /* Init client table with yourself */
+            clientTable.put(me.getName(), me);
+
+        }catch (IOException e){
+            e.printStackTrace();
+            System.out.println("ERROR: registering with server");
+        }
+
+    }
     public void run() {
         /* Listen for packets */
         packetFromServer = new MazePacket();
