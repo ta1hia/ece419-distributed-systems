@@ -160,7 +160,7 @@ public class Mazewar extends JFrame {
             Mazewar.quit();
         }
 
-        String portStr = JOptionPane.showInputDialog("Enter host name");
+        String portStr = JOptionPane.showInputDialog("Enter host port");
         if((portStr == null) || (portStr.length() == 0)) {
             Mazewar.quit();
         }

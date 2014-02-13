@@ -4,12 +4,13 @@ import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.io.Serializable;
 
 public class ServerData implements Serializable {
     //eventqueue
     //clientqueue
     BlockingQueue<MazePacket> eventQueue = new LinkedBlockingQueue();
-    ConcurrentHashMap<String, ClientData> clientTable = new ConcurrentHashMap<>(); //Might need reference to actual thread here, for dispatcher
+    ConcurrentHashMap<String, ClientData> clientTable = new ConcurrentHashMap(); //Might need reference to actual thread here, for dispatcher
     ArrayList socketOutList = new ArrayList();
 
     public void addClientToTable(String name, Point position, Direction direction, int type) {
