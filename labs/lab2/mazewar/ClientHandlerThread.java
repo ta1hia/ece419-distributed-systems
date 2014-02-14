@@ -340,6 +340,21 @@ public class ClientHandlerThread extends Thread {
 	else
 	    return false;
     }
+
+
+    public void sendClientRespawn(Client c, Point p, Direction d) {
+        try {
+            MazePacket packetToServer = new MazePacket();
+            packetToServer.packet_type = MazePacket.CLIENT_RESPAWN;
+            packetToServer.client_name = c.getName();
+	    packetToServer.client_location = p;
+	    packetToServer.client_direction = d;
+            out.writeObject(packetToServer);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 }
 
 

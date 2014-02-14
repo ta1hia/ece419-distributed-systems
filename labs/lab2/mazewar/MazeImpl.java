@@ -484,33 +484,73 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
         point = new Point(randomGen.nextInt(maxX),randomGen.nextInt(maxY));
         cell = getCellImpl(point);
 	
+	// Make killed client choose where to spawn.
 	boolean clientIsMe = chandler.clientIsMe(target);
 	boolean reservePoint;
-	if(clientIsMe)
-		reservePoint = chandler.reservePoint(point);
-	else
-		reservePoint = true;
-        // Repeat until we find an empty cell
-        while(cell.getContents() != null || !reservePoint) {
-            point = new Point(randomGen.nextInt(maxX),randomGen.nextInt(maxY));
-            cell = getCellImpl(point);
 
+	if(clientIsMe){
 	    reservePoint = chandler.reservePoint(point);
-        }
 
-        Direction d = Direction.random();
-        while(cell.isWall(d)) {
-            d = Direction.random();
-        }
+	    // Repeat until we find an empty cell
+	    while(clientIsMe && (cell.getContents() != null || !reservePoint)) {
+		point = new Point(randomGen.nextInt(maxX),randomGen.nextInt(maxY));
+		cell = getCellImpl(point);
 
-        cell.setContents(target);
-        clientMap.put(target, new DirectedPoint(point, d));
-        update();
-        notifyClientKilled(source, target);
+		reservePoint = chandler.reservePoint(point);
+	    }
+
+	    Direction d = Direction.random();
+
+	    while(cell.isWall(d)) {
+		d = Direction.random();
+	    }
+
+
+	    cell.setContents(target);
+	    clientMap.put(target, new DirectedPoint(point, d));
+
+	    // Broadcast where the killed client will re-spawn
+	    chandler.sendClientRespawn(target,point,d);
+
+	    update();
+	    notifyClientKilled(source, target);
+
+	} else {
+
+	    // // Pick a random starting point, and check to see if it is already occupied
+	    // point = new Point(randomGen.nextInt(maxX),randomGen.nextInt(maxY));
+	    // cell = getCellImpl(point);
+
+	    // boolean clientIsMe = chandler.clientIsMe(target);
+	    // boolean reservePoint;
+	    // if(clientIsMe)
+	    // 	reservePoint = chandler.reservePoint(point);
+	    // else
+	    // 	reservePoint = true;
+	    // // Repeat until we find an empty cell
+	    // while(cell.getContents() != null || !reservePoint) {
+	    // 	point = new Point(randomGen.nextInt(maxX),randomGen.nextInt(maxY));
+	    // 	cell = getCellImpl(point);
+
+	    // 	reservePoint = chandler.reservePoint(point);
+	    // }
+
+	    // Direction d = Direction.random();
+	    // while(cell.isWall(d)) {
+	    // 	d = Direction.random();
+	    // }
+
+	    // cell.setContents(target);
+	    // clientMap.put(target, new DirectedPoint(point, d));
+	    // update();
+	    // notifyClientKilled(source, target);
+		
+	}
+
     }
 
     /**
-     * Internal helper called when a {@link Client} emits a turnLeft action.
+     * internal helper called when a {@link Client} emits a turnLeft action.
      * @param client The {@link Client} to rotate.
      */
     private synchronized void rotateClientLeft(Client client) {
