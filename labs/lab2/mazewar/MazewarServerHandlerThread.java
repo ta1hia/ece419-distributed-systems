@@ -68,9 +68,12 @@ public class MazewarServerHandlerThread extends Thread {
                     case MazePacket.CLIENT_FIRE:
                         clientFireEvent();
                         break;
+		    case MazePacket.CLIENT_RESPAWN:
+			clientRespawn();
+			break;
 		    case MazePacket.RESERVE_POINT:
 			reservePoint();
-			break;
+			break;	  
                     default:
                         System.out.println("S_HANDLER: Could not recognize packet type");
                 }
@@ -226,6 +229,27 @@ public class MazewarServerHandlerThread extends Thread {
 		e.printStackTrace();
 		System.out.println("server done broke");
 	    }
+    }
+
+    public void clientRespawn(){
+	try { 
+            MazePacket eventPacket = new MazePacket();
+	    Point p = packetFromRC.client_location;
+	    Direction d = packetFromRC.client_direction;
+
+            System.out.println("S_HANDLER: " + packetFromRC.tc + " respawning");
+
+            eventPacket.sc = packetFromRC.sc;
+	    eventPacket.tc = packetFromRC.tc;
+	    eventPacket.client_location = p;
+	    eventPacket.client_direction = d;
+            eventPacket.packet_type = MazePacket.CLIENT_RESPAWN;
+
+            data.addEventToQueue(eventPacket);
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("server done broke");
+        }
     }
 
 }

@@ -129,4 +129,5 @@ public abstract class Maze {
     // Lab 2 additions!
     // Add client handler
     public abstract void addClientHandler(ClientHandlerThread ch);
+    public abstract void setClient(Client sc, Client tc, Point p, Direction d);
 }

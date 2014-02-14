@@ -471,33 +471,36 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
      * @param target The {@link Client} that was killed.
      */
     private synchronized void killClient(Client source, Client target) {
-        assert(source != null);
-        assert(target != null);
-        Mazewar.consolePrintLn(source.getName() + " just vaporized " + 
-                target.getName());
-        Object o = clientMap.remove(target);
-        assert(o instanceof Point);
-        Point point = (Point)o;
-        CellImpl cell = getCellImpl(point);
-        cell.setContents(null);
-        // Pick a random starting point, and check to see if it is already occupied
-        point = new Point(randomGen.nextInt(maxX),randomGen.nextInt(maxY));
-        cell = getCellImpl(point);
-	
-	// Make killed client choose where to spawn.
-	boolean clientIsMe = chandler.clientIsMe(target);
-	boolean reservePoint;
 
+	boolean clientIsMe = chandler.clientIsMe(target);
 	if(clientIsMe){
+	    assert(source != null);
+	    assert(target != null);
+	    Mazewar.consolePrintLn(source.getName() + " just vaporized " + 
+				   target.getName());
+	    Object o = clientMap.remove(target);
+	    assert(o instanceof Point);
+	    Point point = (Point)o;
+	    CellImpl cell = getCellImpl(point);
+	    cell.setContents(null);
+	    // Pick a random starting point, and check to see if it is already occupied
+	    point = new Point(randomGen.nextInt(maxX),randomGen.nextInt(maxY));
+	    cell = getCellImpl(point);
+	
+	    // Make killed client choose where to spawn.
+	    boolean reservePoint;
+
 	    reservePoint = chandler.reservePoint(point);
 
 	    // Repeat until we find an empty cell
-	    while(clientIsMe && (cell.getContents() != null || !reservePoint)) {
+	    while(cell.getContents() != null || !reservePoint) {
 		point = new Point(randomGen.nextInt(maxX),randomGen.nextInt(maxY));
 		cell = getCellImpl(point);
 
 		reservePoint = chandler.reservePoint(point);
 	    }
+    
+            System.out.println("Found point to respawn at!");
 
 	    Direction d = Direction.random();
 
@@ -510,43 +513,65 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
 	    clientMap.put(target, new DirectedPoint(point, d));
 
 	    // Broadcast where the killed client will re-spawn
-	    chandler.sendClientRespawn(target,point,d);
+	    chandler.sendClientRespawn(source.getName(),target.getName(),point,d);
 
 	    update();
 	    notifyClientKilled(source, target);
 
 	} else {
+ assert(source != null);
+	    assert(target != null);
+	    Mazewar.consolePrintLn(source.getName() + " just vaporized " + 
+				   target.getName());
+	    Object o = clientMap.remove(target);
+	    assert(o instanceof Point);
+	    Point point = (Point)o;
+	    CellImpl cell = getCellImpl(point);
+	    cell.setContents(null);
+	    // Pick a random starting point, and check to see if it is already occupied
 
-	    // // Pick a random starting point, and check to see if it is already occupied
-	    // point = new Point(randomGen.nextInt(maxX),randomGen.nextInt(maxY));
-	    // cell = getCellImpl(point);
+	    point = new Point(randomGen.nextInt(maxX),randomGen.nextInt(maxY));
+	    cell = getCellImpl(point);
 
-	    // boolean clientIsMe = chandler.clientIsMe(target);
-	    // boolean reservePoint;
-	    // if(clientIsMe)
-	    // 	reservePoint = chandler.reservePoint(point);
-	    // else
-	    // 	reservePoint = true;
-	    // // Repeat until we find an empty cell
-	    // while(cell.getContents() != null || !reservePoint) {
-	    // 	point = new Point(randomGen.nextInt(maxX),randomGen.nextInt(maxY));
-	    // 	cell = getCellImpl(point);
+	    boolean reservePoint;
+	    if(clientIsMe)
+	    	reservePoint = chandler.reservePoint(point);
+	    else
+	    	reservePoint = true;
+	    // Repeat until we find an empty cell
+	    while(cell.getContents() != null || !reservePoint) {
+	    	point = new Point(randomGen.nextInt(maxX),randomGen.nextInt(maxY));
+	    	cell = getCellImpl(point);
 
-	    // 	reservePoint = chandler.reservePoint(point);
-	    // }
+	    	reservePoint = chandler.reservePoint(point);
+	    }
 
-	    // Direction d = Direction.random();
-	    // while(cell.isWall(d)) {
-	    // 	d = Direction.random();
-	    // }
+	    Direction d = Direction.random();
+	    while(cell.isWall(d)) {
+	    	d = Direction.random();
+	    }
 
-	    // cell.setContents(target);
-	    // clientMap.put(target, new DirectedPoint(point, d));
-	    // update();
-	    // notifyClientKilled(source, target);
+	    cell.setContents(target);
+	    //clientMap.put(target, new DirectedPoint(point, d));
+	    update();
+	    notifyClientKilled(source, target);
 		
 	}
 
+    }
+
+    public void setClient(Client sc, Client tc, Point p, Direction d){
+        // Object o = clientMap.remove(tc);
+	// Point point = (Point)o;
+        // CellImpl cell = getCellImpl(point);
+        // cell.setContents(null);
+	// point = p;
+	// cell = getCellImpl(point);
+
+	// cell.setContents(tc);
+	clientMap.put(tc, new DirectedPoint(p, d));
+	update();
+	// notifyClientKilled(sc,tc);
     }
 
     /**

@@ -130,12 +130,31 @@ public class ClientHandlerThread extends Thread {
                     case MazePacket.CLIENT_FIRE:
                         clientFireEvent();
                         break;
+		    case MazePacket.CLIENT_RESPAWN:
+			clientRespawn();
+			break;
                     default:
                         System.out.println("Could not recognize packet type");
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    private void clientRespawn(){
+        System.out.println("Respawning client");
+        String name = packetFromServer.tc;
+
+        if (clientTable.containsKey(name)) { 
+            Client tc = clientTable.get(name);
+	    Client sc = clientTable.get(packetFromServer.sc);
+	    Point p = packetFromServer.client_location;
+	    Direction d = packetFromServer.client_direction;
+
+	    maze.setClient(sc, tc, p,d);
+        } else {
+            System.out.println("CLIENT: no client named " + name + " in backup");
         }
     }
 
@@ -342,11 +361,12 @@ public class ClientHandlerThread extends Thread {
     }
 
 
-    public void sendClientRespawn(Client c, Point p, Direction d) {
+    public void sendClientRespawn(String sc, String tc, Point p, Direction d) {
         try {
             MazePacket packetToServer = new MazePacket();
             packetToServer.packet_type = MazePacket.CLIENT_RESPAWN;
-            packetToServer.client_name = c.getName();
+            packetToServer.sc = sc;
+	    packetToServer.tc = tc;
 	    packetToServer.client_location = p;
 	    packetToServer.client_direction = d;
             out.writeObject(packetToServer);
