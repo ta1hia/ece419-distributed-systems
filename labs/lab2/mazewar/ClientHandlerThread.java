@@ -24,6 +24,9 @@ public class ClientHandlerThread extends Thread {
     BlockingQueue<MazeEvent> eventQueue;
     ConcurrentHashMap<String, Client> clientTable;
 
+    // Score table
+    //ScoreTableModel scoreTable;
+
 
     MazePacket packetFromServer;
 
@@ -37,6 +40,7 @@ public class ClientHandlerThread extends Thread {
             out = new ObjectOutputStream(cSocket.getOutputStream());
             in = new ObjectInputStream(cSocket.getInputStream());
             clientTable = new ConcurrentHashMap();
+	    //scoreTable = st;
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -249,6 +253,10 @@ public class ClientHandlerThread extends Thread {
 
         if (clientTable.containsKey(name)) { 
             clientTable.get(name).fire();
+
+	    // Decrement score.
+	    //scoreTable.clientFired(clientTable.get(name));
+
         } else {
             System.out.println("CLIENT: no client named " + name + " in fire");
         }
