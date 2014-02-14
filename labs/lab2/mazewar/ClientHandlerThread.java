@@ -333,6 +333,13 @@ public class ClientHandlerThread extends Thread {
         }
 
     }
+
+    public boolean clientIsMe(Client c){
+	if(c == me)
+	    return true;
+	else
+	    return false;
+    }
 }
 
 
