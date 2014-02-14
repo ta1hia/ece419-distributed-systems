@@ -26,9 +26,13 @@ public class MazePacket implements Serializable {
     public static final int CLIENT_LEFT = 204;
     public static final int CLIENT_RIGHT = 205;
     public static final int CLIENT_FIRE = 206;
+   
+    // Reservation 
+    public static final int RESERVE_POINT = 301;
 
     // Error code
     public static final int ERROR_INVALID_ARG = -101;
+    public static final int ERROR_RESERVED_POSITION = -102;
 
     // Client type
     public static final int ROBOT = 1;

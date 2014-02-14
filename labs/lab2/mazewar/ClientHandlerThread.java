@@ -293,6 +293,38 @@ public class ClientHandlerThread extends Thread {
             e.printStackTrace();
         }
     }
+
+    // Try and reserve a point!
+    public boolean reservePoint(Point point){
+       MazePacket packetToServer = new MazePacket();
+
+        try{
+            packetToServer.packet_type = MazePacket.RESERVE_POINT;
+            packetToServer.client_name = me.getName();
+            packetToServer.client_location = point;
+            packetToServer.client_direction = null;
+            packetToServer.client_type = MazePacket.REMOTE;
+            System.out.println("CLIENT " + me.getName() + " RESERVING POINT");
+            out.writeObject(packetToServer);
+
+	    packetFromServer = new MazePacket();
+	    packetFromServer = (MazePacket) in.readObject();
+
+	    int error_code = packetFromServer.error_code;
+
+	    if(error_code == 0)
+		return true;
+	    else
+	    	return false;
+	 
+
+        }catch (Exception e){
+            e.printStackTrace();
+            System.out.println("ERROR: reserving point");
+	    return false;
+        }
+
+    }
 }
 
 

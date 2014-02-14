@@ -12,6 +12,7 @@ public class ServerData implements Serializable {
     BlockingQueue<MazePacket> eventQueue = new LinkedBlockingQueue();
     ConcurrentHashMap<String, ClientData> clientTable = new ConcurrentHashMap(); //Might need reference to actual thread here, for dispatcher
     ArrayList socketOutList = new ArrayList();
+    ConcurrentHashMap<String, Point> clientPosition = new ConcurrentHashMap();
 
     public void addClientToTable(String name, Point position, Direction direction, int type) {
         if (!clientTable.containsKey(name)) {
@@ -37,5 +38,17 @@ public class ServerData implements Serializable {
         socketOutList.add(out);
     }
 
+    public boolean setPosition(String name, Point position){
+	if(!clientPosition.containsValue(position)){
+	    clientPosition.put(name,position);	  	    
+	    return true;
+	}else{
+	    Point clientPos = clientPosition.get(name);
+	    if(clientPos == position)
+		return true;
+	    else
+		return false;
+	}
+    }
 
 }

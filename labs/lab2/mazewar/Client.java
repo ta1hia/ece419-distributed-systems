@@ -100,6 +100,9 @@ public abstract class Client {
             this.chandler = ch;
         }
 
+    public boolean setPosition(Point point){
+	return chandler.reservePoint(point);
+    }
         
         /* Internals ******************************************************/        
         

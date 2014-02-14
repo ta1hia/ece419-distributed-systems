@@ -206,11 +206,15 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
         Random rand = new Random(pointSeed);
         Point point = new Point(rand.nextInt(maxX),rand.nextInt(maxY));
         CellImpl cell = getCellImpl(point);
-                
+        
+	boolean setPosition = client.setPosition(point);
+
         // Repeat until we find an empty cell
-        while(cell.getContents() != null) {
+        while(cell.getContents() != null || !setPosition) {
             point = new Point(rand.nextInt(maxX),rand.nextInt(maxY));
             cell = getCellImpl(point);
+
+	    setPosition = client.setPosition(point);
         } 
         addClient(client, point, null);
     }

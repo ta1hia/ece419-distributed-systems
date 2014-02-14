@@ -68,6 +68,9 @@ public class MazewarServerHandlerThread extends Thread {
                     case MazePacket.CLIENT_FIRE:
                         clientFireEvent();
                         break;
+		    case MazePacket.RESERVE_POINT:
+			reservePoint();
+			break;
                     default:
                         System.out.println("S_HANDLER: Could not recognize packet type");
                 }
@@ -194,4 +197,35 @@ public class MazewarServerHandlerThread extends Thread {
             System.out.println("server done broke");
         }
     }
+
+    /* When a client spawns.moves, it needs to reserve its position (aka. Point). You don't want multiple clients spawning in the same spot!
+     */
+    private void reservePoint(){
+	// Check if another client currently has that position.
+	
+            /* Add to client list */
+            String rc_name = packetFromRC.client_name;
+            Point rc_point = packetFromRC.client_location;
+
+
+            MazePacket serverResponse = new MazePacket();
+	    serverResponse.packet_type = MazePacket.RESERVE_POINT; 	    
+
+	    if(data.setPosition(rc_name,rc_point)){
+		serverResponse.error_code = 0;
+		System.out.println("S_HANDLER: Reserving position successful. " + rc_name );
+	    }else{	
+		serverResponse.error_code = MazePacket.ERROR_RESERVED_POSITION;
+		System.out.println("S_HANDLER: Reserving position failed. " + rc_name );
+	    }
+ 
+	    try{
+		cout.writeObject(serverResponse);
+
+	    } catch (Exception e) {
+		e.printStackTrace();
+		System.out.println("server done broke");
+	    }
+    }
+
 }

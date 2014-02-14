@@ -173,11 +173,12 @@ public class Mazewar extends JFrame {
         // Create the GUIClient and connect it to the KeyListener queue
         guiClient = new GUIClient(name);
         guiClient.addClientHandler(clientHandler);
+
+        clientHandler.me = guiClient;
         maze.addClient(guiClient);
         this.addKeyListener(guiClient);
 
         clientHandler.registerMaze(maze);
-        clientHandler.me = guiClient;
         clientHandler.registerClientWithMazewar();
 
         // Use braces to force constructors not to be called at the beginning of the
