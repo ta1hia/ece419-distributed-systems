@@ -5,6 +5,8 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.Random;
 import java.util.Map;
+import java.util.List;
+import java.util.ArrayList;
 import java.io.*;
 import java.net.*;
 
@@ -23,6 +25,8 @@ public class ClientHandlerThread extends Thread {
     ObjectInputStream in;
     BlockingQueue<MazeEvent> eventQueue;
     ConcurrentHashMap<String, Client> clientTable;
+    int seqNum;
+    MazePacket []eventArray = new MazePacket[21];
 
     // Score table
     //ScoreTableModel scoreTable;
@@ -50,6 +54,8 @@ public class ClientHandlerThread extends Thread {
 
     public void registerMaze(Maze maze) {
         this.maze = maze;
+
+	sendPacketToServer(MazePacket.GET_SEQ_NUM);
     }
 
     public void registerClientWithMazewar(){
@@ -106,12 +112,34 @@ public class ClientHandlerThread extends Thread {
     public void run() {
         /* Listen for packets */
         packetFromServer = new MazePacket();
+	
 
         try {
-            while((packetFromServer = (MazePacket) in.readObject()) != null) {
+            while((packetFromServer = (MazePacket) in.readObject()) != null || eventArray[seqNum] != null) {
+		int packet_type = -1;
 
+		if(packetFromServer != null && packetFromServer.packet_type == MazePacket.GET_SEQ_NUM){
+		    seqNum = packetFromServer.sequence_num + 1;
 
-                switch (packetFromServer.packet_type) {
+		    System.out.println("Sequence number set as: " + seqNum);
+		    continue;
+		}		    
+
+            	System.out.println("Current sequence number is " + seqNum);
+		// Check if event should be run right away or put into queue
+		int temp = packetFromServer.sequence_num;
+		if(eventArray[seqNum]!= null){
+		    packetFromServer = eventArray[seqNum];
+		    packet_type = packetFromServer.packet_type;	
+		    eventArray[seqNum] = null;
+		} else if(packetFromServer.sequence_num == seqNum){
+		    packet_type = packetFromServer.packet_type;
+		} else {
+		    eventArray[seqNum] = packetFromServer;
+		    continue;
+		}
+
+                switch (packet_type) {
                     case MazePacket.CLIENT_REGISTER:
                         addClientEvent();
                         break;
@@ -132,10 +160,15 @@ public class ClientHandlerThread extends Thread {
                         break;
 		    case MazePacket.CLIENT_RESPAWN:
 			clientRespawn();
-			break;
+		        break;
                     default:
                         System.out.println("Could not recognize packet type");
+			break;
                 }
+
+		seqNum++;
+		if(seqNum == 21)
+		    seqNum = 1;
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -188,7 +221,8 @@ public class ClientHandlerThread extends Thread {
                     break;
             }
         }
-    
+	
+	seqNum = packetFromServer.sequence_num;
 
         // else server is telling you to add a new client
         // create new clients into clientTable based on any

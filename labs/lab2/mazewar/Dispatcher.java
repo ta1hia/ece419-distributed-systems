@@ -14,6 +14,7 @@ public class Dispatcher extends Thread {
     BlockingQueue<MazePacket> eventQueue = null;
     ConcurrentHashMap<String, ClientData> clientTable = null;
     ArrayList socketOutList = null;
+    int seqNum;
 
     public Dispatcher(ServerData data) {
         this.eventQueue = data.eventQueue;
@@ -25,22 +26,25 @@ public class Dispatcher extends Thread {
     // Broadcast whenever queue is not empty
     public void run(){
         MazePacket event;
-        int seqNum = 0;
+	seqNum = 1;
 
         try {
 
             while(true){ //???
                 if(eventQueue.peek() != null){
                     event = eventQueue.take();
-                    System.out.println("DISPATCHER: sending packet type " + event.packet_type);
+                    System.out.println("DISPATCHER: sending packet type " + event.packet_type + " with sequence number " + seqNum);
+
+		    event.sequence_num = seqNum;
 
                     // Go through each client	    
                     for(int i=0;i < socketOutList.size(); i++){
                         ((ObjectOutputStream)socketOutList.get(i)).writeObject(event);
                     }
-                    seqNum++;
-                    if(seqNum == 501)
-                        seqNum = 0;
+
+		seqNum++;
+		if(seqNum == 21)
+		    seqNum = 1;
                 }
                 Thread.sleep(200);
             }

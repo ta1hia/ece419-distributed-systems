@@ -509,17 +509,16 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
 	    }
 
 
-	    cell.setContents(target);
-	    clientMap.put(target, new DirectedPoint(point, d));
-
 	    // Broadcast where the killed client will re-spawn
 	    chandler.sendClientRespawn(source.getName(),target.getName(),point,d);
 
+	    cell.setContents(target);
+	    clientMap.put(target, new DirectedPoint(point, d));
 	    update();
 	    notifyClientKilled(source, target);
 
 	} else {
- assert(source != null);
+	    assert(source != null);
 	    assert(target != null);
 	    Mazewar.consolePrintLn(source.getName() + " just vaporized " + 
 				   target.getName());
@@ -529,17 +528,13 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
 	    CellImpl cell = getCellImpl(point);
 	    cell.setContents(null);
 	    // Pick a random starting point, and check to see if it is already occupied
-
 	    point = new Point(randomGen.nextInt(maxX),randomGen.nextInt(maxY));
 	    cell = getCellImpl(point);
 
 	    boolean reservePoint;
-	    if(clientIsMe)
-	    	reservePoint = chandler.reservePoint(point);
-	    else
-	    	reservePoint = true;
+
 	    // Repeat until we find an empty cell
-	    while(cell.getContents() != null || !reservePoint) {
+	    while(cell.getContents() != null) {
 	    	point = new Point(randomGen.nextInt(maxX),randomGen.nextInt(maxY));
 	    	cell = getCellImpl(point);
 

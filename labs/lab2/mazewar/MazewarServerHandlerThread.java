@@ -24,6 +24,8 @@ public class MazewarServerHandlerThread extends Thread {
 
     Random rand = new Random();
 
+    int seqNum = 1;
+
     public MazewarServerHandlerThread (Socket socket, ServerData sdata) throws IOException {
         super("MazewarServerHandlerThread");
         try {
@@ -31,6 +33,7 @@ public class MazewarServerHandlerThread extends Thread {
             this.cout = new ObjectOutputStream(rcSocket.getOutputStream());
             this.data = sdata;
             data.addSocketOutToList(cout);
+	   
             System.out.println("Created new MazewarServerHandlerThread to handle remote client ");
         } catch (IOException e) {
             System.out.println("IO Exception");
@@ -73,12 +76,30 @@ public class MazewarServerHandlerThread extends Thread {
 			break;
 		    case MazePacket.RESERVE_POINT:
 			reservePoint();
-			break;	  
+			continue;	  
+		    case MazePacket.GET_SEQ_NUM:
+			getSeqNum();
+			continue;
                     default:
                         System.out.println("S_HANDLER: Could not recognize packet type");
+			break;
                 }
                 
             }
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("server done broke");
+        }
+    }
+
+    private void getSeqNum(){
+        try { 
+            MazePacket eventPacket = new MazePacket();
+            System.out.println("S_HANDLER: Send sequence number.");
+	    
+            eventPacket.packet_type = MazePacket.GET_SEQ_NUM;
+
+            data.addEventToQueue(eventPacket);
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println("server done broke");
@@ -231,7 +252,7 @@ public class MazewarServerHandlerThread extends Thread {
 	    }
     }
 
-    public void clientRespawn(){
+    private void clientRespawn(){
 	try { 
             MazePacket eventPacket = new MazePacket();
 	    Point p = packetFromRC.client_location;
