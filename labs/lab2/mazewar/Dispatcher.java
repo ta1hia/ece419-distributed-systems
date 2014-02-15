@@ -30,7 +30,7 @@ public class Dispatcher extends Thread {
 
         try {
 
-            while(true){ //???
+            while(true){ //???	
                 if(eventQueue.peek() != null){
                     event = eventQueue.take();
                     System.out.println("DISPATCHER: sending packet type " + event.packet_type + " with sequence number " + seqNum);
@@ -40,12 +40,16 @@ public class Dispatcher extends Thread {
                     // Go through each client	    
                     for(int i=0;i < socketOutList.size(); i++){
                         ((ObjectOutputStream)socketOutList.get(i)).writeObject(event);
-                    }
 
-		seqNum++;
-		if(seqNum == 21)
-		    seqNum = 1;
-                }
+
+		    }
+
+
+		    seqNum++;
+		    if(seqNum == 21)
+			seqNum = 1;
+		}
+
                 Thread.sleep(200);
             }
         } catch (IOException e) {
