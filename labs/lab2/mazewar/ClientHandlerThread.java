@@ -147,7 +147,7 @@ public class ClientHandlerThread extends Thread {
                     case MazePacket.CLIENT_REGISTER:
                         addClientEvent();
                         break;
-                    case MazePacket.CLIENT_FORWARD:
+                    case MazePacket.CLIENT_FORWARD:			
                         clientForwardEvent();
                         break;
                     case MazePacket.CLIENT_BACK:
@@ -201,6 +201,7 @@ public class ClientHandlerThread extends Thread {
 
         if (clientTable.containsKey(name)) { 
             Client tc = clientTable.get(name);
+	    tc.setKilledTo(false);
 	    Client sc = clientTable.get(packetFromServer.sc);
 	    Point p = packetFromServer.client_location;
 	    Direction d = packetFromServer.client_direction;
@@ -275,7 +276,7 @@ public class ClientHandlerThread extends Thread {
         // client.foward
         String name = packetFromServer.client_name;
 
-        if (clientTable.containsKey(name)) { 
+        if (clientTable.containsKey(name) && !clientTable.get(name).isKilled()) { 
             clientTable.get(name).forward();
         } else {
             System.out.println("CLIENT: no client named " + name + " in forward");
@@ -287,7 +288,7 @@ public class ClientHandlerThread extends Thread {
         // client.foward
         String name = packetFromServer.client_name;
 
-        if (clientTable.containsKey(name)) { 
+        if (clientTable.containsKey(name) && !clientTable.get(name).isKilled()) { 
             clientTable.get(name).backup();
         } else {
             System.out.println("CLIENT: no client named " + name + " in backup");
@@ -299,7 +300,7 @@ public class ClientHandlerThread extends Thread {
         // client.foward
         String name = packetFromServer.client_name;
 
-        if (clientTable.containsKey(name)) { 
+        if (clientTable.containsKey(name) && !clientTable.get(name).isKilled()) { 
             clientTable.get(name).turnLeft();
         } else {
             System.out.println("CLIENT: no client named " + name + " in left");
@@ -311,7 +312,7 @@ public class ClientHandlerThread extends Thread {
         // client.foward
         String name = packetFromServer.client_name;
 
-        if (clientTable.containsKey(name)) { 
+        if (clientTable.containsKey(name) && !clientTable.get(name).isKilled()) { 
             clientTable.get(name).turnRight();
         } else {
             System.out.println("CLIENT: no client named " + name + " in right");
@@ -324,7 +325,7 @@ public class ClientHandlerThread extends Thread {
         // client.foward
         String name = packetFromServer.client_name;
 
-        if (clientTable.containsKey(name)) { 
+        if (clientTable.containsKey(name) && !clientTable.get(name).isKilled()) { 
             clientTable.get(name).fire();
 
 	    // Decrement score.

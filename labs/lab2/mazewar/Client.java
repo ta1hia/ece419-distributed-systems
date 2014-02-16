@@ -103,7 +103,17 @@ public abstract class Client {
     public boolean setPosition(Point point){
 	return chandler.reservePoint(point);
     }
+
+    public boolean isKilled(){
+	return this.isKilled;
+    }
         
+
+    public void setKilledTo(boolean result){
+	this.isKilled = result;
+    }
+        
+
         /* Internals ******************************************************/        
         
         /**
@@ -126,6 +136,12 @@ public abstract class Client {
          * Name of the client.
          */
         private String name = null;
+       
+        
+        /**
+         * Name of the client.
+         */
+        private boolean isKilled = false;
        
         /** 
          * Create a new client with the specified name.

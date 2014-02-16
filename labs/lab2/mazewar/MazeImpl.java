@@ -477,7 +477,7 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
      * @param target The {@link Client} that was killed.
      */
     private synchronized void killClient(Client source, Client target) {
-
+	target.setKilledTo(true);
 	boolean clientIsMe = chandler.clientIsMe(target);
 	if(clientIsMe){
 	    assert(source != null);
