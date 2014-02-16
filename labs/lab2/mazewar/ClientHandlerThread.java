@@ -324,7 +324,18 @@ public class ClientHandlerThread extends Thread {
     public void handleKeyPress(KeyEvent e) {
         // If the user pressed Q, invoke the cleanup code and quit. 
         if((e.getKeyChar() == 'q') || (e.getKeyChar() == 'Q')) {
-            //Mazewar.quit();
+	    System.out.println("CLIENT: Exiting");
+	    sendPacketToServer(MazePacket.CLIENT_EXIT);
+
+	    try{
+		out.close();
+		in.close();
+		cSocket.close();
+	    } catch(Exception e1){
+		System.out.println("CLIENT: Couldn't close sockets...");
+	    }
+	    
+            Mazewar.quit();
             // Up-arrow moves forward.
         } else if(e.getKeyCode() == KeyEvent.VK_UP) {
             sendPacketToServer(MazePacket.CLIENT_FORWARD);
