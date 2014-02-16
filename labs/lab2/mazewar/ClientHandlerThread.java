@@ -120,7 +120,7 @@ public class ClientHandlerThread extends Thread {
 		int packet_type = -1;
 
 
-            	System.out.println("seqNum: " + seqNum);
+            	//System.out.println("seqNum: " + seqNum);
 		if(packetFromServer != null && packetFromServer.packet_type == MazePacket.GET_SEQ_NUM){
 		    seqNum = packetFromServer.sequence_num + 1;
 
@@ -130,15 +130,15 @@ public class ClientHandlerThread extends Thread {
 
 		// Check if event should be run right away or put into queue
 		if(eventArray[seqNum]!= null){		    
-		    System.out.println("De-queue event.");
+		    //System.out.println("De-queue event.");
 		    packetFromServer = eventArray[seqNum];
 		    packet_type = packetFromServer.packet_type;	
 		    eventArray[seqNum] = null;
 		} else if(packetFromServer.sequence_num == seqNum){    
-		    System.out.println("Run event right away.");
+		    //System.out.println("Run event right away.");
 		    packet_type = packetFromServer.packet_type;
 		} else {   
-		    System.out.println("Store event into queue.");
+		    //System.out.println("Store event into queue.");
 		    eventArray[seqNum] = packetFromServer;
 		    continue;
 		}

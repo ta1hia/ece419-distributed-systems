@@ -35,6 +35,7 @@ import java.util.Iterator;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 import java.io.*;
 import java.net.*;
@@ -366,6 +367,8 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
                         Object o = it.next();
                         assert(o instanceof Projectile);
                         deadPrj.addAll(moveProjectile((Projectile)o));
+			
+                        System.out.print("1!!!");
                     }               
                     it = deadPrj.iterator();
                     while(it.hasNext()) {
@@ -374,6 +377,8 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
                         Projectile prj = (Projectile)o;
                         projectileMap.remove(prj);
                         clientFired.remove(prj.getOwner());
+
+                        System.out.print("2!!!");
                     }
                     deadPrj.clear();
                 }
@@ -387,7 +392,6 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
     }
 
     /* Internals */
-
     private synchronized Collection moveProjectile(Projectile prj) {
         Collection deadPrj = new LinkedList();
         assert(prj != null);
@@ -424,10 +428,12 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
             } else {
                 // Bullets destroy each other
                 assert(contents instanceof Projectile);
-                newCell.setContents(null);
+                newCell.setContents(null); 
                 cell.setContents(null);
+
                 deadPrj.add(prj);
                 deadPrj.add(contents);
+		
                 update();
                 return deadPrj;
             }
@@ -674,7 +680,7 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
     /**
      * Mapping from {@link Projectile}s to {@link DirectedPoint}s. 
      */
-    private final Map projectileMap = new HashMap();
+    private final Map projectileMap = new ConcurrentHashMap<Projectile,Point>();
 
     /**
      * The set of {@link Client}s that have {@link Projectile}s in 
