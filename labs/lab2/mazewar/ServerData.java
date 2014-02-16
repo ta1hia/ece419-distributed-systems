@@ -30,12 +30,23 @@ public class ServerData implements Serializable {
         }
     }
 
+    public void removeClientFromTable(String name){
+	if(clientTable.containsKey(name)){
+	   clientTable.remove(name);
+	   clientPosition.remove(name);
+	}
+    }
+
     public void addEventToQueue(MazePacket event){
         eventQueue.offer(event);
     }
 
     public void addSocketOutToList(ObjectOutputStream out) {
         socketOutList.add(out);
+    }
+
+    public void removeSocketOutFromList(ObjectOutputStream out) {
+        socketOutList.remove(out);
     }
 
     public boolean setPosition(String name, Point position){

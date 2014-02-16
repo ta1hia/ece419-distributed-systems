@@ -27,7 +27,7 @@ public class MazePacket implements Serializable {
     public static final int CLIENT_RIGHT = 205;
     public static final int CLIENT_FIRE = 206;
     public static final int CLIENT_RESPAWN = 207;
-    public static final int CLIENT_EXIT = 208;
+    public static final int CLIENT_QUIT = 208;
    
     // Misc.
     public static final int RESERVE_POINT = 301;

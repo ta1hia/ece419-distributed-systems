@@ -162,11 +162,14 @@ public class ClientHandlerThread extends Thread {
                         clientFireEvent();
                         break;
 		    case MazePacket.CLIENT_RESPAWN:
-			clientRespawn();
+			clientRespawnEvent();
 		        break;
+		    case MazePacket.CLIENT_QUIT:
+			clientQuitEvent();
+			break; 
                     default:
                         System.out.println("Could not recognize packet type");
-			break;
+			break; 
                 }
 
 		seqNum++;
@@ -178,7 +181,20 @@ public class ClientHandlerThread extends Thread {
         }
     }
 
-    private void clientRespawn(){
+    //Remove the client that is quitting.
+    private void clientQuitEvent(){	
+        System.out.println("Remove quitting client");
+        String name = packetFromServer.client_name;
+        if (clientTable.containsKey(name)) { 
+            Client c = clientTable.get(name);
+
+	    maze.removeClient(c);
+        } else {
+            System.out.println("CLIENT: no client named " + name + " in backup");
+        }
+    }
+    
+    private void clientRespawnEvent(){
         System.out.println("Respawning client");
         String name = packetFromServer.tc;
 
@@ -324,8 +340,8 @@ public class ClientHandlerThread extends Thread {
     public void handleKeyPress(KeyEvent e) {
         // If the user pressed Q, invoke the cleanup code and quit. 
         if((e.getKeyChar() == 'q') || (e.getKeyChar() == 'Q')) {
-	    System.out.println("CLIENT: Exiting");
-	    sendPacketToServer(MazePacket.CLIENT_EXIT);
+	    System.out.println("CLIENT: Quitting");
+	    sendPacketToServer(MazePacket.CLIENT_QUIT);
 
 	    try{
 		out.close();

@@ -80,6 +80,9 @@ public class MazewarServerHandlerThread extends Thread {
 		    case MazePacket.GET_SEQ_NUM:
 			getSeqNum();
 			continue;
+		    case MazePacket.CLIENT_QUIT:
+			clientQuit();
+			break;
                     default:
                         System.out.println("S_HANDLER: Could not recognize packet type");
 			break;
@@ -90,6 +93,32 @@ public class MazewarServerHandlerThread extends Thread {
             e.printStackTrace();
             System.out.println("server done broke");
         }
+    }
+
+    private void clientQuit(){
+	try{
+            MazePacket eventPacket = new MazePacket();
+            String rc_name = packetFromRC.client_name;
+            System.out.println("S_HANDLER: " + rc_name + " is quitting");
+
+            eventPacket.client_name = rc_name;
+            eventPacket.packet_type = MazePacket.CLIENT_QUIT;
+
+	    // Remove that client from the client table!
+	    data.removeClientFromTable(rc_name);
+	    data.removeSocketOutFromList(cout);
+
+	    // Close all connections!
+	    cin.close();
+	    cout.close();
+	    rcSocket.close();
+
+            data.addEventToQueue(eventPacket);
+	} catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("server done broke");
+	}
+
     }
 
     private void getSeqNum(){
