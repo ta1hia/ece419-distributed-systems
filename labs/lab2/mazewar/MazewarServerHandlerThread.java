@@ -25,6 +25,7 @@ public class MazewarServerHandlerThread extends Thread {
     Random rand = new Random();
 
     int seqNum = 1;
+    boolean quitting = false;
 
     public MazewarServerHandlerThread (Socket socket, ServerData sdata) throws IOException {
         super("MazewarServerHandlerThread");
@@ -48,7 +49,7 @@ public class MazewarServerHandlerThread extends Thread {
             /* Loop: 
             */
             cin = new ObjectInputStream(rcSocket.getInputStream());
-            while ((packetFromRC = (MazePacket) cin.readObject()) != null) {
+            while (!quitting && ((packetFromRC = (MazePacket) cin.readObject()) != null)) {
                 System.out.println("S_HANDLER: packet type is " + packetFromRC.packet_type);
 
                 /* Process each packet */
@@ -95,6 +96,7 @@ public class MazewarServerHandlerThread extends Thread {
         }
     }
 
+    // The client is quitting.
     private void clientQuit(){
 	try{
             MazePacket eventPacket = new MazePacket();
@@ -103,6 +105,8 @@ public class MazewarServerHandlerThread extends Thread {
 
             eventPacket.client_name = rc_name;
             eventPacket.packet_type = MazePacket.CLIENT_QUIT;
+
+	    quitting = true;
 
 	    // Remove that client from the client table!
 	    data.removeClientFromTable(rc_name);

@@ -27,6 +27,7 @@ public class ClientHandlerThread extends Thread {
     ConcurrentHashMap<String, Client> clientTable;
     int seqNum;
     MazePacket []eventArray = new MazePacket[21];
+    boolean quitting = false;
 
     // Score table
     //ScoreTableModel scoreTable;
@@ -115,7 +116,7 @@ public class ClientHandlerThread extends Thread {
 	
 
         try {
-            while((packetFromServer = (MazePacket) in.readObject()) != null || eventArray[seqNum] != null) {
+            while(!quitting && ((packetFromServer = (MazePacket) in.readObject()) != null || eventArray[seqNum] != null)) {
 		int packet_type = -1;
 
 
@@ -341,6 +342,8 @@ public class ClientHandlerThread extends Thread {
         // If the user pressed Q, invoke the cleanup code and quit. 
         if((e.getKeyChar() == 'q') || (e.getKeyChar() == 'Q')) {
 	    System.out.println("CLIENT: Quitting");
+
+	    quitting = true;
 	    sendPacketToServer(MazePacket.CLIENT_QUIT);
 
 	    try{
@@ -380,8 +383,8 @@ public class ClientHandlerThread extends Thread {
             packetToServer.packet_type = packetType;
             packetToServer.client_name = me.getName();
             out.writeObject(packetToServer);
-	    //Wait... Else If another remote client is in front of you, it will glitch!
-	    Thread.sleep(200);
+	    // //Wait... Else If another remote client is in front of you, it will glitch!
+	    // Thread.sleep(200);
 	
         } catch (Exception e) {
             e.printStackTrace();
