@@ -488,16 +488,16 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
 	    cell = getCellImpl(point);
 	
 	    // Make killed client choose where to spawn.
-	    boolean reservePoint;
+	    //boolean reservePoint;
 
-	    reservePoint = chandler.reservePoint(point);
+	    //reservePoint = chandler.reservePoint(point);
 
 	    // Repeat until we find an empty cell
-	    while(cell.getContents() != null || !reservePoint) {
+	    while(cell.getContents() != null){ //|| !reservePoint) {
 		point = new Point(randomGen.nextInt(maxX),randomGen.nextInt(maxY));
 		cell = getCellImpl(point);
 
-		reservePoint = chandler.reservePoint(point);
+		//reservePoint = chandler.reservePoint(point);
 	    }
     
             System.out.println("Found point to respawn at!");
@@ -531,14 +531,14 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
 	    point = new Point(randomGen.nextInt(maxX),randomGen.nextInt(maxY));
 	    cell = getCellImpl(point);
 
-	    boolean reservePoint;
+	    //boolean reservePoint;
 
 	    // Repeat until we find an empty cell
 	    while(cell.getContents() != null) {
 	    	point = new Point(randomGen.nextInt(maxX),randomGen.nextInt(maxY));
 	    	cell = getCellImpl(point);
 
-	    	reservePoint = chandler.reservePoint(point);
+	    	//reservePoint = chandler.reservePoint(point);
 	    }
 
 	    Direction d = Direction.random();

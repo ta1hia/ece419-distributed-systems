@@ -353,7 +353,10 @@ public class ClientHandlerThread extends Thread {
             packetToServer.packet_type = packetType;
             packetToServer.client_name = me.getName();
             out.writeObject(packetToServer);
-        } catch (IOException e) {
+	    //Wait... Else If another remote client is in front of you, it will glitch!
+	    Thread.sleep(200);
+	
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
