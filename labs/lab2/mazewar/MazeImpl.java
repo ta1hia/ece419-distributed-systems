@@ -669,7 +669,7 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
      * A map between {@link Client}s and {@link DirectedPoint}s
      * locating them in the {@link Maze}.
      */
-    private final Map clientMap = new HashMap();
+    private final Map clientMap = new ConcurrentHashMap<Client,DirectedPoint>();
 
     /**
      * The set of {@link MazeListener}s that are presently
