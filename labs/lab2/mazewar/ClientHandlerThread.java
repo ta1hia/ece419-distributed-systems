@@ -214,7 +214,7 @@ public class ClientHandlerThread extends Thread {
 	    tc.releaseLock();
 
         } else {
-            System.out.println("CLIENT: no client named " + name + " in backup");
+            System.out.println("CLIENT: no client named " + name + " in respawn");
         }
     }
 

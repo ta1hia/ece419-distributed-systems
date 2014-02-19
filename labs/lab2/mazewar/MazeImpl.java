@@ -547,7 +547,7 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
 	    assert(o instanceof Point);
 	    Point point = (Point)o;
 	    CellImpl cell = getCellImpl(point);
-	    cell.setContents(null);
+	    //cell.setContents(null);
 	    // Pick a random starting point, and check to see if it is already occupied
 	    point = new Point(randomGen.nextInt(maxX),randomGen.nextInt(maxY));
 	    cell = getCellImpl(point);
@@ -591,29 +591,29 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
 	    assert(o instanceof Point);
 	    Point point = (Point)o;
 	    CellImpl cell = getCellImpl(point);
-	    cell.setContents(null);
+	    //cell.setContents(null);
 	    // Pick a random starting point, and check to see if it is already occupied
-	    point = new Point(randomGen.nextInt(maxX),randomGen.nextInt(maxY));
-	    cell = getCellImpl(point);
+	    // point = new Point(randomGen.nextInt(maxX),randomGen.nextInt(maxY));
+	    // cell = getCellImpl(point);
 
-	    //boolean reservePoint;
+	    // //boolean reservePoint;
 
-	    // Repeat until we find an empty cell
-	    while(cell.getContents() != null) {
-	    	point = new Point(randomGen.nextInt(maxX),randomGen.nextInt(maxY));
-	    	cell = getCellImpl(point);
+	    // // Repeat until we find an empty cell
+	    // while(cell.getContents() != null) {
+	    // 	point = new Point(randomGen.nextInt(maxX),randomGen.nextInt(maxY));
+	    // 	cell = getCellImpl(point);
 
-	    	//reservePoint = chandler.reservePoint(point);
-	    }
+	    // 	//reservePoint = chandler.reservePoint(point);
+	    // }
 
-	    Direction d = Direction.random();
-	    while(cell.isWall(d)) {
-	    	d = Direction.random();
-	    }
+	    // Direction d = Direction.random();
+	    // while(cell.isWall(d)) {
+	    // 	d = Direction.random();
+	    // }
 
 	    //cell.setContents(target);
 	    //clientMap.put(target, new DirectedPoint(point, d));
-	    //update();
+	    update();
 	    //notifyClientKilled(source, target);
 		
 	}
@@ -631,9 +631,12 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
 	    Mazewar.consolePrintLn(sc.getName() + " just vaporized " + 
 				   tc.getName());
 
-	    Object o = clientMap.remove(tc);	
-	CellImpl cell = getCellImpl(p);
+	Object o = clientMap.remove(tc);
+	Point oldPoint = (Point)o;
+	CellImpl cell = getCellImpl(oldPoint);
+	cell.setContents(null);
 
+	cell = getCellImpl(p);
 	cell.setContents(tc);
 	clientMap.put(tc, new DirectedPoint(p, d));
 	update();
