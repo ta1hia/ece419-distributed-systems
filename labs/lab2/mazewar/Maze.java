@@ -18,6 +18,7 @@ USA.
 */
   
 import java.util.Iterator;
+import java.util.concurrent.locks.Lock;
 
 /**
  * An abstract class for representing mazes, and the operations a {@link Client}
@@ -130,4 +131,5 @@ public abstract class Maze {
     // Add client handler
     public abstract void addClientHandler(ClientHandlerThread ch);
     public abstract void setClient(Client sc, Client tc, Point p, Direction d);
+    public abstract void addLock(Lock l);
 }

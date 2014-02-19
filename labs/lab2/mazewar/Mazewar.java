@@ -30,6 +30,8 @@ import java.io.Serializable;
 import java.util.Random;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import java.io.*;
 import java.net.*;
@@ -170,6 +172,9 @@ public class Mazewar extends JFrame {
 
         ClientHandlerThread clientHandler = new ClientHandlerThread(host, port);
 	maze.addClientHandler(clientHandler);
+
+	Lock lock = new ReentrantLock();
+	maze.addLock(lock);
 
         // Create the GUIClient and connect it to the KeyListener queue
         guiClient = new GUIClient(name);
