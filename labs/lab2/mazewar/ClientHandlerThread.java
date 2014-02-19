@@ -201,12 +201,18 @@ public class ClientHandlerThread extends Thread {
 
         if (clientTable.containsKey(name)) { 
             Client tc = clientTable.get(name);
-	    tc.setKilledTo(false);
+	    
+	    tc.getLock();
+
 	    Client sc = clientTable.get(packetFromServer.sc);
 	    Point p = packetFromServer.client_location;
 	    Direction d = packetFromServer.client_direction;
 
 	    maze.setClient(sc, tc, p,d);
+
+	    tc.setKilledTo(false);
+	    tc.releaseLock();
+
         } else {
             System.out.println("CLIENT: no client named " + name + " in backup");
         }
@@ -277,7 +283,12 @@ public class ClientHandlerThread extends Thread {
         String name = packetFromServer.client_name;
 
         if (clientTable.containsKey(name) && !clientTable.get(name).isKilled()) { 
-            clientTable.get(name).forward();
+            Client c = clientTable.get(name);
+
+	    c.getLock();
+	    c.forward();
+	    c.releaseLock();
+
         } else {
             System.out.println("CLIENT: no client named " + name + " in forward");
         }
@@ -289,7 +300,12 @@ public class ClientHandlerThread extends Thread {
         String name = packetFromServer.client_name;
 
         if (clientTable.containsKey(name) && !clientTable.get(name).isKilled()) { 
-            clientTable.get(name).backup();
+            Client c = clientTable.get(name);
+
+	    c.getLock();
+	    c.backup();
+	    c.releaseLock();
+
         } else {
             System.out.println("CLIENT: no client named " + name + " in backup");
         }
@@ -301,7 +317,12 @@ public class ClientHandlerThread extends Thread {
         String name = packetFromServer.client_name;
 
         if (clientTable.containsKey(name) && !clientTable.get(name).isKilled()) { 
-            clientTable.get(name).turnLeft();
+            Client c = clientTable.get(name);
+
+	    c.getLock();
+	    c.turnLeft();
+	    c.releaseLock();
+
         } else {
             System.out.println("CLIENT: no client named " + name + " in left");
         }
@@ -313,7 +334,12 @@ public class ClientHandlerThread extends Thread {
         String name = packetFromServer.client_name;
 
         if (clientTable.containsKey(name) && !clientTable.get(name).isKilled()) { 
-            clientTable.get(name).turnRight();
+            Client c = clientTable.get(name);
+
+	    c.getLock();
+	    c.turnRight();
+	    c.releaseLock();
+
         } else {
             System.out.println("CLIENT: no client named " + name + " in right");
         }
@@ -326,7 +352,11 @@ public class ClientHandlerThread extends Thread {
         String name = packetFromServer.client_name;
 
         if (clientTable.containsKey(name) && !clientTable.get(name).isKilled()) { 
-            clientTable.get(name).fire();
+            Client c = clientTable.get(name);
+
+	    c.getLock();
+	    c.fire();
+	    c.releaseLock();
 
 	    // Decrement score.
 	    //scoreTable.clientFired(clientTable.get(name));

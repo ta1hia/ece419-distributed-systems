@@ -20,6 +20,8 @@ USA.
 import java.util.Set;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * An abstract class for clients in a maze. 
@@ -27,6 +29,17 @@ import java.util.Iterator;
  * @version $Id: Client.java 343 2004-01-24 03:43:45Z geoffw $
  */
 public abstract class Client {
+
+    public Lock lock = new ReentrantLock();
+
+    public void getLock(){
+	this.lock.lock();
+    }
+
+    public void releaseLock(){
+	this.lock.unlock();
+    }
+
 
         /**
          * Register this {@link Client} as being contained by the specified

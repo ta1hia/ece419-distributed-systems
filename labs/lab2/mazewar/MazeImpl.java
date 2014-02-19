@@ -530,17 +530,20 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
      * @param target The {@link Client} that was killed.
      */
     private synchronized void killClient(Client source, Client target) {
+	target.getLock();
+	source.getLock();
 	target.setKilledTo(true);
+
 	boolean clientIsMe = chandler.clientIsMe(target);
 	if(clientIsMe){
 	    assert(source != null);
 	    assert(target != null);
-	    Mazewar.consolePrintLn(source.getName() + " just vaporized " + 
-				   target.getName());
+	    // Mazewar.consolePrintLn(source.getName() + " just vaporized " + 
+	    // 			   target.getName());
 
 	    Point oldPoint = target.getPoint();
 
-	    Object o = clientMap.remove(target);
+	    Object o = clientMap.get(target);
 	    assert(o instanceof Point);
 	    Point point = (Point)o;
 	    CellImpl cell = getCellImpl(point);
@@ -574,17 +577,17 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
 	    // Broadcast where the killed client will re-spawn
 	    chandler.sendClientRespawn(source.getName(),target.getName(),point,d);
 
-	    cell.setContents(target);
-	    clientMap.put(target, new DirectedPoint(point, d));
+	    //cell.setContents(target);
+	    //clientMap.put(target, new DirectedPoint(point, d));
 	    update();
-	    notifyClientKilled(source, target);
+	    // notifyClientKilled(source, target);
 
 	} else {
 	    assert(source != null);
 	    assert(target != null);
-	    Mazewar.consolePrintLn(source.getName() + " just vaporized " + 
-				   target.getName());
-	    Object o = clientMap.remove(target);
+	    // Mazewar.consolePrintLn(source.getName() + " just vaporized " + 
+	    // 			   target.getName());
+	    Object o = clientMap.get(target);
 	    assert(o instanceof Point);
 	    Point point = (Point)o;
 	    CellImpl cell = getCellImpl(point);
@@ -608,13 +611,14 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
 	    	d = Direction.random();
 	    }
 
-	    cell.setContents(target);
+	    //cell.setContents(target);
 	    //clientMap.put(target, new DirectedPoint(point, d));
-	    update();
-	    notifyClientKilled(source, target);
+	    //update();
+	    //notifyClientKilled(source, target);
 		
 	}
-
+	target.releaseLock();
+	source.releaseLock();
     }
 
     public void setClient(Client sc, Client tc, Point p, Direction d){
@@ -623,12 +627,17 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
         // CellImpl cell = getCellImpl(point);
         // cell.setContents(null);
 	// point = p;
-	// cell = getCellImpl(point);
 
-	// cell.setContents(tc);
+	    Mazewar.consolePrintLn(sc.getName() + " just vaporized " + 
+				   tc.getName());
+
+	    Object o = clientMap.remove(tc);	
+	CellImpl cell = getCellImpl(p);
+
+	cell.setContents(tc);
 	clientMap.put(tc, new DirectedPoint(p, d));
 	update();
-	// notifyClientKilled(sc,tc);
+	notifyClientKilled(sc,tc);
     }
 
     /**
