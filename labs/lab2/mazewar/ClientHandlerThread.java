@@ -357,22 +357,22 @@ public class ClientHandlerThread extends Thread {
 	    
             Mazewar.quit();
             // Up-arrow moves forward.
-        } else if(e.getKeyCode() == KeyEvent.VK_UP) {
+        } else if(e.getKeyCode() == KeyEvent.VK_UP && !me.isKilled()) {
             sendPacketToServer(MazePacket.CLIENT_FORWARD);
             // Down-arrow moves backward.
-        } else if(e.getKeyCode() == KeyEvent.VK_DOWN) {
+        } else if(e.getKeyCode() == KeyEvent.VK_DOWN && !me.isKilled()) {
             sendPacketToServer(MazePacket.CLIENT_BACK);
             //backup();
             // Left-arrow turns left.
-        } else if(e.getKeyCode() == KeyEvent.VK_LEFT) {
+        } else if(e.getKeyCode() == KeyEvent.VK_LEFT && !me.isKilled()) {
             sendPacketToServer(MazePacket.CLIENT_LEFT);
             //turnLeft();
             // Right-arrow turns right.
-        } else if(e.getKeyCode() == KeyEvent.VK_RIGHT) {
+        } else if(e.getKeyCode() == KeyEvent.VK_RIGHT && !me.isKilled()) {
             sendPacketToServer(MazePacket.CLIENT_RIGHT);
             //turnRight();
             // Spacebar fires.
-        } else if(e.getKeyCode() == KeyEvent.VK_SPACE) {
+        } else if(e.getKeyCode() == KeyEvent.VK_SPACE && !me.isKilled()) {
             sendPacketToServer(MazePacket.CLIENT_FIRE);
             //fire();
         }

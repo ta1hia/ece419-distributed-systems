@@ -50,7 +50,7 @@ public class Dispatcher extends Thread {
 			seqNum = 1;
 		}
 
-                Thread.sleep(200);
+                // Thread.sleep(200);
             }
         } catch (IOException e) {
             e.printStackTrace();
