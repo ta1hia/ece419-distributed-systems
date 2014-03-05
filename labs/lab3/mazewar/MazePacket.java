@@ -11,6 +11,8 @@ import java.net.*;
 
 
 public class MazePacket implements Serializable {
+
+
     // Actions
     public static final int SERVER_ACK = 100; 
     public static final int SERVER_CLIENT_LIST = 101;
@@ -29,9 +31,15 @@ public class MazePacket implements Serializable {
     public static final int CLIENT_RESPAWN = 207;
     public static final int CLIENT_QUIT = 208;
    
+    // Lookup service
+    public static final int LOOKUP_REPLY = 300;
+    public static final int LOOKUP_REGISTER = 301;
+    public static final int LOOKUP_QUIT = 302;
+    public static final int LOOKUP_UPDATE = 303;
+
     // Misc.
-    public static final int RESERVE_POINT = 301;
-    public static final int GET_SEQ_NUM = 302;
+    public static final int RESERVE_POINT = 401;
+    public static final int GET_SEQ_NUM = 402;
 
     // Error code
     public static final int ERROR_INVALID_ARG = -101;
@@ -43,13 +51,17 @@ public class MazePacket implements Serializable {
 
     // Client actions
     public String client_host;
+    public int client_port;
+
+    public int client_id;
     public String client_name;
     public Point client_location;
-    public int client_type;
     public Direction client_direction;
+    public int client_type;
 
-    public String sc;
-    public String tc;
+    // Client shot
+    public String sc; // Source / killer
+    public String tc; // Targer / victim
 
     //Server actions
     int ack_num;
