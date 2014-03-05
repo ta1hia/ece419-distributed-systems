@@ -36,6 +36,7 @@ public class MazePacket implements Serializable {
     public static final int LOOKUP_REGISTER = 301;
     public static final int LOOKUP_QUIT = 302;
     public static final int LOOKUP_UPDATE = 303;
+    public static final int LOOKUP_GET = 304;
 
     // Misc.
     public static final int RESERVE_POINT = 401;

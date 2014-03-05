@@ -43,14 +43,19 @@ public class OnlineLookupHandlerThread extends Thread {
                     System.out.println("From Client: LOOKUP_REGISTER ");
 
 		    packetToClient.type = MazePacket.LOOKUP_REPLY;
-		    String temp_IP = packetFromClient.client_host;
-		    int temp_port = packetFromClient.client_port;
+		    String ip = packetFromClient.client_host;
+		    int port  = packetFromClient.client_port;
 
 		    System.out.println("Lookup is registering new client.");
-		    System.out.println("IP: " + temp_IP + " Port: " + temp_port);
+		    System.out.println("IP: " + ip " Port: " + port);
 
-		    int client_id = table.size() + 1;
-		    table.put(client_id, temp_IP + " " + temp_port);
+		    // Find empty ID
+		    int client_id = 1;
+		    while(table.containsKey(client_id)){
+			client_id++;
+		    }
+		 
+		    table.put(client_id, ip + " " + port);
 		    OnlineLookupHandlerThread.updateTable();
 
 		    System.out.println("To Client: registration  success ");
@@ -61,57 +66,19 @@ public class OnlineLookupHandlerThread extends Thread {
                     continue;
                 }
 
-                /* LOOKUP_REQUEST */
-                if(packetFromClient.type == MazePacket.LOOKUP_REQUEST) {
-                    System.out.println("From Client/Exchange: " + packetFromClient.symbol);
-                    if (packetFromClient.symbol == null || !table.containsKey(packetFromClient.symbol) || table.isEmpty()) {
-                        /* valid symbol could not be processed */
-                        System.out.println("From Client: request error");
-                        System.out.println(table.toString());
-                        System.out.println(table.get(packetFromClient.symbol));
 
-                        packetToClient.type = MazePacket.ERROR_INVALID_SYMBOL;
-                    } else {
-                        packetToClient.type = MazePacket.CLIENT_QUOTE;
-
-                        String symbol = packetFromClient.symbol;
-                        String host = OnlineLookupHandlerThread.getHost(symbol);
-                        int port = OnlineLookupHandlerThread.getPort(symbol); 
-                        packetToClient.symbol = symbol;
-                        packetToClient.locations = new ClientLocation[1];
-                        packetToClient.locations[0] = new ClientLocation(host, port);	
-
-                        System.out.println("Replying to Client: " + symbol + " " + host + " " + port);					
-                    }
-                    toClient.writeObject(packetToClient);
-                    continue;
-                }
-
-                /* CLIENT_FORWARD */
-                // Return all locations of clients
-                if (packetFromClient.type == MazePacket.CLIENT_FORWARD) {
+                /* CLIENT_QUIT */
+                // Delete client from table if quitting
+                if (packetFromClient.type == MazePacket.CLIENT_QUIT) {
                     packetToClient.type = MazePacket.LOOKUP_REPLY;
 
-                    System.out.println("From Client: CLIENT_FORWARD ");
+                    System.out.println("From Client: CLIENT_QUIT ");
 
-                    String symbol = packetFromClient.symbol;
-                    Object[] keys = table.keySet().toArray();
-                    int size = table.size(); 
-                    packetToClient.symbol = symbol;
-                    packetToClient.num_locations = size;
-                    packetToClient.locations = new ClientLocation[size];
+		    int client_id = packetFromClient.client_id;
 
-                    for(int i = 0; i < size; i++){
-                        String key = keys[i].toString();
-                        String host = OnlineLookupHandlerThread.getHost(key);
-                        int port = OnlineLookupHandlerThread.getPort(key);
+		    table.remove(client_id);
 
-                        System.out.println("Iteration:" + i + "... Saving host: " + host + " port: " + port);
-                        packetToClient.locations[i] = new ClientLocation(host, port);				    
-                    }
-
-                    System.out.println("From Client: Sending list of clients back.");
-                    System.out.println("num_locations is " + packetToClient.num_locations);
+                    System.out.println("To Client: Removed from naming service.");
                     toClient.writeObject(packetToClient);
                     continue;
                 }
