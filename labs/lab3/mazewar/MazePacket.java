@@ -77,5 +77,9 @@ public class MazePacket implements Serializable {
     int sequence_num;
     int packet_type;
     public int error_code;
-
+   
+    // Store host and port of clients
+    // Can also store client name and Client object, as before
+    public static ConcurrentHashMap<String, Client> clientTable;
+    public static ConcurrentHashMap<String, String> lookupTable; 
 }
