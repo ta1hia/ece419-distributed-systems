@@ -29,54 +29,63 @@ public class ClientHandlerThread extends Thread {
     MazePacket []eventArray = new MazePacket[21];
     boolean quitting = false;
 
+    int lamportClock = 0;
     // Score table
     //ScoreTableModel scoreTable;
 
 
     MazePacket packetFromServer;
 
-    public ClientHandlerThread(String host, int port){
-        /* Connect to central game server. */
+    public ClientHandlerThread(String lookup_host, int lookup_port, int client_port){
+        /* Connect to naming service. */
         try {
-            /* Using this hardcoded port for now, eventually make this userinput at GUI interface in Mazewar.java*/
-            System.out.println("Connecting to Mazewar Server...");
+            
+            System.out.println("Connecting to Naming Service...");
 
-            cSocket = new Socket(host,port);
+            cSocket = new Socket(lookup_host,lookup_port);
             out = new ObjectOutputStream(cSocket.getOutputStream());
             in = new ObjectInputStream(cSocket.getInputStream());
             clientTable = new ConcurrentHashMap();
 	    //scoreTable = st;
-
+	    
         } catch (Exception e) {
             e.printStackTrace();
             System.exit(1);
         }
+
+	
     }
 
     public void registerMaze(Maze maze) {
         this.maze = maze;
 
-	sendPacketToServer(MazePacket.GET_SEQ_NUM);
+	//sendPacketToServer(MazePacket.GET_SEQ_NUM);
     }
 
-    public void registerClientWithMazewar(){
-        MazePacket packetToServer = new MazePacket();
+    public void getClients(){
+	    // Get all existing clients
+	    MazePacket packetToLookup = new MazePacket();
+
+	    try{
+		packetToLookup.packet_type = MazePacket.LOOKUP_GET;
+		out.writeObject(packetToLookup);
+	    } catch (IOException e){
+		e.printStackTrace();
+		System.out.println("ERROR: registering with server");
+	    }
+    }
+
+    public void registerClientWithMazewar(int client_port){
+        MazePacket packetToLookup = new MazePacket();
 
         try{
+	    // Register self
+	    packetToLookup.packet_type = MazePacket.LOOKUP_REGISTER;
+	    packetToLookup.client_type = MazePacket.REMOTE;
+	    packetToLookup.client_host = InetAddress.getLocalHost().getHostName();
+	    packetToLookup.client_port = client_port;
 
-            /* Initialize handshaking with server */
-            Random rand = new Random();
-
-            packetToServer.packet_type = MazePacket.CLIENT_REGISTER;
-            packetToServer.client_name = me.getName();
-            packetToServer.client_location = maze.getClientPoint(me);
-            packetToServer.client_direction = me.getOrientation();
-            packetToServer.client_type = MazePacket.REMOTE;
-            System.out.println("CLIENT REGISTER: " + me.getName());
-            out.writeObject(packetToServer);
-
-            /* Init client table with yourself */
-            clientTable.put(me.getName(), me);
+	    out.writeObject(packetToLookup);
 
         }catch (IOException e){
             e.printStackTrace();
@@ -86,20 +95,20 @@ public class ClientHandlerThread extends Thread {
     }
 
     public void registerRobotWithMazewar(Client name){
-        MazePacket packetToServer = new MazePacket();
+        MazePacket packetToLookup = new MazePacket();
 
         try{
 
             /* Initialize handshaking with server */
             Random rand = new Random();
 
-            packetToServer.packet_type = MazePacket.CLIENT_REGISTER;
-            packetToServer.client_name = me.getName();
-            packetToServer.client_location = maze.getClientPoint(name);
-            packetToServer.client_direction = me.getOrientation();
-            packetToServer.client_type = MazePacket.REMOTE;
+            packetToLookup.packet_type = MazePacket.CLIENT_REGISTER;
+            packetToLookup.client_name = me.getName();
+            packetToLookup.client_location = maze.getClientPoint(name);
+            packetToLookup.client_direction = me.getOrientation();
+            packetToLookup.client_type = MazePacket.REMOTE;
             System.out.println("CLIENT REGISTER: " + me.getName());
-            out.writeObject(packetToServer);
+            out.writeObject(packetToLookup);
 
             /* Init client table with yourself */
             clientTable.put(me.getName(), me);
@@ -116,70 +125,60 @@ public class ClientHandlerThread extends Thread {
 	
 
         try {
-            while(!quitting && ((packetFromServer = (MazePacket) in.readObject()) != null || eventArray[seqNum] != null)) {
-		int packet_type = -1;
+            while(!quitting && (packetFromServer = (MazePacket) in.readObject()) != null) {
 
-
-            	//System.out.println("seqNum: " + seqNum);
-		if(packetFromServer != null && packetFromServer.packet_type == MazePacket.GET_SEQ_NUM){
-		    seqNum = packetFromServer.sequence_num + 1;
-
-		    System.out.println("Sequence number set as: " + seqNum);
-		    continue;
-		}		    
-
-		// Check if event should be run right away or put into queue
-		if(eventArray[seqNum]!= null){		    
-		    //System.out.println("De-queue event.");
-		    packetFromServer = eventArray[seqNum];
-		    packet_type = packetFromServer.packet_type;	
-		    eventArray[seqNum] = null;
-		} else if(packetFromServer.sequence_num == seqNum){    
-		    //System.out.println("Run event right away.");
-		    packet_type = packetFromServer.packet_type;
-		} else {   
-		    //System.out.println("Store event into queue.");
-		    eventArray[seqNum] = packetFromServer;
-		    continue;
-		}
-
-                switch (packet_type) {
-                    case MazePacket.CLIENT_REGISTER:
-                        addClientEvent();
+                switch (packetFromServer.packet_type) {
+                    case MazePacket.LOOKUP_REGISTER:
+			//???
+                        //addClientEvent();
                         break;
-                    case MazePacket.CLIENT_FORWARD:			
-                        clientForwardEvent();
+                    case MazePacket.LOOKUP_GET:			
+                        lookupGetEvent();
                         break;
-                    case MazePacket.CLIENT_BACK:
-                        clientBackEvent();
-                        break;
-                    case MazePacket.CLIENT_LEFT:
-                        clientLeftEvent();
-                        break;
-                    case MazePacket.CLIENT_RIGHT:
-                        clientRightEvent();
-                        break;
-                    case MazePacket.CLIENT_FIRE:
-                        clientFireEvent();
-                        break;
-		    case MazePacket.CLIENT_RESPAWN:
-			clientRespawnEvent();
-		        break;
-		    case MazePacket.CLIENT_QUIT:
-			clientQuitEvent();
-			break; 
                     default:
                         System.out.println("Could not recognize packet type");
 			break; 
                 }
 
-		seqNum++;
-		if(seqNum == 21)
-		    seqNum = 1;
+                // switch (packet_type) {
+                //     case MazePacket.CLIENT_REGISTER:
+                //         addClientEvent();
+                //         break;
+                //     case MazePacket.CLIENT_FORWARD:			
+                //         clientForwardEvent();
+                //         break;
+                //     case MazePacket.CLIENT_BACK:
+                //         clientBackEvent();
+                //         break;
+                //     case MazePacket.CLIENT_LEFT:
+                //         clientLeftEvent();
+                //         break;
+                //     case MazePacket.CLIENT_RIGHT:
+                //         clientRightEvent();
+                //         break;
+                //     case MazePacket.CLIENT_FIRE:
+                //         clientFireEvent();
+                //         break;
+		//     case MazePacket.CLIENT_RESPAWN:
+		// 	clientRespawnEvent();
+		//         break;
+		//     case MazePacket.CLIENT_QUIT:
+		// 	clientQuitEvent();
+		// 	break; 
+                //     default:
+                //         System.out.println("Could not recognize packet type");
+		// 	break; 
+                // }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+    
+    // Store all clients
+    private void lookupGetEvent(){
+	// INCOMPLETE
+
     }
 
     //Remove the client that is quitting.
@@ -410,10 +409,10 @@ public class ClientHandlerThread extends Thread {
 
     private void sendPacketToServer(int packetType) {
         try {
-            MazePacket packetToServer = new MazePacket();
-            packetToServer.packet_type = packetType;
-            packetToServer.client_name = me.getName();
-            out.writeObject(packetToServer);
+            MazePacket packetToLookup = new MazePacket();
+            packetToLookup.packet_type = packetType;
+            packetToLookup.client_name = me.getName();
+            out.writeObject(packetToLookup);
 	    // //Wait... Else If another remote client is in front of you, it will glitch!
 	    // Thread.sleep(200);
 	
@@ -424,16 +423,16 @@ public class ClientHandlerThread extends Thread {
 
     // Try and reserve a point!
     public boolean reservePoint(Point point){
-       MazePacket packetToServer = new MazePacket();
+       MazePacket packetToLookup = new MazePacket();
 
         try{
-            packetToServer.packet_type = MazePacket.RESERVE_POINT;
-            packetToServer.client_name = me.getName();
-            packetToServer.client_location = point;
-            packetToServer.client_direction = null;
-            packetToServer.client_type = MazePacket.REMOTE;
+            packetToLookup.packet_type = MazePacket.RESERVE_POINT;
+            packetToLookup.client_name = me.getName();
+            packetToLookup.client_location = point;
+            packetToLookup.client_direction = null;
+            packetToLookup.client_type = MazePacket.REMOTE;
             System.out.println("CLIENT " + me.getName() + " RESERVING POINT");
-            out.writeObject(packetToServer);
+            out.writeObject(packetToLookup);
 
 	    packetFromServer = new MazePacket();
 	    packetFromServer = (MazePacket) in.readObject();
@@ -464,13 +463,13 @@ public class ClientHandlerThread extends Thread {
 
     public void sendClientRespawn(String sc, String tc, Point p, Direction d) {
         try {
-            MazePacket packetToServer = new MazePacket();
-            packetToServer.packet_type = MazePacket.CLIENT_RESPAWN;
-            packetToServer.sc = sc;
-	    packetToServer.tc = tc;
-	    packetToServer.client_location = p;
-	    packetToServer.client_direction = d;
-            out.writeObject(packetToServer);
+            MazePacket packetToLookup = new MazePacket();
+            packetToLookup.packet_type = MazePacket.CLIENT_RESPAWN;
+            packetToLookup.sc = sc;
+	    packetToLookup.tc = tc;
+	    packetToLookup.client_location = p;
+	    packetToLookup.client_direction = d;
+            out.writeObject(packetToLookup);
         } catch (IOException e) {
             e.printStackTrace();
         }

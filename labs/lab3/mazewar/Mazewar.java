@@ -157,20 +157,29 @@ public class Mazewar extends JFrame {
             Mazewar.quit();
         }
 
-        String host = JOptionPane.showInputDialog("Enter host name");
+        String client_portStr = JOptionPane.showInputDialog("Enter port you will be listening from");
+        if((client_portStr == null) || (client_portStr.length() == 0)) {
+            Mazewar.quit();
+        }
+
+        String host = JOptionPane.showInputDialog("Enter hostname of naming service");
         if((host == null) || (host.length() == 0)) {
             Mazewar.quit();
         }
 
-        String portStr = JOptionPane.showInputDialog("Enter host port");
-        if((portStr == null) || (portStr.length() == 0)) {
+        String lookup_portStr = JOptionPane.showInputDialog("Enter port of naming service");
+        if((lookup_portStr == null) || (lookup_portStr.length() == 0)) {
             Mazewar.quit();
         }
-        int port = Integer.parseInt(portStr);
-        // You may want to put your network initialization code somewhere in
-        // here.
 
-        ClientHandlerThread clientHandler = new ClientHandlerThread(host, port);
+        int client_port = Integer.parseInt(client_portStr);
+        int lookup_port = Integer.parseInt(lookup_portStr);
+
+	// Create thread to handle incoming events
+	// INCOMPLETE
+
+	// Connect to naming service
+        ClientHandlerThread clientHandler = new ClientHandlerThread(host, lookup_port,client_port);
 	maze.addClientHandler(clientHandler);
 
 	Lock lock = new ReentrantLock();
@@ -185,7 +194,8 @@ public class Mazewar extends JFrame {
         this.addKeyListener(guiClient);
 
         clientHandler.registerMaze(maze);
-        clientHandler.registerClientWithMazewar();
+        clientHandler.registerClientWithMazewar(client_port);
+	clientHandler.getClients();
 
         // Use braces to force constructors not to be called at the beginning of the
         // constructor.
