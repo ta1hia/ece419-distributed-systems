@@ -166,7 +166,7 @@ public class ClientHandlerThread extends Thread {
 	packetToClients.lookupTable = new ConcurrentHashMap();
 	packetToClients.lookupTable.put(id, lookupTable.get(id));
 
-	//dispatcher(packetToClients);
+	//dispatcher.send(packetToClients);
     }
     
     // Check if registration successful

@@ -16,10 +16,13 @@ public class Dispatcher extends Thread {
     ArrayList socketOutList = null;
     int seqNum;
 
+    int lamportClock;
+
     public Dispatcher(ServerData data) {
         this.eventQueue = data.eventQueue;
         this.clientTable = data.clientTable;
         this.socketOutList = data.socketOutList;
+	this.lamportClock = data.lamportClock;
     }
 
     // Continually check eventqueue
@@ -30,7 +33,7 @@ public class Dispatcher extends Thread {
 
         try {
 
-            while(true){ //???	
+            while(true){
                 if(eventQueue.peek() != null){
                     event = eventQueue.take();
                     System.out.println("DISPATCHER: sending packet type " + event.packet_type + " with sequence number " + seqNum);
@@ -58,6 +61,22 @@ public class Dispatcher extends Thread {
             e.printStackTrace();
         }
 
+    }
+
+    public void send(MazePacket packetToClients){
+	try{
+	    // Try and get a valid lamport clock!
+	
+
+	
+	    // Go through each client	    
+	    for(int i=0;i < socketOutList.size(); i++){
+		((ObjectOutputStream)socketOutList.get(i)).writeObject(packetToClients);
+	    }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
 
