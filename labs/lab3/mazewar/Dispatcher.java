@@ -66,8 +66,14 @@ public class Dispatcher extends Thread {
     public void send(MazePacket packetToClients){
 	try{
 	    // Try and get a valid lamport clock!
-	
+	    //while(lamportClockQueue.isEmpty()){
+		// Broadcast you want a lamport clock at (lamportClock + 1)
 
+		// Event handler checks if lamport clock is valid
+		// If it is, add it to the queue
+		// If not, broadcast another lamport clock request
+		// Wakeup threads sleeping on lamport clock
+	    //}
 	
 	    // Go through each client	    
 	    for(int i=0;i < socketOutList.size(); i++){
