@@ -25,6 +25,7 @@ Client creates a dispatcher thread to send out its events
 public class ClientHandlerThread extends Thread {
     Socket cSocket;
     Client me;
+    int id;
     Maze maze;
     ObjectOutputStream out;
     ObjectInputStream in;
@@ -156,18 +157,29 @@ public class ClientHandlerThread extends Thread {
             e.printStackTrace();
         }
     }
+
+    public void broadcastNewClient(){
+	MazePacket packetToClients = new MazePacket();
+
+	packetToClients.packet_type = MazePacket.CLIENT_REGISTER;
+	packetToClients.client_id = id;
+	packetToClients.lookupTable = new ConcurrentHashMap();
+	packetToClients.lookupTable.put(id, lookupTable.get(id));
+
+	//dispatcher(packetToClients);
+    }
     
     // Check if registration successful
     private void lookupRegisterEvent(){
-	// Maybe not needed
+	// Get the current lookup table
+	lookupTable = packetFromLookup.lookupTable;
     }
 
 
     // Store all clients
     // ID, host name, port
     private void lookupGetEvent(){
-	// Incomplete!
-	lookupTable = packetFromLookup.lookupTable;
+	// May not need
     }
 
     //Remove the client that is quitting.

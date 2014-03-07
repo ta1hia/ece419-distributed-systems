@@ -162,12 +162,12 @@ public class Mazewar extends JFrame {
             Mazewar.quit();
         }
 
-        String host = JOptionPane.showInputDialog("Enter hostname of naming service");
+        String host = JOptionPane.showInputDialog("Enter hostname of lookup");
         if((host == null) || (host.length() == 0)) {
             Mazewar.quit();
         }
 
-        String lookup_portStr = JOptionPane.showInputDialog("Enter port of naming service");
+        String lookup_portStr = JOptionPane.showInputDialog("Enter port of lookup");
         if((lookup_portStr == null) || (lookup_portStr.length() == 0)) {
             Mazewar.quit();
         }
@@ -175,13 +175,11 @@ public class Mazewar extends JFrame {
         int client_port = Integer.parseInt(client_portStr);
         int lookup_port = Integer.parseInt(lookup_portStr);
 
-	// Create thread to handle incoming events
-	// INCOMPLETE
-
 	// Connect to naming service
         ClientHandlerThread clientHandler = new ClientHandlerThread(host, lookup_port,client_port);
 	maze.addClientHandler(clientHandler);
 
+	// One lock to be used by all processes in this computer
 	Lock lock = new ReentrantLock();
 	maze.addLock(lock);
 
@@ -189,22 +187,17 @@ public class Mazewar extends JFrame {
         guiClient = new GUIClient(name);
         guiClient.addClientHandler(clientHandler);
 
+	// Register to lookup
+        clientHandler.registerMaze(maze);
+        clientHandler.registerClientWithLookup(client_port);
+
+	// Broadcast your first event!
+	// Tell other clients to give their Points, Directions, and wait until I finish spawning
+	clientHandler.broadcastNewClient();
+
         clientHandler.me = guiClient;
         maze.addClient(guiClient);
         this.addKeyListener(guiClient);
-
-        clientHandler.registerMaze(maze);
-        clientHandler.registerClientWithLookup(client_port);
-	clientHandler.getClients();
-
-        // Use braces to force constructors not to be called at the beginning of the
-        // constructor.
-        {
-            //            maze.addClient(new RobotClient("Norby"));
-            //            maze.addClient(new RobotClient("Robbie"));
-            //            maze.addClient(new RobotClient("Clango"));
-            //            maze.addClient(new RobotClient("Marvin"));
-        }
 
 
         // Create the panel that will display the maze.

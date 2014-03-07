@@ -7,13 +7,18 @@ import java.util.concurrent.BlockingQueue;
 import java.io.Serializable;
 
 public class ServerData implements Serializable {
-    //eventqueue
-    //clientqueue
+
     BlockingQueue<MazePacket> eventQueue = new LinkedBlockingQueue();
     ConcurrentHashMap<String, ClientData> clientTable = new ConcurrentHashMap(); //Might need reference to actual thread here, for dispatcher
     ArrayList socketOutList = new ArrayList();
     ConcurrentHashMap<String, Point> clientPosition = new ConcurrentHashMap();
+
+    ConcurrentHashMap<Integer, ClientData> lookupTable = new ConcurrentHashMap();
     int lamportClock = 0;
+
+    public void addLookupTable(ConcurrentHashMap lookupTable){
+	this.lookupTable = lookupTable;
+    }
 
     public void addClientToTable(String name, Point position, Direction direction, int type) {
         if (!clientTable.containsKey(name)) {
