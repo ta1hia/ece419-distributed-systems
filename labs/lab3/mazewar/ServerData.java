@@ -13,6 +13,7 @@ public class ServerData implements Serializable {
     ConcurrentHashMap<String, ClientData> clientTable = new ConcurrentHashMap(); //Might need reference to actual thread here, for dispatcher
     ArrayList socketOutList = new ArrayList();
     ConcurrentHashMap<String, Point> clientPosition = new ConcurrentHashMap();
+    int lamportClock = 0;
 
     public void addClientToTable(String name, Point position, Direction direction, int type) {
         if (!clientTable.containsKey(name)) {

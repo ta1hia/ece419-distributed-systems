@@ -12,6 +12,11 @@ import java.net.*;
 
 /* Client handler 
  * Each client will be registered with a client handler
+
+Client connects to Lookup
+Client creates a server thread here for other clients to connect to handle all incoming packet events
+Client creates a dispatcher thread to send out its events
+
  * Listens for actions by GUI client and notifies server
  * Receives game events queue from server and executes events 
  * 
@@ -24,15 +29,17 @@ public class ClientHandlerThread extends Thread {
     ObjectOutputStream out;
     ObjectInputStream in;
     BlockingQueue<MazeEvent> eventQueue;
-    ConcurrentHashMap<String, Client> clientTable; // Use to broadcast events
+    ConcurrentHashMap<String, Client> clientTable; 
+
+    ConcurrentHashMap<Integer, ClientData> lookupTable;
+
     int seqNum;
     MazePacket []eventArray = new MazePacket[21];
     boolean quitting = false;
 
-    int lamportClock = 0;
-    // Score table
-    //ScoreTableModel scoreTable;
+    ServerData clientData = new ServerData();
 
+    Dispatcher dispatcher = new Dispatcher(clientData);
 
     MazePacket packetFromLookup;
 
@@ -42,11 +49,20 @@ public class ClientHandlerThread extends Thread {
             
             System.out.println("Connecting to Naming Service...");
 
+	    // Connect to lookup
             cSocket = new Socket(lookup_host,lookup_port);
             out = new ObjectOutputStream(cSocket.getOutputStream());
             in = new ObjectInputStream(cSocket.getInputStream());
-            clientTable = new ConcurrentHashMap();	    
+            clientTable = new ConcurrentHashMap();	 
+
+	    // Start the dispatcher
+	    //		Broadcast this.client's events
+	    dispatcher.start();
 	    
+	    // Start client server
+	    // 		for other clients to connect to
+	    //		to handle incoming packets
+	    MazewarServer mazewarServer = new MazewarServer(client_port);
         } catch (Exception e) {
             e.printStackTrace();
             System.exit(1);
@@ -72,7 +88,7 @@ public class ClientHandlerThread extends Thread {
 	    }
     }
 
-    public void registerClientWithMazewar(int client_port){
+    public void registerClientWithLookup(int client_port){
         MazePacket packetToLookup = new MazePacket();
 
         try{
@@ -148,9 +164,10 @@ public class ClientHandlerThread extends Thread {
 
 
     // Store all clients
+    // ID, host name, port
     private void lookupGetEvent(){
 	// Incomplete!
-	clientTable = packetFromLookup.clientTable;
+	lookupTable = packetFromLookup.lookupTable;
     }
 
     //Remove the client that is quitting.

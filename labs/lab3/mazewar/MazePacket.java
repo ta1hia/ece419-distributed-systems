@@ -71,15 +71,13 @@ public class MazePacket implements Serializable {
     public MazeEvent event;
 
     // Game data
+    // Contains all client information within Client data
     ConcurrentHashMap<String, ClientData> client_list;
 
+    ConcurrentHashMap<Integer, ClientData> lookupTable;
     // Packet data
     int sequence_num;
     int packet_type;
     public int error_code;
    
-    // Store host and port of clients
-    // Can also store client name and Client object, as before
-    public static ConcurrentHashMap<String, Client> clientTable;
-    public static ConcurrentHashMap<String, String> lookupTable; 
 }

@@ -16,4 +16,9 @@ public class ClientData implements Serializable {
     Point client_location;
     Direction client_direction;
     int client_type;
+
+    String client_name;
+    
+    String client_host;
+    int client_port;
 }

@@ -194,7 +194,7 @@ public class Mazewar extends JFrame {
         this.addKeyListener(guiClient);
 
         clientHandler.registerMaze(maze);
-        clientHandler.registerClientWithMazewar(client_port);
+        clientHandler.registerClientWithLookup(client_port);
 	clientHandler.getClients();
 
         // Use braces to force constructors not to be called at the beginning of the
