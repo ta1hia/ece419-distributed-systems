@@ -27,6 +27,8 @@ public class MazewarServerHandlerThread extends Thread {
     int seqNum = 1;
     boolean quitting = false;
 
+    int lamportClock;
+
     public MazewarServerHandlerThread (Socket socket, ServerData sdata) throws IOException {
         super("MazewarServerHandlerThread");
         try {
@@ -54,6 +56,10 @@ public class MazewarServerHandlerThread extends Thread {
 
                 /* Process each packet */
                 switch (packetFromRC.packet_type) {
+		    case MazePacket.CLIENT_CLOCK:
+			clientClock();
+		    case MazePacket.CLIENT_AWK:
+			clientAwk();
                     case MazePacket.CLIENT_REGISTER:
                         registerClientEvent();
                         break;
@@ -94,6 +100,38 @@ public class MazewarServerHandlerThread extends Thread {
             e.printStackTrace();
             System.out.println("server done broke");
         }
+    }
+
+    // Client is requesting for a valid clock!
+    private void clientClock(){
+	int requested_lamportClock = packetFromRC.lamportClock;
+
+	if(requested_lamportClock == (lamportClock + 1)){
+	    // Clock is valid!
+	    lamportClock++;
+
+	    //Set up and send awknowledgement packet
+
+	} else{
+	    // Oh no! The lamport clock is not valid.
+	    // Send the latest lamport clock and disawknowledgement packet
+	}
+    }
+
+    // This client is awknowledging/disawk for lamport clock validation
+    // Count the amount of awks
+    private void clientAwk(){
+	int lamportClock = packetFromRC.lamportClock;
+	boolean clockIsValid = packetFromRC.clockIsValid;
+
+	if(clockIsValid){
+	    // Increment semaphore
+	} else {
+	    // Update the current lamport clock
+	    data.lamportClock = this.lamportClock;
+
+	    // Wake up any thread sleeping on this
+	}
     }
 
     // The client is quitting.

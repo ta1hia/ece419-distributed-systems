@@ -30,6 +30,8 @@ public class MazePacket implements Serializable {
     public static final int CLIENT_FIRE = 206;
     public static final int CLIENT_RESPAWN = 207;
     public static final int CLIENT_QUIT = 208;
+    public static final int CLIENT_AWK = 209;
+    public static final int CLIENT_CLOCK = 210;
    
     // Lookup service
     public static final int LOOKUP_REPLY = 300;
@@ -79,5 +81,8 @@ public class MazePacket implements Serializable {
     int sequence_num;
     int packet_type;
     public int error_code;
-   
+
+    // Lamport clock
+    int lamportClock;
+    boolean clockIsValid;   
 }

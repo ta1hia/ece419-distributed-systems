@@ -66,6 +66,14 @@ public class Dispatcher extends Thread {
     public void send(MazePacket packetToClients){
 	try{
 	    // Try and get a valid lamport clock!
+	    MazePacket getClock = new MazePacket();
+	    getClock.packet_type = MazePacket.CLIENT_CLOCK;
+	    getClock.lamportClock = lamportClock + 1;
+
+	    for(int i=0;i < socketOutList.size(); i++){
+		((ObjectOutputStream)socketOutList.get(i)).writeObject(getClock);
+	    }
+
 	    //while(lamportClockQueue.isEmpty()){
 		// Broadcast you want a lamport clock at (lamportClock + 1)
 
@@ -84,5 +92,7 @@ public class Dispatcher extends Thread {
             e.printStackTrace();
         }
     }
+
+
 }
 
