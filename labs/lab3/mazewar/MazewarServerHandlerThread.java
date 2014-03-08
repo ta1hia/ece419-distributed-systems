@@ -105,24 +105,40 @@ public class MazewarServerHandlerThread extends Thread {
     // Client is requesting for a valid clock!
     private void clientClock(){
 	int requested_lamportClock = packetFromRC.lamportClock;
+	//int lamportClock = dispatcher.getLamportClock();
+
+	packetToRC.packet_type = MazePacket.CLIENT_AWK;
 
 	if(requested_lamportClock == (lamportClock + 1)){
 	    // Clock is valid!
 	    lamportClock++;
 
 	    //Set up and send awknowledgement packet
+	    //packetToRC.lamportClock = lamportClock;
+	    packetToRC.isValidClock = true;
 
 	} else{
 	    // Oh no! The lamport clock is not valid.
 	    // Send the latest lamport clock and disawknowledgement packet
+	    packetToRC.isValidClock = false;
 	}
+
+	    packetToRC.lamportClock = lamportClock;
+
+	    try{
+
+		this.cout.writeObject(packetToRC);
+	    
+	    } catch (Exception e) {
+		e.printStackTrace();
+	    }
     }
 
     // This client is awknowledging/disawk for lamport clock validation
     // Count the amount of awks
     private void clientAwk(){
 	int lamportClock = packetFromRC.lamportClock;
-	boolean clockIsValid = packetFromRC.clockIsValid;
+	boolean clockIsValid = packetFromRC.isValidClock;
 
 	if(clockIsValid){
 	    // Increment semaphore

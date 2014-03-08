@@ -84,5 +84,5 @@ public class MazePacket implements Serializable {
 
     // Lamport clock
     int lamportClock;
-    boolean clockIsValid;   
+    boolean isValidClock;   
 }
