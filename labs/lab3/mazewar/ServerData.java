@@ -14,7 +14,7 @@ public class ServerData implements Serializable {
     ConcurrentHashMap<String, Point> clientPosition = new ConcurrentHashMap();
 
     ConcurrentHashMap<Integer, ClientData> lookupTable = new ConcurrentHashMap();
-    int lamportClock = 0;
+    int lamportClock;
 
     public void addLookupTable(ConcurrentHashMap lookupTable){
 	this.lookupTable = lookupTable;
@@ -66,6 +66,10 @@ public class ServerData implements Serializable {
 	    else
 		return false;
 	}
+    }
+
+    public void setLamportClock(int value){
+	lamportClock = value;
     }
 
 }
