@@ -28,13 +28,15 @@ public class MazewarServerHandlerThread extends Thread {
     boolean quitting = false;
 
     int lamportClock;
+    Dispatcher dispatcher;
 
-    public MazewarServerHandlerThread (Socket socket, ServerData sdata) throws IOException {
+    public MazewarServerHandlerThread (Socket socket, ServerData sdata, Dispatcher dispatcher) throws IOException {
         super("MazewarServerHandlerThread");
         try {
             this.rcSocket = socket;
             this.cout = new ObjectOutputStream(rcSocket.getOutputStream());
             this.data = sdata;
+	    this.dispatcher = dispatcher;
             data.addSocketOutToList(cout);
 	   
             System.out.println("Created new MazewarServerHandlerThread to handle remote client ");
@@ -104,34 +106,37 @@ public class MazewarServerHandlerThread extends Thread {
 
     // Client is requesting for a valid clock!
     private void clientClock(){
-	int requested_lamportClock = packetFromRC.lamportClock;
+	MazePacket eventPacket = new MazePacket();
+	int requested_lc = packetFromRC.lamportClock;    
 	//int lamportClock = dispatcher.getLamportClock();
+	eventPacket.packet_type = MazePacket.CLIENT_AWK;
 
-	packetToRC.packet_type = MazePacket.CLIENT_AWK;
-
-	if(requested_lamportClock == (lamportClock + 1)){
+	if(requested_lc == (lamportClock + 1)){
 	    // Clock is valid!
-	    lamportClock++;
+	    lamportClock = lamportClock + 1;
+	    data.setLamportClock(lamportClock);
 
 	    //Set up and send awknowledgement packet
-	    //packetToRC.lamportClock = lamportClock;
-	    packetToRC.isValidClock = true;
+	    //eventPacket.lamportClock = lamportClock;
+	    eventPacket.isValidClock = true;
 
 	} else{
 	    // Oh no! The lamport clock is not valid.
 	    // Send the latest lamport clock and disawknowledgement packet
-	    packetToRC.isValidClock = false;
+	    eventPacket.isValidClock = false;
 	}
 
-	    packetToRC.lamportClock = lamportClock;
+	    eventPacket.lamportClock = lamportClock;
 
-	    try{
+	    dispatcher.sendToClient(packetFromRC.client_id, (MazePacket) eventPacket);
 
-		this.cout.writeObject(packetToRC);
+	    // try{
+
+	    // 	this.cout.writeObject(eventPacket);
 	    
-	    } catch (Exception e) {
-		e.printStackTrace();
-	    }
+	    // } catch (Exception e) {
+	    // 	e.printStackTrace();
+	    // }
     }
 
     // This client is awknowledging/disawk for lamport clock validation

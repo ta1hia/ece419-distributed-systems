@@ -63,6 +63,15 @@ public class Dispatcher extends Thread {
 
     }
 
+    public void sendToClient(int client_id, MazePacket packetToClient){
+	try{
+	    ((ObjectOutputStream)socketOutList.get(client_id)).writeObject(packetToClient);
+	  
+        } catch (IOException e) {
+            e.printStackTrace();
+        }  
+    }
+
     public void send(MazePacket packetToClients){
 	try{
 	    // Try and get a valid lamport clock!

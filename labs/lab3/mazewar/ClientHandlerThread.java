@@ -38,9 +38,9 @@ public class ClientHandlerThread extends Thread {
     MazePacket []eventArray = new MazePacket[21];
     boolean quitting = false;
 
-    ServerData clientData = new ServerData();
+    ServerData data = new ServerData();
 
-    Dispatcher dispatcher = new Dispatcher(clientData);
+    Dispatcher dispatcher = new Dispatcher(data);
 
     MazePacket packetFromLookup;
 
@@ -63,7 +63,7 @@ public class ClientHandlerThread extends Thread {
 	    // Start client server
 	    // 		- for other clients to connect to
 	    //		- to handle incoming packets
-	    MazewarServer mazewarServer = new MazewarServer(client_port);
+	    MazewarServer mazewarServer = new MazewarServer(client_port,data, dispatcher);
         } catch (Exception e) {
             e.printStackTrace();
             System.exit(1);
@@ -184,7 +184,7 @@ public class ClientHandlerThread extends Thread {
 		    t_out = new ObjectOutputStream(socket.getOutputStream());
 		    t_in = new ObjectInputStream(socket.getInputStream());
 
-		    clientData.addSocketOutToList(t_out);
+		    data.addSocketOutToList(t_out);
 
 		} catch(Exception e){
 		    System.err.println("ERROR: Coudn't connect to currently existing client");
