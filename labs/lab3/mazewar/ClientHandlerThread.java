@@ -25,7 +25,7 @@ Client creates a dispatcher thread to send out its events
 public class ClientHandlerThread extends Thread {
     Socket cSocket;
     Client me;
-    int id;
+    int myId;
     Maze maze;
     ObjectOutputStream out;
     ObjectInputStream in;
@@ -40,7 +40,7 @@ public class ClientHandlerThread extends Thread {
 
     ServerData data = new ServerData();
 
-    Dispatcher dispatcher = new Dispatcher(data);
+    Dispatcher dispatcher = new Dispatcher(data);    
 
     MazePacket packetFromLookup;
 
@@ -58,12 +58,12 @@ public class ClientHandlerThread extends Thread {
 
 	    // Start the dispatcher
 	    //		Broadcast this.client's events
-	    dispatcher.start();
+	    //dispatcher.start();
 	    
 	    // Start client server
 	    // 		- for other clients to connect to
 	    //		- to handle incoming packets
-	    MazewarServer mazewarServer = new MazewarServer(client_port,data, dispatcher);
+	    MazewarServer mazewarServer = new MazewarServer(client_port,data, dispatcher, this);
         } catch (Exception e) {
             e.printStackTrace();
             System.exit(1);
@@ -76,7 +76,6 @@ public class ClientHandlerThread extends Thread {
         /* Listen for packets */
         packetFromLookup = new MazePacket();
 	
-
         try {
             while(!quitting && (packetFromLookup = (MazePacket) in.readObject()) != null) {
 
@@ -149,9 +148,9 @@ public class ClientHandlerThread extends Thread {
 	MazePacket packetToClients = new MazePacket();
 
 	packetToClients.packet_type = MazePacket.CLIENT_REGISTER;
-	packetToClients.client_id = id;
+	packetToClients.client_id = myId;
 	packetToClients.lookupTable = new ConcurrentHashMap();
-	packetToClients.lookupTable.put(id, lookupTable.get(id));
+	packetToClients.lookupTable.put(myId, lookupTable.get(myId));
 
 	//dispatcher.send(packetToClients);
     }
@@ -161,14 +160,21 @@ public class ClientHandlerThread extends Thread {
 	// Get the current lookup table
 	lookupTable = packetFromLookup.lookupTable;
 
+	myId = packetFromLookup.client_id;
+
 	// Connect to all currently existing users
 	// Save their out ports!
 	if(!lookupTable.isEmpty()){
 	    Object[] keys = lookupTable.keySet().toArray();
 	    int size = lookupTable.size(); 
 
+	    // Connect to all client listeners, except for yourself
 	    for(int i = 0; i < size; i++){
 		int key = Integer.parseInt(keys[i].toString());
+
+		if(key == myId)
+		    continue;
+
 		ClientData client_data = lookupTable.get(key);
 		String client_host = client_data.client_host;
 		int client_port = client_data.client_port;
@@ -182,7 +188,7 @@ public class ClientHandlerThread extends Thread {
 		    socket = new Socket(client_host, client_port);
 
 		    t_out = new ObjectOutputStream(socket.getOutputStream());
-		    t_in = new ObjectInputStream(socket.getInputStream());
+		    //t_in = new ObjectInputStream(socket.getInputStream());
 
 		    data.addSocketOutToList(t_out);
 
@@ -193,6 +199,8 @@ public class ClientHandlerThread extends Thread {
 
 
 	}
+
+	broadcastNewClient();
 
     }
 

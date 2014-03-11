@@ -193,7 +193,7 @@ public class Mazewar extends JFrame {
 
 	// Broadcast your first event!
 	// Tell other clients to give their Points, Directions, and wait until I finish spawning
-	clientHandler.broadcastNewClient();
+	//clientHandler.broadcastNewClient();
 
         clientHandler.me = guiClient;
         maze.addClient(guiClient);

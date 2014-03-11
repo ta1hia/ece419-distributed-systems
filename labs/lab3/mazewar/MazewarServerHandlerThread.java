@@ -29,8 +29,9 @@ public class MazewarServerHandlerThread extends Thread {
 
     int lamportClock;
     Dispatcher dispatcher;
+    ClientHandlerThread chandler;
 
-    public MazewarServerHandlerThread (Socket socket, ServerData sdata, Dispatcher dispatcher) throws IOException {
+    public MazewarServerHandlerThread (Socket socket, ServerData sdata, Dispatcher dispatcher, ClientHandlerThread chandler) throws IOException {
         super("MazewarServerHandlerThread");
         try {
             this.rcSocket = socket;
@@ -38,6 +39,8 @@ public class MazewarServerHandlerThread extends Thread {
             this.data = sdata;
 	    this.dispatcher = dispatcher;
             data.addSocketOutToList(cout);
+
+	    this.chandler = chandler;
 	   
             System.out.println("Created new MazewarServerHandlerThread to handle remote client ");
         } catch (IOException e) {
@@ -145,14 +148,12 @@ public class MazewarServerHandlerThread extends Thread {
 	int lamportClock = packetFromRC.lamportClock;
 	boolean clockIsValid = packetFromRC.isValidClock;
 
-	if(clockIsValid){
-	    // Increment semaphore
-	} else {
+	if(!clockIsValid){
 	    // Update the current lamport clock
 	    data.lamportClock = this.lamportClock;
-
-	    // Wake up any thread sleeping on this
 	}
+
+	data.releaseLamportClock(1);
     }
 
     // The client is quitting.

@@ -30,7 +30,7 @@ public class MazewarServer extends Thread{
     private final int pointSeed = (int) System.currentTimeMillis();
     private final int mazeSeed = 42;
 
-    public MazewarServer(int client_port, ServerData data, Dispatcher dispatcher){
+    public MazewarServer(int client_port, ServerData data, Dispatcher dispatcher, ClientHandlerThread chandler){
         ServerSocket mazewarServer = null;
         boolean listening = true;
 
@@ -49,7 +49,7 @@ public class MazewarServer extends Thread{
 
 	    /* Listen for new remote clients */
 	    while (listening) {
-		new MazewarServerHandlerThread(mazewarServer.accept(), data, dispatcher).start();	    
+		new MazewarServerHandlerThread(mazewarServer.accept(), data, dispatcher, chandler).start();	    
 	    }
 
 	    mazewarServer.close();

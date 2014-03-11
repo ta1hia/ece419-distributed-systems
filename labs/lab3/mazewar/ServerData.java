@@ -5,6 +5,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.io.Serializable;
+import java.util.concurrent.Semaphore;
 
 public class ServerData implements Serializable {
 
@@ -13,8 +14,35 @@ public class ServerData implements Serializable {
     ArrayList socketOutList = new ArrayList();
     ConcurrentHashMap<String, Point> clientPosition = new ConcurrentHashMap();
 
-    ConcurrentHashMap<Integer, ClientData> lookupTable = new ConcurrentHashMap();
-    int lamportClock;
+    ConcurrentHashMap<Integer, ClientData> lookupTable = new ConcurrentHashMap(); // Contains all client data
+    int lamportClock; // This client's lamport clock
+    Semaphore lamportClock_sem = new Semaphore(0); // Sempahore for client awknowledgement sinconization
+    int myId;
+
+    public void setId(int num){
+	myId = num;
+    }
+
+    public int getId(){
+	return myId; 
+    }
+    public void acquireLamportClock(int num){
+
+	try{
+	    lamportClock_sem.acquire(num);
+	} catch (Exception e){
+            e.printStackTrace();
+	}
+
+    }
+
+    public void releaseLamportClock(int num){
+	try{
+	    lamportClock_sem.release(num);
+	} catch (Exception e){
+            e.printStackTrace();
+	}
+    }
 
     public void addLookupTable(ConcurrentHashMap lookupTable){
 	this.lookupTable = lookupTable;
