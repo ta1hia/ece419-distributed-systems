@@ -149,8 +149,6 @@ public class ClientHandlerThread extends Thread {
 
 	packetToClients.packet_type = MazePacket.CLIENT_REGISTER;
 	packetToClients.client_id = myId;
-	packetToClients.lookupTable = new ConcurrentHashMap();
-	packetToClients.lookupTable.put(myId, lookupTable.get(myId));
 
 	//dispatcher.send(packetToClients);
     }
@@ -516,6 +514,14 @@ public class ClientHandlerThread extends Thread {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void spawnClient(Integer id, ConcurrentHashMap tuple){
+	// Update tuple
+	lookupTable.put(id, tuple.get(id));
+
+	// Spawn client
+        maze.addRemoteClient(c, packetFromLookup.client_location, packetFromLookup.client_direction);
     }
 
 }

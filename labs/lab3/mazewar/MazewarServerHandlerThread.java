@@ -68,6 +68,9 @@ public class MazewarServerHandlerThread extends Thread {
                     case MazePacket.CLIENT_REGISTER:
                         registerClientEvent();
                         break;
+		    case MazePacket.CLIENT_SPAWN:
+			clientSpawn();
+			break;
                     case MazePacket.CLIENT_FORWARD:
                         clientForwardEvent();
                         break;
@@ -140,6 +143,12 @@ public class MazewarServerHandlerThread extends Thread {
 	    // } catch (Exception e) {
 	    // 	e.printStackTrace();
 	    // }
+    }
+
+    private void clientSpawn(){
+	chandler.spawnClient(packetFromRC.client_id,packetFromRC.lookupTable);
+
+	data.releaseSemaphore(1);
     }
 
     // This client is awknowledging/disawk for lamport clock validation
@@ -290,23 +299,12 @@ public class MazewarServerHandlerThread extends Thread {
             MazePacket eventPacket = new MazePacket();
 
             /* Add to client list */
-            String rc_name = packetFromRC.client_name;
-            Point rc_point = packetFromRC.client_location;
-            Direction rc_direction = packetFromRC.client_direction;
-            int rc_type = packetFromRC.client_type;
-            System.out.println("S_HANDLER: Connected with " + rc_name );
-            data.addClientToTable(rc_name, rc_point, rc_direction, ClientData.REMOTE); //need to organize this
-
-            /* Prepare event packet for event queue */
-            eventPacket.client_name = rc_name;
-            eventPacket.client_location = rc_point;
-            eventPacket.client_direction = rc_direction;
-            eventPacket.client_type = rc_type;
-            eventPacket.packet_type = MazePacket.CLIENT_REGISTER;
-            eventPacket.client_list = data.clientTable; //Add client list to event packet
+	    eventPacket.packet_type = MazePacket.CLIENT_SPAWN;
+	    eventPacket.lookupTable = new ConcurrentHashMap();
+	    //eventPacket.lookupTable.put(chandler.getMyId(), chandler.getMe());
 
             /* Add packet to event queue */
-            data.addEventToQueue(eventPacket);
+            dispatcher.sendToClient(packetFromRC.client_id,eventPacket);
 
         } catch (Exception e) {
             e.printStackTrace();
