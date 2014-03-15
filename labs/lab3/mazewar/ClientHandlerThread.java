@@ -516,12 +516,18 @@ public class ClientHandlerThread extends Thread {
         }
     }
 
-    public void spawnClient(Integer id, ConcurrentHashMap tuple){
-	// Update tuple
-	lookupTable.put(id, tuple.get(id));
+    public void spawnClient(Integer id, ConcurrentHashMap<Integer,ClientData> tuple){
 
-	// Spawn client
-        maze.addRemoteClient(c, packetFromLookup.client_location, packetFromLookup.client_direction);
+	ClientData cd = tuple.get(id);
+
+	// Spawn client	
+	RemoteClient c = new RemoteClient(cd.client_name);
+        maze.addRemoteClient(c, cd.client_location, cd.client_direction);
+
+	// Update tuple
+	cd.c = c;
+	lookupTable.put(id, cd);
+
 }
 
     public ClientData getMe() {

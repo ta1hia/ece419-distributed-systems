@@ -22,4 +22,7 @@ public class ClientData implements Serializable {
     
     String client_host;
     int client_port;
+
+    Client c;
+
 }
