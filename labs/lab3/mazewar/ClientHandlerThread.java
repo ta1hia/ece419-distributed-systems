@@ -154,6 +154,13 @@ public class ClientHandlerThread extends Thread {
 
 	//dispatcher.send(packetToClients);
     }
+
+    public void broadcastNewClientLocation(){
+	MazePacket packetToClients = new MazePacket();
+
+	//packetToClients.packet_type = MazePacket.CLIENT_
+
+    }
     
     // Check if registration successful
     private void lookupRegisterEvent(){

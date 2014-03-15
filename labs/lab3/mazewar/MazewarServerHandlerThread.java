@@ -153,7 +153,7 @@ public class MazewarServerHandlerThread extends Thread {
 	    data.lamportClock = this.lamportClock;
 	}
 
-	data.releaseLamportClock(1);
+	data.releaseSemaphore(1);
     }
 
     // The client is quitting.
@@ -280,9 +280,8 @@ public class MazewarServerHandlerThread extends Thread {
         }
     }
 
-    /* Register new client
-     * - add to client list
-     * - send client list 
+    /* A new client wants to register
+     * - Give your current point and direction!
      */
     private void registerClientEvent() {
         try {

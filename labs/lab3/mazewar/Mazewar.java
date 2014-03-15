@@ -199,6 +199,8 @@ public class Mazewar extends JFrame {
         maze.addClient(guiClient);
         this.addKeyListener(guiClient);
 
+	// Broadcast your point and direction to all clients!
+	clientHandler.broadcastNewClientLocation();
 
         // Create the panel that will display the maze.
         overheadPanel = new OverheadMazePanel(maze, guiClient);

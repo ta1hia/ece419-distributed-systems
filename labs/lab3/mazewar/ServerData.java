@@ -16,7 +16,7 @@ public class ServerData implements Serializable {
 
     ConcurrentHashMap<Integer, ClientData> lookupTable = new ConcurrentHashMap(); // Contains all client data
     int lamportClock; // This client's lamport clock
-    Semaphore lamportClock_sem = new Semaphore(0); // Sempahore for client awknowledgement sinconization
+    Semaphore sem = new Semaphore(0); // Sempahore for client awknowledgement sinconization
     int myId;
 
     public void setId(int num){
@@ -26,19 +26,19 @@ public class ServerData implements Serializable {
     public int getId(){
 	return myId; 
     }
-    public void acquireLamportClock(int num){
+    public void acquireSemaphore(int num){
 
 	try{
-	    lamportClock_sem.acquire(num);
+	    sem.acquire(num);
 	} catch (Exception e){
             e.printStackTrace();
 	}
 
     }
 
-    public void releaseLamportClock(int num){
+    public void releaseSemaphore(int num){
 	try{
-	    lamportClock_sem.release(num);
+	    sem.release(num);
 	} catch (Exception e){
             e.printStackTrace();
 	}

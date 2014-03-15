@@ -20,7 +20,7 @@ public class Dispatcher extends Thread {
     int seqNum;
 
     int lamportClock;
-    Semaphore lamportClock_sem;
+    Semaphore sem;
     ServerData data;
 
     Lock lock = new ReentrantLock();
@@ -32,7 +32,7 @@ public class Dispatcher extends Thread {
         this.clientTable = data.clientTable;
         this.socketOutList = data.socketOutList;
 	this.lamportClock = data.lamportClock;
-	this.lamportClock_sem = data.lamportClock_sem;
+	this.sem = data.sem;
     }
 
     // Continually check eventqueue
@@ -83,14 +83,14 @@ public class Dispatcher extends Thread {
     }
 
     public void send(MazePacket packetToClients){
+	// Try and get a valid lamport clock!
+	MazePacket getClock = new MazePacket();
 
 	int requested_lc = lamportClock + 1;
 
 	try{
 	    // Request a lamport clock if there is more than one client.
 	    while(socketOutList.size() > 1){
-		// Try and get a valid lamport clock!
-		MazePacket getClock = new MazePacket();
 		getClock.packet_type = MazePacket.CLIENT_CLOCK;
 	      
 		getClock.lamportClock = requested_lc;
@@ -104,7 +104,7 @@ public class Dispatcher extends Thread {
 		}
 
 		// Wait until all clients have aknowledged!
-		data.acquireLamportClock(socketOutList.size() - 1);
+		data.acquireSemaphore(socketOutList.size() - 1);
 
 		// You've finally woken up
 		// Check if the lamport clock is valid
@@ -114,22 +114,17 @@ public class Dispatcher extends Thread {
 		    break;
 		}
 	    }
-
-	    //while(lamportClockQueue.isEmpty()){
-		// Broadcast you want a lamport clock at (lamportClock + 1)
-
-		// Event handler checks if lamport clock is valid
-		// If it is, add it to the queue
-		// If not, broadcast another lamport clock request
-		// Wakeup threads sleeping on lamport clock
-	    //}
-	
+	    
 	    data.setLamportClock(requested_lc);
 	    packetToClients.lamportClock = requested_lc;
 
 	    // Go through each client, even yourself	    
 	    for(int i=0;i < socketOutList.size(); i++){
 		((ObjectOutputStream)socketOutList.get(i)).writeObject(packetToClients);
+	    }
+
+	    if(packetToClients.packet_type == MazePacket.CLIENT_REGISTER){
+		data.acquireSemaphore(socketOutList.size());
 	    }
 
         } catch (IOException e) {
