@@ -148,21 +148,28 @@ public class ClientHandlerThread extends Thread {
 	MazePacket packetToClients = new MazePacket();
 
 	packetToClients.packet_type = MazePacket.CLIENT_REGISTER;
-	packetToClients.client_id = myId;
+	packetToClients.client_id = myId;      
 
 	//dispatcher.send(packetToClients);
     }
 
     public void broadcastNewClientLocation(){
+	ClientData cd = lookupTable.get(myId);
+	cd.client_name = me.getName();
+	cd.client_type = MazePacket.REMOTE;
+	cd.client_location = me.getPoint();
+	cd.client_direction = me.getOrientation();
+	cd.c = me;
+
+	lookupTable.put(myId,cd);
+
 	MazePacket packetToClients = new MazePacket();
 
 	packetToClients.packet_type = MazePacket.CLIENT_SPAWN;
+	packetToClients.lookupTable = new ConcurrentHashMap();
+	packetToClients.lookupTable.put(myId,cd);
 
-	packetToClients.client_id = myId;
-	packetToClients.client_location = me.getPoint();
-	packetToClients.client_direction = me.getOrientation();
-
-	//dispatcher.send(packetToClients);
+	dispatcher.send(packetToClients);
 
     }
     
