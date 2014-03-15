@@ -63,11 +63,16 @@ public class ClientHandlerThread extends Thread {
 	    // Start client server
 	    // 		- for other clients to connect to
 	    //		- to handle incoming packets
-	    MazewarServer mazewarServer = new MazewarServer(client_port,data, dispatcher, this);
+	    //MazewarServer mazewarServer = new MazewarServer(client_port,data, dispatcher, this);
+	    (new Thread(new MazewarServer(client_port,data, dispatcher, this))).start();
+
         } catch (Exception e) {
             e.printStackTrace();
             System.exit(1);
         }
+
+
+        System.out.println("I am leaving. Goodbye");
 
 	
     }

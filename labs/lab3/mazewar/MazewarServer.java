@@ -30,22 +30,27 @@ public class MazewarServer extends Thread{
     private final int pointSeed = (int) System.currentTimeMillis();
     private final int mazeSeed = 42;
 
+    Dispatcher dispatcher;
+    ServerData data;
+    ClientHandlerThread chandler;
+    int client_port;
+
     public MazewarServer(int client_port, ServerData data, Dispatcher dispatcher, ClientHandlerThread chandler){
+	this.client_port = client_port;
+	this.dispatcher = dispatcher;
+	this.data = data;
+	this.chandler = chandler;
+	boolean addedRobots = false;
+            
+    }
+
+    public void run(){
         ServerSocket mazewarServer = null;
         boolean listening = true;
 
-        /* Create MazewarServer socket */
-        try { 
+	try{
+
             mazewarServer = new ServerSocket(client_port);
-
-	    /* Init game resources */
-	    //ServerData data = new ServerData();
-
-	    /* Spawn single dispather thread? */
-	    //Dispatcher dispatcher = new Dispatcher(data);
-	    //dispatcher.start();
-
-	    boolean addedRobots = false;
 
 	    /* Listen for new remote clients */
 	    while (listening) {
@@ -53,13 +58,11 @@ public class MazewarServer extends Thread{
 	    }
 
 	    mazewarServer.close();
-            
+  
         } catch (IOException e) {
             System.err.println("ERROR: Could not listen on port!");
             System.exit(-1);
         }
     }
-
-
 }
 

@@ -219,6 +219,8 @@ Mazewar.class : ClientEvent.java
 Mazewar.class : ClientEvent.class
 Mazewar.class : MazewarServer.java
 Mazewar.class : MazewarServer.class
+Mazewar.class : Lookup.java
+Mazewar.class : Lookup.class
 MazewarServer.class : MazewarServer.java
 MazewarServer.class : Dispatcher.java
 MazewarServer.class : Dispatcher.class
