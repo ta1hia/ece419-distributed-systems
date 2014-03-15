@@ -104,13 +104,14 @@ public class ClientHandlerThread extends Thread {
     }
 
 
-    public void registerClientWithLookup(int client_port){
+    public void registerClientWithLookup(int client_port, String name){
         MazePacket packetToLookup = new MazePacket();
 
         try{
 	    // Register self
 	    packetToLookup.packet_type = MazePacket.LOOKUP_REGISTER;
 	    packetToLookup.client_type = MazePacket.REMOTE;
+        packetToLookup.client_name = name;
 	    packetToLookup.client_host = InetAddress.getLocalHost().getHostName();
 	    packetToLookup.client_port = client_port;
 

@@ -198,7 +198,7 @@ public class Mazewar extends JFrame {
         debug("registering with maze");
         clientHandler.registerMaze(maze);
         debug(String.format("registering with lookup on port %d", client_port));
-        clientHandler.registerClientWithLookup(client_port);
+        clientHandler.registerClientWithLookup(client_port, name);
 
         // Broadcast your first event!
         // Tell other clients to give their Points, Directions, and wait until I finish spawning
