@@ -1,5 +1,5 @@
-import java.net.*;
 import java.io.*; 
+import java.net.*;
 import java.net.ServerSocket;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.Enumeration;
@@ -10,12 +10,12 @@ import java.util.Map.Entry;
 /*
    Lookup / Naming service thread
  */
-public class OnlineLookupHandlerThread extends Thread {
+public class LookupHandler extends Thread {
     private Socket socket = null;
-    private static ConcurrentHashMap<String, String> table; /* thread-safe hashmap structure */
+    private static ConcurrentHashMap<Integer, String> table; /* thread-safe hashmap structure */
 
-    public OnlineLookupHandlerThread(Socket socket) {
-        super("OnlineLookupHandlerThread");
+    public LookupHandler(Socket socket) {
+        super("LookupHandler");
         this.socket = socket;
         System.out.println("Created new Thread to handle lookup requests");
     }
@@ -38,29 +38,29 @@ public class OnlineLookupHandlerThread extends Thread {
 
                 /* LOOKUP_REGISTER */
                 // Client wants to find a corresponding IP and port for a given client name
-		// Assume all error handling is done in client side
-                if(packetFromClient.type == MazePacket.LOOKUP_REGISTER) {
+                // Assume all error handling is done in client side
+                if(packetFromClient.packet_type == MazePacket.LOOKUP_REGISTER) {
                     System.out.println("From Client: LOOKUP_REGISTER ");
 
-		    packetToClient.type = MazePacket.LOOKUP_REPLY;
-		    String ip = packetFromClient.client_host;
-		    int port  = packetFromClient.client_port;
+                    packetToClient.packet_type = MazePacket.LOOKUP_REPLY;
+                    String ip = packetFromClient.client_host;
+                    int port  = packetFromClient.client_port;
 
-		    System.out.println("Lookup is registering new client.");
-		    System.out.println("IP: " + ip " Port: " + port);
+                    System.out.println("Lookup is registering new client.");
+                    System.out.println("IP: " + ip + " Port: " + port);
 
-		    // Find empty ID
-		    int client_id = 1;
-		    while(table.containsKey(client_id)){
-			client_id++;
-		    }
-		 
-		    table.put(client_id, ip + " " + port);
-		    OnlineLookupHandlerThread.updateTable();
+                    // Find empty ID
+                    int client_id = 1;
+                    while(table.containsKey(client_id)){
+                        client_id++;
+                    }
 
-		    System.out.println("To Client: registration  success ");
-		    packetToClient.client_id = client_id;
-		    packetToClient.error_code = 0;
+                    table.put(client_id, ip + " " + port);
+                    //LookupHandler.updateTable();
+
+                    System.out.println("To Client: registration  success ");
+                    packetToClient.client_id = client_id;
+                    packetToClient.error_code = 0;
 
                     toClient.writeObject(packetToClient);
                     continue;
@@ -69,14 +69,14 @@ public class OnlineLookupHandlerThread extends Thread {
 
                 /* CLIENT_QUIT */
                 // Delete client from table if quitting
-                if (packetFromClient.type == MazePacket.CLIENT_QUIT) {
-                    packetToClient.type = MazePacket.LOOKUP_REPLY;
+                if (packetFromClient.packet_type == MazePacket.CLIENT_QUIT) {
+                    packetToClient.packet_type = MazePacket.LOOKUP_REPLY;
 
                     System.out.println("From Client: CLIENT_QUIT ");
 
-		    int client_id = packetFromClient.client_id;
+                    int client_id = packetFromClient.client_id;
 
-		    table.remove(client_id);
+                    table.remove(client_id);
 
                     System.out.println("To Client: Removed from naming service.");
                     toClient.writeObject(packetToClient);
@@ -103,8 +103,8 @@ public class OnlineLookupHandlerThread extends Thread {
     }
 
     /* Accessors */
-    public static void setTable (ConcurrentHashMap <String, String> quotes) {
-        OnlineLookupHandlerThread.table = quotes;
+    public static void setTable (ConcurrentHashMap <Integer, String> t) {
+        LookupHandler.table = t;
     }
 
     private static String getHost(String client) {
@@ -121,19 +121,16 @@ public class OnlineLookupHandlerThread extends Thread {
         return Integer.valueOf(parts[1]);
     }
 
-    private static void updateTable() {
-        /* Clear table table and write updated entries */
+    /*private static void updateTable() {
         try {
             FileWriter tableWriter = new FileWriter("lookuptable");
 
-            /* Clear contents of table */
-            /* Copy updated contents of hashmap into table */
             BufferedWriter out = new BufferedWriter(tableWriter);
             out.write("");
             out.flush();
 
             int count = 0;
-            Iterator<Entry<String, String>> it = table.entrySet().iterator();
+            Iterator<Entry<Integer, String>> it = table.entrySet().iterator();
 
             while (it.hasNext() && count < table.size()) {
                 Map.Entry<String, String> pairs = it.next();
@@ -146,6 +143,6 @@ public class OnlineLookupHandlerThread extends Thread {
         } catch (Exception e) {
             System.out.println("File (table) update error");
         }
-    }
+    }*/
 
 }

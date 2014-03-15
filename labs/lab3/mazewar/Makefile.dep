@@ -104,6 +104,9 @@ LocalClient.class : Direction.class
 Lookup.class: Lookup.java
 Lookup.class: LookupHandler.java
 Lookup.class: LookupBroadcast.java
+LookupHandler.class: LookupHandler.java
+LookupHandler.class: MazePacket.java
+LookupHandler.class: MazePacket.class
 Maze.class : Maze.java
 Maze.class : MazeListener.java
 Maze.class : MazeListener.class

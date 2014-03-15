@@ -147,7 +147,7 @@ public class MazewarServerHandlerThread extends Thread {
 
     private void clientSpawn(){
         chandler.spawnClient(packetFromRC.client_id,packetFromRC.lookupTable);
-        if (eventPacket.for_new_client) {
+        if (packetFromRC.for_new_client) {
             data.releaseSemaphore(1);
         }
     }
