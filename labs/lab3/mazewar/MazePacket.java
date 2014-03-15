@@ -63,6 +63,8 @@ public class MazePacket implements Serializable {
     public Direction client_direction;
     public int client_type;
 
+    public boolean for_new_client = false;
+
     // Client shot
     public String sc; // Source / killer
     public String tc; // Targer / victim
