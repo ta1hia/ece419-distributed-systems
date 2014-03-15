@@ -158,7 +158,13 @@ public class ClientHandlerThread extends Thread {
     public void broadcastNewClientLocation(){
 	MazePacket packetToClients = new MazePacket();
 
-	//packetToClients.packet_type = MazePacket.CLIENT_
+	packetToClients.packet_type = MazePacket.CLIENT_SPAWN;
+
+	packetToClients.client_id = myId;
+	packetToClients.client_location = me.getPoint();
+	packetToClients.client_direction = me.getOrientation();
+
+	//dispatcher.send(packetToClients);
 
     }
     
