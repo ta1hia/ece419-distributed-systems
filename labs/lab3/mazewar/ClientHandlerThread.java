@@ -522,7 +522,7 @@ public class ClientHandlerThread extends Thread {
             ClientData clientData = new ClientData();
             clientData.client_id = myId;
             clientData.client_name = me.getName();
-            clientData.client_location = maze.getClientPoint(me.getName());
+            clientData.client_location = maze.getClientPoint(me);
             clientData.client_direction = me.getOrientation();
             return clientData;
     }
