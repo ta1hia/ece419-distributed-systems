@@ -15,7 +15,7 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
    USA.
-   */
+ */
 
 import javax.swing.JFrame;
 import javax.swing.JScrollPane;
@@ -82,6 +82,9 @@ public class Mazewar extends JFrame {
      * The table the displays the scores.
      */
     private JTable scoreTable = null;
+
+    /* DEBUG FLAG */
+    boolean debug = true;
 
     /* ADDING - network resources */
     Socket mwsSocket = null;
@@ -175,32 +178,38 @@ public class Mazewar extends JFrame {
         int client_port = Integer.parseInt(client_portStr);
         int lookup_port = Integer.parseInt(lookup_portStr);
 
-	// Connect to naming service
+        // Connect to naming service
+        debug("creating client handler");
         ClientHandlerThread clientHandler = new ClientHandlerThread(host, lookup_port,client_port);
-	maze.addClientHandler(clientHandler);
+        maze.addClientHandler(clientHandler);
 
-	// One lock to be used by all processes in this computer
-	Lock lock = new ReentrantLock();
-	maze.addLock(lock);
+        // One lock to be used by all processes in this computer
+        debug("creating lock");
+        Lock lock = new ReentrantLock();
+        maze.addLock(lock);
 
         // Create the GUIClient and connect it to the KeyListener queue
+        debug("creating gui client");
         guiClient = new GUIClient(name);
+        debug("adding gui client to chandler");
         guiClient.addClientHandler(clientHandler);
 
-	// Register to lookup
+        // Register to lookup
+        debug("registering with maze");
         clientHandler.registerMaze(maze);
+        debug(String.format("registering with lookup on port %d", client_port));
         clientHandler.registerClientWithLookup(client_port);
 
-	// Broadcast your first event!
-	// Tell other clients to give their Points, Directions, and wait until I finish spawning
-	//clientHandler.broadcastNewClient();
+        // Broadcast your first event!
+        // Tell other clients to give their Points, Directions, and wait until I finish spawning
+        //clientHandler.broadcastNewClient();
 
         clientHandler.me = guiClient;
         maze.addClient(guiClient);
         this.addKeyListener(guiClient);
 
-	// Broadcast your point and direction to all clients!
-	clientHandler.broadcastNewClientLocation();
+        // Broadcast your point and direction to all clients!
+        clientHandler.broadcastNewClientLocation();
 
         // Create the panel that will display the maze.
         overheadPanel = new OverheadMazePanel(maze, guiClient);
@@ -273,7 +282,11 @@ public class Mazewar extends JFrame {
         new Mazewar();
     }
 
-
+    private void debug(String s) {
+        if (debug) {
+            System.out.println("MAZEWAR: " + s);
+        }
+    }
 
 
 }
