@@ -42,7 +42,7 @@ public class ClientHandlerThread extends Thread {
 
     Dispatcher dispatcher = new Dispatcher(data);    
 
-    MazePacket packetFromLookup;
+    MazePacket packetFromLookup = new MazePacket();
 
     public ClientHandlerThread(String lookup_host, int lookup_port, int client_port){
         /* Connect to naming service. */
@@ -77,26 +77,27 @@ public class ClientHandlerThread extends Thread {
 	
     }
 
-    public void run() {
-        /* Listen for packets */
-        packetFromLookup = new MazePacket();
+    // public void run() {
+    //     /* Listen for packets */
+    //     packetFromLookup = new MazePacket();
 	
-        try {
-            while(!quitting && (packetFromLookup = (MazePacket) in.readObject()) != null) {
+    //     try {
+    //         while(!quitting && (packetFromLookup = (MazePacket) in.readObject()) != null) {
 
-                switch (packetFromLookup.packet_type) {
-                    case MazePacket.LOOKUP_REGISTER:
-			lookupRegisterEvent();
-                        break;
-                    default:
-                        System.out.println("Could not recognize packet type" + packetFromLookup.packet_type);
-			break; 
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+    //             switch (packetFromLookup.packet_type) {
+    //                 case MazePacket.LOOKUP_REGISTER:
+    // 			lookupRegisterEvent();
+    //                     break;
+    //                 default:
+    //                     System.out.println("Could not recognize packet type" + packetFromLookup.packet_type);
+    // 			break; 
+    //             }
+    // 		System.out.print("HI!");
+    //         }
+    //     } catch (Exception e) {
+    //         e.printStackTrace();
+    //     }
+    // }
 
 
     public void registerMaze(Maze maze) {
@@ -117,7 +118,12 @@ public class ClientHandlerThread extends Thread {
 
 	    out.writeObject(packetToLookup);
 
-        }catch (IOException e){
+	    packetFromLookup = (MazePacket) in.readObject();
+
+	    lookupRegisterEvent();
+
+
+        }catch (Exception e){
             e.printStackTrace();
             System.out.println("ERROR: registering with server");
         }
@@ -187,6 +193,9 @@ public class ClientHandlerThread extends Thread {
 
 	myId = packetFromLookup.client_id;
 
+
+	System.out.print("TESTING !!!" + lookupTable.get(myId).client_name);
+
 	// Connect to all currently existing users
 	// Save their out ports!
 	if(!lookupTable.isEmpty()){
@@ -199,6 +208,8 @@ public class ClientHandlerThread extends Thread {
 
 		if(key == myId)
 		    continue;
+
+		System.out.print("Adding client " + key);
 
 		ClientData client_data = lookupTable.get(key);
 		String client_host = client_data.client_host;
@@ -217,6 +228,8 @@ public class ClientHandlerThread extends Thread {
 
 		    data.addSocketOutToList(t_out);
 
+
+		    System.out.print("Success!");
 		} catch(Exception e){
 		    System.err.println("ERROR: Coudn't connect to currently existing client");
 		}				    

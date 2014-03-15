@@ -31,6 +31,7 @@ public class LookupHandler extends Thread {
             /* stream to write back to client */
             ObjectOutputStream toClient = new ObjectOutputStream(socket.getOutputStream());
 
+	    table = new ConcurrentHashMap();
 
             while ((packetFromClient = (MazePacket) fromClient.readObject()) != null) {
                 /* create a packet to send reply back to client */
@@ -56,10 +57,11 @@ public class LookupHandler extends Thread {
                     }
 
 		    ClientData cd = new ClientData();		    
-		    cd.client_name = packetToLookup.client_name;
+		    cd.client_name = packetFromClient.client_name;
+		    cd.client_host = packetFromClient.client_host;
+		    cd.client_port = packetFromClient.client_port;
 		    
-		    
-                    table.put(client_id, );
+                    table.put(client_id, cd);
                     //LookupHandler.updateTable();
 
                     System.out.println("To Client: registration  success ");
