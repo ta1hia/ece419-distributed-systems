@@ -87,10 +87,10 @@ public class Dispatcher extends Thread {
 	MazePacket getClock = new MazePacket();
 
 	int requested_lc = lamportClock + 1;
-
+	if(socketOutList.size() > 1){
 	try{
 	    // Request a lamport clock if there is more than one client.
-	    while(socketOutList.size() > 1){
+	    while(true){
 		getClock.packet_type = MazePacket.CLIENT_CLOCK;
 	      
 		getClock.lamportClock = requested_lc;
@@ -130,6 +130,7 @@ public class Dispatcher extends Thread {
         } catch (IOException e) {
             e.printStackTrace();
         }
+	}
     }
 
 

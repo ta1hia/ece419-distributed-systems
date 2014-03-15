@@ -12,7 +12,7 @@ import java.util.Map.Entry;
  */
 public class LookupHandler extends Thread {
     private Socket socket = null;
-    private static ConcurrentHashMap<Integer, String> table; /* thread-safe hashmap structure */
+    private static ConcurrentHashMap<Integer, ClientData> table; /* thread-safe hashmap structure */
 
     public LookupHandler(Socket socket) {
         super("LookupHandler");
@@ -42,7 +42,7 @@ public class LookupHandler extends Thread {
                 if(packetFromClient.packet_type == MazePacket.LOOKUP_REGISTER) {
                     System.out.println("From Client: LOOKUP_REGISTER ");
 
-                    packetToClient.packet_type = MazePacket.LOOKUP_REPLY;
+                    packetToClient.packet_type = MazePacket.LOOKUP_REGISTER;
                     String ip = packetFromClient.client_host;
                     int port  = packetFromClient.client_port;
 
@@ -55,12 +55,19 @@ public class LookupHandler extends Thread {
                         client_id++;
                     }
 
-                    table.put(client_id, ip + " " + port);
+		    ClientData cd = new ClientData();		    
+		    cd.client_name = packetToLookup.client_name;
+		    
+		    
+                    table.put(client_id, );
                     //LookupHandler.updateTable();
 
                     System.out.println("To Client: registration  success ");
                     packetToClient.client_id = client_id;
                     packetToClient.error_code = 0;
+
+		    packetToClient.lookupTable = new ConcurrentHashMap();
+		    packetToClient.lookupTable = table;
 
                     toClient.writeObject(packetToClient);
                     continue;
@@ -86,6 +93,9 @@ public class LookupHandler extends Thread {
                 /* if code comes here, there is an error in the packet */
                 System.err.println("ERROR: Unknown packet!!");
                 System.exit(-1);
+
+		// DEBUGGING!
+		continue;
             }
 
             /* cleanup when client exits */
@@ -102,24 +112,24 @@ public class LookupHandler extends Thread {
         }
     }
 
-    /* Accessors */
-    public static void setTable (ConcurrentHashMap <Integer, String> t) {
-        LookupHandler.table = t;
-    }
+    // /* Accessors */
+    // public static void setTable (ConcurrentHashMap <Integer, String> t) {
+    //     LookupHandler.table = t;
+    // }
 
-    private static String getHost(String client) {
-        String query = table.get(client);
-        String parts[] = query.split(" ");
+    // private static String getHost(String client) {
+    //     String query = table.get(client);
+    //     String parts[] = query.split(" ");
 
-        return parts[0];
-    }
+    //     return parts[0];
+    // }
 
-    private static int getPort(String client) {
-        String query = table.get(client);
-        String parts[] = query.split(" ");
+    // private static int getPort(String client) {
+    //     String query = table.get(client);
+    //     String parts[] = query.split(" ");
 
-        return Integer.valueOf(parts[1]);
-    }
+    //     return Integer.valueOf(parts[1]);
+    // }
 
     /*private static void updateTable() {
         try {

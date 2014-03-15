@@ -51,7 +51,7 @@ public class Lookup {
         in.close(); */
 
         /* Set table quotes in OnlineLookupHandlerThread */
-        LookupHandler.setTable(lookup);
+        //LookupHandler.setTable(lookup);
 
         /* Listen for clients */
         while (listening) {

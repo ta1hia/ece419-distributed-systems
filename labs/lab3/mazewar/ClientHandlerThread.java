@@ -89,7 +89,7 @@ public class ClientHandlerThread extends Thread {
 			lookupRegisterEvent();
                         break;
                     default:
-                        System.out.println("Could not recognize packet type");
+                        System.out.println("Could not recognize packet type" + packetFromLookup.packet_type);
 			break; 
                 }
             }
@@ -181,6 +181,7 @@ public class ClientHandlerThread extends Thread {
     // Check if registration successful
     private void lookupRegisterEvent(){
 	// Get the current lookup table
+	lookupTable = new ConcurrentHashMap();
 	lookupTable = packetFromLookup.lookupTable;
 
 	myId = packetFromLookup.client_id;
@@ -461,49 +462,49 @@ public class ClientHandlerThread extends Thread {
     }
 
     private void sendPacketToLookup(int packetType) {
-        try {
-            MazePacket packetToLookup = new MazePacket();
-            packetToLookup.packet_type = packetType;
-            packetToLookup.client_name = me.getName();
-            out.writeObject(packetToLookup);
-	    // //Wait... Else If another remote client is in front of you, it will glitch!
-	    // Thread.sleep(200);
+        // try {
+        //     MazePacket packetToLookup = new MazePacket();
+        //     packetToLookup.packet_type = packetType;
+        //     packetToLookup.client_name = me.getName();
+        //     out.writeObject(packetToLookup);
+	//     // //Wait... Else If another remote client is in front of you, it will glitch!
+	//     // Thread.sleep(200);
 	
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        // } catch (Exception e) {
+        //     e.printStackTrace();
+        // }
     }
 
     // Try and reserve a point!
     public boolean reservePoint(Point point){
        MazePacket packetToLookup = new MazePacket();
 
-        try{
-            packetToLookup.packet_type = MazePacket.RESERVE_POINT;
-            packetToLookup.client_name = me.getName();
-            packetToLookup.client_location = point;
-            packetToLookup.client_direction = null;
-            packetToLookup.client_type = MazePacket.REMOTE;
-            System.out.println("CLIENT " + me.getName() + " RESERVING POINT");
-            out.writeObject(packetToLookup);
+        // try{
+        //     packetToLookup.packet_type = MazePacket.RESERVE_POINT;
+        //     packetToLookup.client_name = me.getName();
+        //     packetToLookup.client_location = point;
+        //     packetToLookup.client_direction = null;
+        //     packetToLookup.client_type = MazePacket.REMOTE;
+        //     System.out.println("CLIENT " + me.getName() + " RESERVING POINT");
+        //     out.writeObject(packetToLookup);
 
-	    packetFromLookup = new MazePacket();
-	    packetFromLookup = (MazePacket) in.readObject();
+	//     packetFromLookup = new MazePacket();
+	//     packetFromLookup = (MazePacket) in.readObject();
 
-	    int error_code = packetFromLookup.error_code;
+	//     int error_code = packetFromLookup.error_code;
 
-	    if(error_code == 0)
-		return true;
-	    else
-	    	return false;
+	//     if(error_code == 0)
+	// 	return true;
+	//     else
+	//     	return false;
 	 
 
-        }catch (Exception e){
-            e.printStackTrace();
-            System.out.println("ERROR: reserving point");
-	    return false;
-        }
-
+        // }catch (Exception e){
+        //     e.printStackTrace();
+        //     System.out.println("ERROR: reserving point");
+	//     return false;
+        // }
+       return true;
     }
 
     public boolean clientIsMe(Client c){
@@ -515,17 +516,17 @@ public class ClientHandlerThread extends Thread {
 
 
     public void sendClientRespawn(String sc, String tc, Point p, Direction d) {
-        try {
-            MazePacket packetToLookup = new MazePacket();
-            packetToLookup.packet_type = MazePacket.CLIENT_RESPAWN;
-            packetToLookup.sc = sc;
-	    packetToLookup.tc = tc;
-	    packetToLookup.client_location = p;
-	    packetToLookup.client_direction = d;
-            out.writeObject(packetToLookup);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        // try {
+        //     MazePacket packetToLookup = new MazePacket();
+        //     packetToLookup.packet_type = MazePacket.CLIENT_RESPAWN;
+        //     packetToLookup.sc = sc;
+	//     packetToLookup.tc = tc;
+	//     packetToLookup.client_location = p;
+	//     packetToLookup.client_direction = d;
+        //     out.writeObject(packetToLookup);
+        // } catch (IOException e) {
+        //     e.printStackTrace();
+        // }
     }
 
     public void spawnClient(Integer id, ConcurrentHashMap<Integer,ClientData> tuple){
