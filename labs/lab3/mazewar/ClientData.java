@@ -13,6 +13,7 @@ public class ClientData implements Serializable {
     public static final int ROBOT = 1;
     public static final int REMOTE = 2;
 
+    Integer client_id;
     Point client_location;
     Direction client_direction;
     int client_type;
