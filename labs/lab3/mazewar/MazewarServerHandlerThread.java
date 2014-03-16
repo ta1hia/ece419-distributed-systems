@@ -216,13 +216,14 @@ public class MazewarServerHandlerThread extends Thread {
     private void clientForwardEvent() {
         try { 
             MazePacket eventPacket = new MazePacket();
-            String rc_name = packetFromRC.client_name;
-            System.out.println("S_HANDLER: " + rc_name + " forward");
+            Integer id = packetFromRC.client_id;
+            System.out.println("S_HANDLER: " + id + " forward");
 
-            eventPacket.client_name = rc_name;
+            eventPacket.client_id = id;
             eventPacket.packet_type = MazePacket.CLIENT_FORWARD;
+            eventPacket.lamportClock = packetFromRC.lamportClock;
 
-            data.addEventToQueue(eventPacket);
+            data.addEventToEventArray(eventPacket);
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println("server done broke");
@@ -233,13 +234,14 @@ public class MazewarServerHandlerThread extends Thread {
     private void clientBackEvent() {
         try { 
             MazePacket eventPacket = new MazePacket();
-            String rc_name = packetFromRC.client_name;
-            System.out.println("S_HANDLER: " + rc_name + " back");
+            Integer id = packetFromRC.client_id;
+            System.out.println("S_HANDLER: " + id + " back");
 
-            eventPacket.client_name = rc_name;
+            eventPacket.client_id = id;
             eventPacket.packet_type = MazePacket.CLIENT_BACK;
+            eventPacket.lamportClock = packetFromRC.lamportClock;
 
-            data.addEventToQueue(eventPacket);
+            data.addEventToEventArray(eventPacket);
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println("server done broke");
@@ -249,13 +251,14 @@ public class MazewarServerHandlerThread extends Thread {
     private void clientLeftEvent() {
         try { 
             MazePacket eventPacket = new MazePacket();
-            String rc_name = packetFromRC.client_name;
-            System.out.println("S_HANDLER: " + rc_name + " left");
+            Integer id = packetFromRC.client_id;
+            System.out.println("S_HANDLER: " + id + " left");
 
-            eventPacket.client_name = rc_name;
+            eventPacket.client_id = id;
             eventPacket.packet_type = MazePacket.CLIENT_LEFT;
+            eventPacket.lamportClock = packetFromRC.lamportClock;
 
-            data.addEventToQueue(eventPacket);
+            data.addEventToEventArray(eventPacket);
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println("server done broke");
@@ -265,13 +268,14 @@ public class MazewarServerHandlerThread extends Thread {
     private void clientRightEvent() {
         try { 
             MazePacket eventPacket = new MazePacket();
-            String rc_name = packetFromRC.client_name;
-            System.out.println("S_HANDLER: " + rc_name + " right");
+            Integer id = packetFromRC.client_id;
+            System.out.println("S_HANDLER: " + id + " right");
 
-            eventPacket.client_name = rc_name;
+            eventPacket.client_id = id;
             eventPacket.packet_type = MazePacket.CLIENT_RIGHT;
+            eventPacket.lamportClock = packetFromRC.lamportClock;
 
-            data.addEventToQueue(eventPacket);
+            data.addEventToEventArray(eventPacket);
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println("server done broke");
@@ -281,13 +285,14 @@ public class MazewarServerHandlerThread extends Thread {
     private void clientFireEvent() {
         try { 
             MazePacket eventPacket = new MazePacket();
-            String rc_name = packetFromRC.client_name;
-            System.out.println("S_HANDLER: " + rc_name + " fire");
+            Integer id = packetFromRC.client_id;
+            System.out.println("S_HANDLER: " + id + " fire");
 
-            eventPacket.client_name = rc_name;
+            eventPacket.client_id = id;
             eventPacket.packet_type = MazePacket.CLIENT_FIRE;
-
-            data.addEventToQueue(eventPacket);
+            eventPacket.lamportClock = packetFromRC.lamportClock;
+            
+            data.addEventToEventArray(eventPacket);
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println("server done broke");
