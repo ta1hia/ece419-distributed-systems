@@ -440,7 +440,7 @@ public class ClientHandlerThread extends Thread {
                 System.out.println("CLIENT: Quitting");
 
                 quitting = true;
-                sendPacketToLookup(MazePacket.CLIENT_QUIT);
+                sendPacketToClients(MazePacket.CLIENT_QUIT);
 
                 try{
                     out.close();
@@ -453,39 +453,34 @@ public class ClientHandlerThread extends Thread {
                 Mazewar.quit();
                 // Up-arrow moves forward.
             } else if(e.getKeyCode() == KeyEvent.VK_UP && !me.isKilled()) {
-                sendPacketToLookup(MazePacket.CLIENT_FORWARD);
+                sendPacketToClients(MazePacket.CLIENT_FORWARD);
                 // Down-arrow moves backward.
             } else if(e.getKeyCode() == KeyEvent.VK_DOWN && !me.isKilled()) {
-                sendPacketToLookup(MazePacket.CLIENT_BACK);
+                sendPacketToClients(MazePacket.CLIENT_BACK);
                 //backup();
                 // Left-arrow turns left.
             } else if(e.getKeyCode() == KeyEvent.VK_LEFT && !me.isKilled()) {
-                sendPacketToLookup(MazePacket.CLIENT_LEFT);
+                sendPacketToClients(MazePacket.CLIENT_LEFT);
                 //turnLeft();
                 // Right-arrow turns right.
             } else if(e.getKeyCode() == KeyEvent.VK_RIGHT && !me.isKilled()) {
-                sendPacketToLookup(MazePacket.CLIENT_RIGHT);
+                sendPacketToClients(MazePacket.CLIENT_RIGHT);
                 //turnRight();
                 // Spacebar fires.
             } else if(e.getKeyCode() == KeyEvent.VK_SPACE && !me.isKilled()) {
-                sendPacketToLookup(MazePacket.CLIENT_FIRE);
+                sendPacketToClients(MazePacket.CLIENT_FIRE);
                 //fire();
             }
         }
 
-        private void sendPacketToLookup(int packetType) {
-            // try {
-            //     MazePacket packetToLookup = new MazePacket();
-            //     packetToLookup.packet_type = packetType;
-            //     packetToLookup.client_name = me.getName();
-            //     out.writeObject(packetToLookup);
-            //     // //Wait... Else If another remote client is in front of you, it will glitch!
-            //     // Thread.sleep(200);
+    private void sendPacketToClients(int packetType) {
+	MazePacket packetToClients = new MazePacket();	    
+	packetToClients.client_name = me.getName();
+	packetToClients.client_id = myId;
 
-            // } catch (Exception e) {
-            //     e.printStackTrace();
-            // }
-        }
+	dispatcher.send(packetToClients);  
+
+    }
 
         // Try and reserve a point!
         public boolean reservePoint(Point point){
