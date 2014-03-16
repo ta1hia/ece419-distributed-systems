@@ -467,7 +467,6 @@ public class ClientHandlerThread extends Thread {
         packetToClients.client_id = myId;
 
         dispatcher.send(packetToClients);  
-
     }
 
     // Try and reserve a point!

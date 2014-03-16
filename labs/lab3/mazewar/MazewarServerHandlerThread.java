@@ -32,6 +32,8 @@ public class MazewarServerHandlerThread extends Thread {
     Dispatcher dispatcher;
     ClientHandlerThread chandler;
 
+    boolean debug = true;
+
     public MazewarServerHandlerThread (Socket socket, ServerData sdata, Dispatcher dispatcher, ClientHandlerThread chandler) throws IOException {
         super("MazewarServerHandlerThread");
         try {
@@ -65,7 +67,7 @@ public class MazewarServerHandlerThread extends Thread {
                     case MazePacket.CLIENT_CLOCK:
                         clientClock();
                         break;
-                    case MazePacket.CLIENT_AWK:
+                    case MazePacket.CLIENT_ACK:
                         clientAwk();
                         break;
                     case MazePacket.CLIENT_REGISTER:
@@ -117,7 +119,7 @@ public class MazewarServerHandlerThread extends Thread {
         MazePacket eventPacket = new MazePacket();
         int requested_lc = packetFromRC.lamportClock;    
         //int lamportClock = dispatcher.getLamportClock();
-        eventPacket.packet_type = MazePacket.CLIENT_AWK;
+        eventPacket.packet_type = MazePacket.CLIENT_ACK;
 
         if(requested_lc == lamportClock){
             // Clock is valid!
@@ -384,6 +386,12 @@ public class MazewarServerHandlerThread extends Thread {
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println("server done broke");
+        }
+    }
+
+    public void debug(String s) {
+        if (debug) {
+            System.out.println("S_HANDLER: " + s);
         }
     }
 

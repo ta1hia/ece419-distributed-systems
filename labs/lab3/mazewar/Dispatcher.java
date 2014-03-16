@@ -146,9 +146,6 @@ public class Dispatcher extends Thread {
                     out.writeObject(packetToClients);
                     debug("sending a packet to client");		    
                 }
-                //for(int i=0;i <socketOutList.size(); i++){
-                //    ((ObjectOutputStream)socketOutList.get(i)).writeObject(packetToClients);
-                //}
 
                 if(packetToClients.packet_type == MazePacket.CLIENT_REGISTER){
                     data.acquireSemaphore(socketOutList.size() - 1);
