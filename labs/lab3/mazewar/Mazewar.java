@@ -265,6 +265,7 @@ public class Mazewar extends JFrame {
         overheadPanel.repaint();
         this.requestFocusInWindow();
 	clientHandler.start();
+        clientHandler.broadcastNewClientLocation();
     }
 
 

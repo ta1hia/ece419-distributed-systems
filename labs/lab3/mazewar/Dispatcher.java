@@ -108,7 +108,7 @@ public class Dispatcher extends Thread {
         if(socketOutList.size() > 0){
             try{
                 // Request a lamport clock if there is more than one client.
-                if(packetToClients.packet_type != MazePacket.CLIENT_REGISTER){
+                if(packetToClients.packet_type != MazePacket.CLIENT_REGISTER && packetToClients.packet_type != MazePacket.CLIENT_SPAWN){
                     while(true){
                         getClock.packet_type = MazePacket.CLIENT_CLOCK;
 

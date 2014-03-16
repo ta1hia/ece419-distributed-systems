@@ -211,6 +211,9 @@ public class ClientHandlerThread extends Thread {
             // Connect to all client listeners, except for yourself
             for(int i = 0; i < size; i++){
                 int key = Integer.parseInt(keys[i].toString());
+
+                if (key == myId) continue;
+
                 System.out.print("Adding client " + key);
 
                 ClientData client_data = lookupTable.get(key);
