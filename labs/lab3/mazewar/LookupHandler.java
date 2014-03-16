@@ -32,8 +32,6 @@ public class LookupHandler extends Thread {
             /* stream to write back to client */
             ObjectOutputStream toClient = new ObjectOutputStream(socket.getOutputStream());
 
-	    table = new ConcurrentHashMap();
-
             while ((packetFromClient = (MazePacket) fromClient.readObject()) != null) {
                 /* create a packet to send reply back to client */
                 MazePacket packetToClient = new MazePacket();
@@ -56,6 +54,8 @@ public class LookupHandler extends Thread {
                     while(table.containsKey(client_id)){
                         client_id++;
                     }
+
+		    System.out.print("ID is... "  + client_id);
 
 		    ClientData cd = new ClientData();		    
 		    cd.client_name = packetFromClient.client_name;
