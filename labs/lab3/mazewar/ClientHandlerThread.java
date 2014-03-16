@@ -503,7 +503,8 @@ public void handleKeyPress(KeyEvent e) {
 }
 
 private void sendPacketToClients(int packetType) {
-    MazePacket packetToClients = new MazePacket();	    
+    MazePacket packetToClients = new MazePacket();
+    packetToClients.packet_type = packetType;
     packetToClients.client_name = me.getName();
     packetToClients.client_id = myId;
 

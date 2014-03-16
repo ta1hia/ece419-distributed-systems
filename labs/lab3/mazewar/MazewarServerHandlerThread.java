@@ -222,6 +222,8 @@ public class MazewarServerHandlerThread extends Thread {
             eventPacket.packet_type = MazePacket.CLIENT_FORWARD;
             eventPacket.lamportClock = packetFromRC.lamportClock;
 
+	    System.out.println("THIS IS THE LAMPORT CLOCK: "+ eventPacket.lamportClock);
+
             data.addEventToEventArray(eventPacket);
         } catch (Exception e) {
             e.printStackTrace();
