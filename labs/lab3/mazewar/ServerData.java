@@ -14,11 +14,31 @@ public class ServerData implements Serializable {
     ConcurrentHashMap<Integer, ObjectOutputStream> socketOutList = new ConcurrentHashMap(); //Might need reference to actual thread here, for dispatcher
     //ArrayList socketOutList = new ArrayList();
     ConcurrentHashMap<String, Point> clientPosition = new ConcurrentHashMap();
+    MazePacket [] eventArray = new MazePacket[20];
 
     ConcurrentHashMap<Integer, ClientData> lookupTable = new ConcurrentHashMap(); // Contains all client data
     int lamportClock; // This client's lamport clock
     Semaphore sem = new Semaphore(0); // Sempahore for client awknowledgement sinconization
     int myId;
+
+    public void addEventToEventArray(MazePacket p) {
+        if (p) {
+            lamportArray[p.lamportClock] = p;
+        }
+    }
+
+    public MazePacket getNextEvent() {
+        // remove next event and return
+        MazePacket p = new MazePacket();
+        int i = -1;
+        while (p == null && i < 20) {
+            i++;
+            p = eventArray[i];
+        }
+        eventArray[i] = null;
+        return p;
+    }
+
 
     public void setId(int num){
         myId = num;
