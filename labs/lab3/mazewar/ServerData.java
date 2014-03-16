@@ -23,10 +23,10 @@ public class ServerData implements Serializable {
     int myId;
 
     public void addEventToEventArray(MazePacket p) {
-        if (p == null) {
-            eventArray[p.lamportClock] = p;
-        }
+	eventArray[p.lamportClock] =  p;
     }
+
+
 
     // public MazePacket getNextEvent() {
     //     // remove next event and return

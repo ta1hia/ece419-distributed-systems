@@ -83,12 +83,13 @@ public class ClientHandlerThread extends Thread {
 			int i = data.eventIndex;
 
 			// Check if event should be run right away or put into queue
-			if(data.eventArray[i]== null){	
+			if(data.eventArray[i] == null){	
 				continue;
 			} else {
 				packetFromClient = new MazePacket();
 				packetFromClient = data.eventArray[i];
 
+				System.out.println("Did I go forward..?!?!?!");
 				// Lock this client down!
 				Client c = (lookupTable.get(packetFromClient.client_id)).c;
 
@@ -376,7 +377,7 @@ public class ClientHandlerThread extends Thread {
 	}
 
 	private void clientForwardEvent(Client c) {
-		if (clientTable.containsKey(packetFromClient.client_id) && !c.isKilled()) { 
+		if (!c.isKilled()) { 
 			c.forward();
 		} else {
 			System.out.println("CLIENT: no client " +packetFromClient.client_id+ " in forward");
