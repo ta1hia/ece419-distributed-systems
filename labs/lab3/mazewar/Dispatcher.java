@@ -26,6 +26,8 @@ public class Dispatcher extends Thread {
 
     Lock lock = new ReentrantLock();
 
+    boolean debug = true;
+
     public Dispatcher(ServerData data) {
         this.data = data;
 
@@ -93,7 +95,7 @@ public class Dispatcher extends Thread {
         try{
             ((ObjectOutputStream)socketOutList.get(client_id)).writeObject(packetToClient);
 
-            System.out.print("Called client " + client_id);
+            debug("called client " + client_id);
         } catch (IOException e) {
             e.printStackTrace();
         }  
@@ -105,26 +107,22 @@ public class Dispatcher extends Thread {
 
         int requested_lc = lamportClock;
 
-        System.out.print("Size of the socket: " + socketOutList.size());
+        debug("number of peers to broadcast to: " + socketOutList.size());
         if(socketOutList.size() > 0){
             try{
                 // Request a lamport clock if there is more than one client.
                 if(packetToClients.packet_type != MazePacket.CLIENT_REGISTER){
                     while(true){
                         getClock.packet_type = MazePacket.CLIENT_CLOCK;
-
                         getClock.lamportClock = requested_lc;
-			getClock.client_id = packetToClients.client_id;
-
+                        getClock.client_id = packetToClients.client_id;
 
                         // Request awknowledgement from everyone, but yourself
-			// Go through each remote client	    
-			for (ObjectOutputStream out : socketOutList.values()) {
-			    out.writeObject(getClock);
-                            System.out.print("Calling client for clock: ");	    
-			}
-
-
+                        // Go through each remote client	    
+                        for (ObjectOutputStream out : socketOutList.values()) {
+                            out.writeObject(getClock);
+                            debug("calling client for clock: ");	    
+                        }
 
                         // Wait until all clients have aknowledged!
                         data.acquireSemaphore(socketOutList.size() - 1);
@@ -143,11 +141,10 @@ public class Dispatcher extends Thread {
 
                 }
 
-		
                 // Go through each remote client	    
                 for (ObjectOutputStream out : socketOutList.values()) {
                     out.writeObject(packetToClients);
-                    System.out.print("Sending packet to client");		    
+                    debug("sending a packet to client");		    
                 }
                 //for(int i=0;i <socketOutList.size(); i++){
                 //    ((ObjectOutputStream)socketOutList.get(i)).writeObject(packetToClients);
@@ -160,6 +157,12 @@ public class Dispatcher extends Thread {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    public void debug(String s) {
+        if (debug) {
+            System.out.println("DISPATCHER: " + s);
         }
     }
 
