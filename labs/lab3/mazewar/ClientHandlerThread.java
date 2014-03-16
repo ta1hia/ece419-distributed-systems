@@ -194,7 +194,7 @@ public class ClientHandlerThread extends Thread {
 	myId = packetFromLookup.client_id;
 
 
-	System.out.print("TESTING !!!" + lookupTable.get(myId).client_name);
+	System.out.print("TESTING !!!" + lookupTable.size());
 
 	// Connect to all currently existing users
 	// Save their out ports!
