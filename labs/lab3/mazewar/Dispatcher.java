@@ -95,7 +95,7 @@ public class Dispatcher extends Thread {
         try{
             ((ObjectOutputStream)socketOutList.get(client_id)).writeObject(packetToClient);
 
-            debug("called client " + client_id);
+            debug("sending packet "+ packetToClient.packet_type + ", called client " + client_id);
         } catch (IOException e) {
             e.printStackTrace();
         }  
@@ -137,7 +137,7 @@ public class Dispatcher extends Thread {
                     }
 
                     packetToClients.lamportClock = requested_lc;
-                    data.setLamportClock(requested_lc++);
+                    data.setLamportClock(requested_lc + 1);
 
                 }
 

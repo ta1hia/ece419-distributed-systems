@@ -126,7 +126,7 @@ public class ServerData implements Serializable {
         lamportClock = value;
     }
 
-    public void incrementLamportClock() {
+    public Integer incrementLamportClock() {
         Integer newClock = (lamportClock + 1) % 20;
         lamportClock = newClock;
         return newClock;

@@ -120,8 +120,10 @@ public class MazewarServerHandlerThread extends Thread {
         int requested_lc = packetFromRC.lamportClock;    
         //int lamportClock = dispatcher.getLamportClock();
         eventPacket.packet_type = MazePacket.CLIENT_ACK;
+        debug("requested lc is " + requested_lc);
 
         if(requested_lc == lamportClock){
+            debug("incrementing my lc after recieving CLIENT_CLOCK packet");
             // Clock is valid!
             data.setLamportClock(lamportClock + 1);
 
