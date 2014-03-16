@@ -17,7 +17,7 @@ import java.net.*;
 public class Dispatcher extends Thread {
     BlockingQueue<MazePacket> eventQueue = null;
     ConcurrentHashMap<String, ClientData> clientTable = null;
-    ArrayList socketOutList = null;
+    ConcurrentHashMap<Integer, ObjectOutputStream> socketOutList = new ConcurrentHashMap(); 
     int seqNum;
 
     int lamportClock;
@@ -74,7 +74,7 @@ public class Dispatcher extends Thread {
 
     // }
 
-    public void connectToPeer(String host, int port) {
+    public void connectToPeer(Integer id, String host, int port) {
         Socket socket = null;
         ObjectOutputStream t_out = null;
 
@@ -83,7 +83,7 @@ public class Dispatcher extends Thread {
             socket = new Socket(host, port);
 
             t_out = new ObjectOutputStream(socket.getOutputStream());
-            data.addSocketOutToList(t_out);
+            data.addSocketOutToList(id, t_out);
         } catch(Exception e){
             System.err.println("ERROR: Coudn't connect to currently existing client");
         }				    

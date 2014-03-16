@@ -24,6 +24,7 @@ public class MazewarServerHandlerThread extends Thread {
 
     Random rand = new Random();
 
+    Integer myId;
     int seqNum = 1;
     boolean quitting = false;
 
@@ -38,7 +39,7 @@ public class MazewarServerHandlerThread extends Thread {
             this.cout = new ObjectOutputStream(rcSocket.getOutputStream());
             this.data = sdata;
             this.dispatcher = dispatcher;
-            data.addSocketOutToList(cout);
+            //data.addSocketOutToList(cout);
 
             this.chandler = chandler;
 
@@ -180,7 +181,7 @@ public class MazewarServerHandlerThread extends Thread {
 
             // Remove that client from the client table!
             data.removeClientFromTable(rc_name);
-            data.removeSocketOutFromList(cout);
+            //data.removeSocketOutFromList(cout);
 
             // Close all connections!
             cin.close();
@@ -308,11 +309,12 @@ public class MazewarServerHandlerThread extends Thread {
 
             /* Get new client socket info */
             String hostname = packetFromRC.client_host;
+            Integer id = packetFromRC.client_id;
             int port = packetFromRC.client_port;
-            dispatcher.connectToPeer(hostname, port);
+            dispatcher.connectToPeer(id, hostname, port);
 
             /* Add packet to event queue */
-            dispatcher.sendToClient(packetFromRC.client_id,eventPacket);
+            dispatcher.sendToClient(id,eventPacket);
 
         } catch (Exception e) {
             e.printStackTrace();

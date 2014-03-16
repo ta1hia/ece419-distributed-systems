@@ -13,9 +13,9 @@ import java.net.*;
 /* Client handler 
  * Each client will be registered with a client handler
 
-Client connects to Lookup
-Client creates a server thread here for other clients to connect to handle all incoming packet events
-Client creates a dispatcher thread to send out its events
+ Client connects to Lookup
+ Client creates a server thread here for other clients to connect to handle all incoming packet events
+ Client creates a dispatcher thread to send out its events
 
  * Listens for actions by GUI client and notifies server
  * Receives game events queue from server and executes events 
@@ -43,28 +43,31 @@ public class ClientHandlerThread extends Thread {
     Dispatcher dispatcher = new Dispatcher(data);    
 
     MazePacket packetFromLookup = new MazePacket();
+    MazewarServer mserver;
 
     public ClientHandlerThread(String lookup_host, int lookup_port, int client_port){
         /* Connect to naming service. */
         try {
-            
+
             System.out.println("Connecting to Naming Service...");
 
-	    // Connect to lookup
+            // Connect to lookup
             cSocket = new Socket(lookup_host,lookup_port);
             out = new ObjectOutputStream(cSocket.getOutputStream());
             in = new ObjectInputStream(cSocket.getInputStream());
             clientTable = new ConcurrentHashMap();	 
 
-	    // Start the dispatcher
-	    //		Broadcast this.client's events
-	    //dispatcher.start();
-	    
-	    // Start client server
-	    // 		- for other clients to connect to
-	    //		- to handle incoming packets
-	    //MazewarServer mazewarServer = new MazewarServer(client_port,data, dispatcher, this);
-	    (new Thread(new MazewarServer(client_port,data, dispatcher, this))).start();
+            // Start the dispatcher
+            //		Broadcast this.client's events
+            //dispatcher.start();
+
+            // Start client server
+            // 		- for other clients to connect to
+            //		- to handle incoming packets
+            MazewarServer mazewarServer = new MazewarServer(client_port,data, dispatcher, this);
+            mserver = mazewarServer;
+            //(new Thread(new MazewarServer(client_port,data, dispatcher, this))).start();
+            (new Thread(mazewarServer)).start();
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -74,13 +77,13 @@ public class ClientHandlerThread extends Thread {
 
         System.out.println("I am leaving. Goodbye");
 
-	
+
     }
 
     // public void run() {
     //     /* Listen for packets */
     //     packetFromLookup = new MazePacket();
-	
+
     //     try {
     //         while(!quitting && (packetFromLookup = (MazePacket) in.readObject()) != null) {
 
@@ -109,18 +112,18 @@ public class ClientHandlerThread extends Thread {
         MazePacket packetToLookup = new MazePacket();
 
         try{
-	    // Register self
-	    packetToLookup.packet_type = MazePacket.LOOKUP_REGISTER;
-	    packetToLookup.client_type = MazePacket.REMOTE;
-        packetToLookup.client_name = name;
-	    packetToLookup.client_host = InetAddress.getLocalHost().getHostName();
-	    packetToLookup.client_port = client_port;
+            // Register self
+            packetToLookup.packet_type = MazePacket.LOOKUP_REGISTER;
+            packetToLookup.client_type = MazePacket.REMOTE;
+            packetToLookup.client_name = name;
+            packetToLookup.client_host = InetAddress.getLocalHost().getHostName();
+            packetToLookup.client_port = client_port;
 
-	    out.writeObject(packetToLookup);
+            out.writeObject(packetToLookup);
 
-	    packetFromLookup = (MazePacket) in.readObject();
+            packetFromLookup = (MazePacket) in.readObject();
 
-	    lookupRegisterEvent();
+            lookupRegisterEvent();
 
 
         }catch (Exception e){
@@ -157,89 +160,89 @@ public class ClientHandlerThread extends Thread {
     }
 
     public void broadcastNewClient(){
-	MazePacket packetToClients = new MazePacket();
+        MazePacket packetToClients = new MazePacket();
 
-	packetToClients.packet_type = MazePacket.CLIENT_REGISTER;
-	packetToClients.client_id = myId; 
-	packetToClients.client_host = lookupTable.get(myId).client_host;
-	packetToClients.client_port = lookupTable.get(myId).client_port;  
+        packetToClients.packet_type = MazePacket.CLIENT_REGISTER;
+        packetToClients.client_id = myId; 
+        packetToClients.client_host = lookupTable.get(myId).client_host;
+        packetToClients.client_port = lookupTable.get(myId).client_port;  
 
-	dispatcher.send(packetToClients);
+        dispatcher.send(packetToClients);
     }
 
     public void broadcastNewClientLocation(){
-	ClientData cd = lookupTable.get(myId);
-	cd.client_name = me.getName();
-	cd.client_type = MazePacket.REMOTE;
-	cd.client_location = me.getPoint();
-	cd.client_direction = me.getOrientation();
-	cd.c = me;
+        ClientData cd = lookupTable.get(myId);
+        cd.client_name = me.getName();
+        cd.client_type = MazePacket.REMOTE;
+        cd.client_location = me.getPoint();
+        cd.client_direction = me.getOrientation();
+        cd.c = me;
 
-	lookupTable.put(myId,cd);
+        lookupTable.put(myId,cd);
 
-	MazePacket packetToClients = new MazePacket();
+        MazePacket packetToClients = new MazePacket();
 
-	packetToClients.packet_type = MazePacket.CLIENT_SPAWN;
-	packetToClients.lookupTable = new ConcurrentHashMap();
-	packetToClients.lookupTable.put(myId,cd);
+        packetToClients.packet_type = MazePacket.CLIENT_SPAWN;
+        packetToClients.lookupTable = new ConcurrentHashMap();
+        packetToClients.lookupTable.put(myId,cd);
 
-	dispatcher.send(packetToClients);
+        dispatcher.send(packetToClients);
 
     }
-    
+
     // Check if registration successful
     private void lookupRegisterEvent(){
-	// Get the current lookup table
-	lookupTable = new ConcurrentHashMap();
-	lookupTable = packetFromLookup.lookupTable;
+        // Get the current lookup table
+        lookupTable = new ConcurrentHashMap();
+        lookupTable = packetFromLookup.lookupTable;
 
-	myId = packetFromLookup.client_id;
-
-
-	System.out.print("TESTING !!!" + lookupTable.size());
-
-	// Connect to all currently existing users
-	// Save their out ports!
-	if(!lookupTable.isEmpty()){
-	    Object[] keys = lookupTable.keySet().toArray();
-	    int size = lookupTable.size(); 
-
-	    // Connect to all client listeners, except for yourself
-	    for(int i = 0; i < size; i++){
-		int key = Integer.parseInt(keys[i].toString());
-
-		if(key == myId)
-		    continue;
-
-		System.out.print("Adding client " + key);
-
-		ClientData client_data = lookupTable.get(key);
-		String client_host = client_data.client_host;
-		int client_port = client_data.client_port;
-		
-		Socket socket = null;
-		ObjectOutputStream t_out = null;
-		ObjectInputStream t_in = null;
-
-		// Save socket out!
-		try{
-		    socket = new Socket(client_host, client_port);
-
-		    t_out = new ObjectOutputStream(socket.getOutputStream());
-		    //t_in = new ObjectInputStream(socket.getInputStream());
-
-		    data.addSocketOutToList(t_out);
-
-		    System.out.print("Success!");
-		} catch(Exception e){
-		    System.err.println("ERROR: Coudn't connect to currently existing client");
-		}				    
-	    }
+        myId = packetFromLookup.client_id;
 
 
-	}
+        System.out.print("TESTING !!!" + lookupTable.size());
 
-	broadcastNewClient();
+        // Connect to all currently existing users
+        // Save their out ports!
+        if(!lookupTable.isEmpty()){
+            Object[] keys = lookupTable.keySet().toArray();
+            int size = lookupTable.size(); 
+
+            // Connect to all client listeners, except for yourself
+            for(int i = 0; i < size; i++){
+                int key = Integer.parseInt(keys[i].toString());
+
+                if(key == myId)
+                    continue;
+
+                System.out.print("Adding client " + key);
+
+                ClientData client_data = lookupTable.get(key);
+                String client_host = client_data.client_host;
+                int client_port = client_data.client_port;
+
+                Socket socket = null;
+                ObjectOutputStream t_out = null;
+                ObjectInputStream t_in = null;
+
+                // Save socket out!
+                try{
+                    socket = new Socket(client_host, client_port);
+
+                    t_out = new ObjectOutputStream(socket.getOutputStream());
+                    //t_in = new ObjectInputStream(socket.getInputStream());
+
+                    data.addSocketOutToList(key, t_out);
+
+                    System.out.print("Success!");
+                } catch(Exception e){
+                    System.err.println("ERROR: Coudn't connect to currently existing client");
+                }				    
+            }
+
+
+        }
+
+        broadcastNewClient();
 
     }
 
@@ -247,7 +250,7 @@ public class ClientHandlerThread extends Thread {
     // Store all clients
     // ID, host name, port
     private void lookupGetEvent(){
-	// May not need
+        // May not need
     }
 
     //Remove the client that is quitting.
@@ -257,29 +260,29 @@ public class ClientHandlerThread extends Thread {
         if (clientTable.containsKey(name)) { 
             Client c = clientTable.get(name);
 
-	    maze.removeClient(c);
+            maze.removeClient(c);
         } else {
             System.out.println("CLIENT: no client named " + name + " in backup");
         }
     }
-    
+
     private void clientRespawnEvent(){
         System.out.println("Respawning client");
         String name = packetFromLookup.tc;
 
         if (clientTable.containsKey(name)) { 
             Client tc = clientTable.get(name);
-	    
-	    tc.getLock();
 
-	    Client sc = clientTable.get(packetFromLookup.sc);
-	    Point p = packetFromLookup.client_location;
-	    Direction d = packetFromLookup.client_direction;
+            tc.getLock();
 
-	    maze.setClient(sc, tc, p,d);
+            Client sc = clientTable.get(packetFromLookup.sc);
+            Point p = packetFromLookup.client_location;
+            Direction d = packetFromLookup.client_direction;
 
-	    tc.setKilledTo(false);
-	    tc.releaseLock();
+            maze.setClient(sc, tc, p,d);
+
+            tc.setKilledTo(false);
+            tc.releaseLock();
 
         } else {
             System.out.println("CLIENT: no client named " + name + " in respawn");
@@ -316,8 +319,8 @@ public class ClientHandlerThread extends Thread {
                     break;
             }
         }
-	
-	seqNum = packetFromLookup.sequence_num;
+
+        seqNum = packetFromLookup.sequence_num;
 
         // else server is telling you to add a new client
         // create new clients into clientTable based on any
@@ -327,7 +330,7 @@ public class ClientHandlerThread extends Thread {
             System.out.println(key);
             if (!clientTable.containsKey(key)) {
                 ClientData cData = entry.getValue();
-                
+
                 switch (cData.client_type) {
                     case ClientData.REMOTE:
                         //add remote client
@@ -353,9 +356,9 @@ public class ClientHandlerThread extends Thread {
         if (clientTable.containsKey(name) && !clientTable.get(name).isKilled()) { 
             Client c = clientTable.get(name);
 
-	    c.getLock();
-	    c.forward();
-	    c.releaseLock();
+            c.getLock();
+            c.forward();
+            c.releaseLock();
 
         } else {
             System.out.println("CLIENT: no client named " + name + " in forward");
@@ -370,9 +373,9 @@ public class ClientHandlerThread extends Thread {
         if (clientTable.containsKey(name) && !clientTable.get(name).isKilled()) { 
             Client c = clientTable.get(name);
 
-	    c.getLock();
-	    c.backup();
-	    c.releaseLock();
+            c.getLock();
+            c.backup();
+            c.releaseLock();
 
         } else {
             System.out.println("CLIENT: no client named " + name + " in backup");
@@ -387,9 +390,9 @@ public class ClientHandlerThread extends Thread {
         if (clientTable.containsKey(name) && !clientTable.get(name).isKilled()) { 
             Client c = clientTable.get(name);
 
-	    c.getLock();
-	    c.turnLeft();
-	    c.releaseLock();
+            c.getLock();
+            c.turnLeft();
+            c.releaseLock();
 
         } else {
             System.out.println("CLIENT: no client named " + name + " in left");
@@ -404,9 +407,9 @@ public class ClientHandlerThread extends Thread {
         if (clientTable.containsKey(name) && !clientTable.get(name).isKilled()) { 
             Client c = clientTable.get(name);
 
-	    c.getLock();
-	    c.turnRight();
-	    c.releaseLock();
+            c.getLock();
+            c.turnRight();
+            c.releaseLock();
 
         } else {
             System.out.println("CLIENT: no client named " + name + " in right");
@@ -422,12 +425,12 @@ public class ClientHandlerThread extends Thread {
         if (clientTable.containsKey(name) && !clientTable.get(name).isKilled()) { 
             Client c = clientTable.get(name);
 
-	    c.getLock();
-	    c.fire();
-	    c.releaseLock();
+            c.getLock();
+            c.fire();
+            c.releaseLock();
 
-	    // Decrement score.
-	    //scoreTable.clientFired(clientTable.get(name));
+            // Decrement score.
+            //scoreTable.clientFired(clientTable.get(name));
 
         } else {
             System.out.println("CLIENT: no client named " + name + " in fire");
@@ -440,19 +443,19 @@ public class ClientHandlerThread extends Thread {
     public void handleKeyPress(KeyEvent e) {
         // If the user pressed Q, invoke the cleanup code and quit. 
         if((e.getKeyChar() == 'q') || (e.getKeyChar() == 'Q')) {
-	    System.out.println("CLIENT: Quitting");
+            System.out.println("CLIENT: Quitting");
 
-	    quitting = true;
-	    sendPacketToLookup(MazePacket.CLIENT_QUIT);
+            quitting = true;
+            sendPacketToLookup(MazePacket.CLIENT_QUIT);
 
-	    try{
-		out.close();
-		in.close();
-		cSocket.close();
-	    } catch(Exception e1){
-		System.out.println("CLIENT: Couldn't close sockets...");
-	    }
-	    
+            try{
+                out.close();
+                in.close();
+                cSocket.close();
+            } catch(Exception e1){
+                System.out.println("CLIENT: Couldn't close sockets...");
+            }
+
             Mazewar.quit();
             // Up-arrow moves forward.
         } else if(e.getKeyCode() == KeyEvent.VK_UP && !me.isKilled()) {
@@ -482,9 +485,9 @@ public class ClientHandlerThread extends Thread {
         //     packetToLookup.packet_type = packetType;
         //     packetToLookup.client_name = me.getName();
         //     out.writeObject(packetToLookup);
-	//     // //Wait... Else If another remote client is in front of you, it will glitch!
-	//     // Thread.sleep(200);
-	
+        //     // //Wait... Else If another remote client is in front of you, it will glitch!
+        //     // Thread.sleep(200);
+
         // } catch (Exception e) {
         //     e.printStackTrace();
         // }
@@ -492,7 +495,7 @@ public class ClientHandlerThread extends Thread {
 
     // Try and reserve a point!
     public boolean reservePoint(Point point){
-       MazePacket packetToLookup = new MazePacket();
+        MazePacket packetToLookup = new MazePacket();
 
         // try{
         //     packetToLookup.packet_type = MazePacket.RESERVE_POINT;
@@ -503,30 +506,30 @@ public class ClientHandlerThread extends Thread {
         //     System.out.println("CLIENT " + me.getName() + " RESERVING POINT");
         //     out.writeObject(packetToLookup);
 
-	//     packetFromLookup = new MazePacket();
-	//     packetFromLookup = (MazePacket) in.readObject();
+        //     packetFromLookup = new MazePacket();
+        //     packetFromLookup = (MazePacket) in.readObject();
 
-	//     int error_code = packetFromLookup.error_code;
+        //     int error_code = packetFromLookup.error_code;
 
-	//     if(error_code == 0)
-	// 	return true;
-	//     else
-	//     	return false;
-	 
+        //     if(error_code == 0)
+        // 	return true;
+        //     else
+        //     	return false;
+
 
         // }catch (Exception e){
         //     e.printStackTrace();
         //     System.out.println("ERROR: reserving point");
-	//     return false;
+        //     return false;
         // }
-       return true;
+        return true;
     }
 
     public boolean clientIsMe(Client c){
-	if(c == me)
-	    return true;
-	else
-	    return false;
+        if(c == me)
+            return true;
+        else
+            return false;
     }
 
 
@@ -535,9 +538,9 @@ public class ClientHandlerThread extends Thread {
         //     MazePacket packetToLookup = new MazePacket();
         //     packetToLookup.packet_type = MazePacket.CLIENT_RESPAWN;
         //     packetToLookup.sc = sc;
-	//     packetToLookup.tc = tc;
-	//     packetToLookup.client_location = p;
-	//     packetToLookup.client_direction = d;
+        //     packetToLookup.tc = tc;
+        //     packetToLookup.client_location = p;
+        //     packetToLookup.client_direction = d;
         //     out.writeObject(packetToLookup);
         // } catch (IOException e) {
         //     e.printStackTrace();
@@ -546,25 +549,25 @@ public class ClientHandlerThread extends Thread {
 
     public void spawnClient(Integer id, ConcurrentHashMap<Integer,ClientData> tuple){
 
-	ClientData cd = tuple.get(id);
+        ClientData cd = tuple.get(id);
 
-	// Spawn client	
-	RemoteClient c = new RemoteClient(cd.client_name);
+        // Spawn client	
+        RemoteClient c = new RemoteClient(cd.client_name);
         maze.addRemoteClient(c, cd.client_location, cd.client_direction);
 
-	// Update tuple
-	cd.c = c;
-	lookupTable.put(id, cd);
+        // Update tuple
+        cd.c = c;
+        lookupTable.put(id, cd);
 
-}
+    }
 
     public ClientData getMe() {
-            ClientData clientData = new ClientData();
-            clientData.client_id = myId;
-            clientData.client_name = me.getName();
-            clientData.client_location = maze.getClientPoint(me);
-            clientData.client_direction = me.getOrientation();
-            return clientData;
+        ClientData clientData = new ClientData();
+        clientData.client_id = myId;
+        clientData.client_name = me.getName();
+        clientData.client_location = maze.getClientPoint(me);
+        clientData.client_direction = me.getOrientation();
+        return clientData;
     }
 
     public Integer getMyId() {
