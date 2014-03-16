@@ -15,6 +15,7 @@ public class ServerData implements Serializable {
     //ArrayList socketOutList = new ArrayList();
     ConcurrentHashMap<String, Point> clientPosition = new ConcurrentHashMap();
     MazePacket [] eventArray = new MazePacket[20];
+    int eventIndex = 0;
 
     ConcurrentHashMap<Integer, ClientData> lookupTable = new ConcurrentHashMap(); // Contains all client data
     int lamportClock; // This client's lamport clock
@@ -22,22 +23,22 @@ public class ServerData implements Serializable {
     int myId;
 
     public void addEventToEventArray(MazePacket p) {
-        if (p) {
-            lamportArray[p.lamportClock] = p;
+        if (p == null) {
+            eventArray[p.lamportClock] = p;
         }
     }
 
-    public MazePacket getNextEvent() {
-        // remove next event and return
-        MazePacket p = new MazePacket();
-        int i = -1;
-        while (p == null && i < 20) {
-            i++;
-            p = eventArray[i];
-        }
-        eventArray[i] = null;
-        return p;
-    }
+    // public MazePacket getNextEvent() {
+    //     // remove next event and return
+    //     MazePacket p = new MazePacket();
+    //     int i = -1;
+    //     while (p == null && i < 20) {
+    //         i++;
+    //         p = eventArray[i];
+    //     }
+    //     eventArray[i] = null;
+    //     return p;
+    // }
 
 
     public void setId(int num){

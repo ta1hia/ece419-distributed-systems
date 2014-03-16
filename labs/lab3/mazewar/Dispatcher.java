@@ -103,7 +103,8 @@ public class Dispatcher extends Thread {
         // Try and get a valid lamport clock!
         MazePacket getClock = new MazePacket();
 
-        int requested_lc = lamportClock + 1;
+        int requested_lc = lamportClock;
+
         System.out.print("Size of the socket: " + socketOutList.size());
         if(socketOutList.size() > 0){
             try{
@@ -132,17 +133,17 @@ public class Dispatcher extends Thread {
                         // Check if the lamport clock is valid
                         // If lamport clock is the same as before, it is valid
                         // If it is not, it is invalid and you have to do it all over again
-                        if(requested_lc == (lamportClock + 1)){
+                        if(requested_lc == lamportClock){
                             break;
                         }
-
                     }
 
-                    data.setLamportClock(requested_lc);
                     packetToClients.lamportClock = requested_lc;
+                    data.setLamportClock(requested_lc++);
 
                 }
 
+		
                 // Go through each remote client	    
                 for (ObjectOutputStream out : socketOutList.values()) {
                     out.writeObject(packetToClients);

@@ -120,10 +120,9 @@ public class MazewarServerHandlerThread extends Thread {
         //int lamportClock = dispatcher.getLamportClock();
         eventPacket.packet_type = MazePacket.CLIENT_AWK;
 
-        if(requested_lc == (lamportClock + 1)){
+        if(requested_lc == lamportClock){
             // Clock is valid!
-            lamportClock = lamportClock + 1;
-            data.setLamportClock(lamportClock);
+            data.setLamportClock(lamportClock + 1);
 
             //Set up and send awknowledgement packet
             //eventPacket.lamportClock = lamportClock;
@@ -135,7 +134,7 @@ public class MazewarServerHandlerThread extends Thread {
             eventPacket.isValidClock = false;
         }
 
-        eventPacket.lamportClock = lamportClock;
+        eventPacket.lamportClock = requested_lc;
 
         dispatcher.sendToClient(packetFromRC.client_id, (MazePacket) eventPacket);
 
