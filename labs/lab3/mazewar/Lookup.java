@@ -31,7 +31,7 @@ public class Lookup {
         }
 
         /* Store loopup table into a hashmap */
-        ConcurrentHashMap<Integer, String> lookup = new ConcurrentHashMap<Integer, String>();
+        ConcurrentHashMap<Integer, ClientData> lookup = new ConcurrentHashMap<Integer, ClientData>();
 
         // Create file if it doesn't exist
         /*File lookupfile = new File("lookuptable");
@@ -55,7 +55,7 @@ public class Lookup {
 
         /* Listen for clients */
         while (listening) {
-            new LookupHandler(lookupSocket.accept()).start();
+            new LookupHandler(lookupSocket.accept(), lookup).start();
         }
     }
 }

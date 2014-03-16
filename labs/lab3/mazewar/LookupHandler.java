@@ -14,9 +14,10 @@ public class LookupHandler extends Thread {
     private Socket socket = null;
     private static ConcurrentHashMap<Integer, ClientData> table; /* thread-safe hashmap structure */
 
-    public LookupHandler(Socket socket) {
+    public LookupHandler(Socket socket, ConcurrentHashMap<Integer, ClientData> ltable) {
         super("LookupHandler");
         this.socket = socket;
+        this.table = ltable;
         System.out.println("Created new Thread to handle lookup requests");
     }
 
