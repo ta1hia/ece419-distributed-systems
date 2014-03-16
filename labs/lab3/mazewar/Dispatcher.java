@@ -7,6 +7,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.Set;
 import java.io.*;
+import java.net.*;
 
 /* Dispatcher class
  * Dispatches messages from event queue and broadcasts
@@ -26,13 +27,13 @@ public class Dispatcher extends Thread {
     Lock lock = new ReentrantLock();
 
     public Dispatcher(ServerData data) {
-	this.data = data;
+        this.data = data;
 
         this.eventQueue = data.eventQueue;
         this.clientTable = data.clientTable;
         this.socketOutList = data.socketOutList;
-	this.lamportClock = data.lamportClock;
-	this.sem = data.sem;
+        this.lamportClock = data.lamportClock;
+        this.sem = data.sem;
     }
 
     // Continually check eventqueue
@@ -73,64 +74,79 @@ public class Dispatcher extends Thread {
 
     // }
 
+    public void connectToPeer(String host, int port) {
+        Socket socket = null;
+        ObjectOutputStream t_out = null;
+
+        // Save socket out!
+        try{
+            socket = new Socket(host, port);
+
+            t_out = new ObjectOutputStream(socket.getOutputStream());
+            data.addSocketOutToList(t_out);
+        } catch(Exception e){
+            System.err.println("ERROR: Coudn't connect to currently existing client");
+        }				    
+    }
+
     public void sendToClient(int client_id, MazePacket packetToClient){
-	try{
-	    ((ObjectOutputStream)socketOutList.get(client_id)).writeObject(packetToClient);
-	  
+        try{
+            ((ObjectOutputStream)socketOutList.get(client_id)).writeObject(packetToClient);
+
         } catch (IOException e) {
             e.printStackTrace();
         }  
     }
 
     public void send(MazePacket packetToClients){
-	// Try and get a valid lamport clock!
-	MazePacket getClock = new MazePacket();
+        // Try and get a valid lamport clock!
+        MazePacket getClock = new MazePacket();
 
-	int requested_lc = lamportClock + 1;
-	if(socketOutList.size() > 1){
-	try{
-	    // Request a lamport clock if there is more than one client.
-	    while(true){
-		getClock.packet_type = MazePacket.CLIENT_CLOCK;
-	      
-		getClock.lamportClock = requested_lc;
+        int requested_lc = lamportClock + 1;
+        if(socketOutList.size() > 1){
+            try{
+                // Request a lamport clock if there is more than one client.
+                while(true){
+                    getClock.packet_type = MazePacket.CLIENT_CLOCK;
 
-		int myId = data.getId();
+                    getClock.lamportClock = requested_lc;
 
-		// Request awknowledgement from everyone, but yourself
-		for(int i=0;i < socketOutList.size(); i++){
-		    if(i != myId)
-			((ObjectOutputStream)socketOutList.get(i)).writeObject(getClock);
-		}
+                    int myId = data.getId();
 
-		// Wait until all clients have aknowledged!
-		data.acquireSemaphore(socketOutList.size() - 1);
+                    // Request awknowledgement from everyone, but yourself
+                    for(int i=0;i < socketOutList.size(); i++){
+                        if(i != myId)
+                            ((ObjectOutputStream)socketOutList.get(i)).writeObject(getClock);
+                    }
 
-		// You've finally woken up
-		// Check if the lamport clock is valid
-		// If lamport clock is the same as before, it is valid
-		// If it is not, it is invalid and you have to do it all over again
-		if(requested_lc == (lamportClock + 1)){
-		    break;
-		}
-	    }
-	    
-	    data.setLamportClock(requested_lc);
-	    packetToClients.lamportClock = requested_lc;
+                    // Wait until all clients have aknowledged!
+                    data.acquireSemaphore(socketOutList.size() - 1);
 
-	    // Go through each client, even yourself	    
-	    for(int i=0;i < socketOutList.size(); i++){
-		((ObjectOutputStream)socketOutList.get(i)).writeObject(packetToClients);
-	    }
+                    // You've finally woken up
+                    // Check if the lamport clock is valid
+                    // If lamport clock is the same as before, it is valid
+                    // If it is not, it is invalid and you have to do it all over again
+                    if(requested_lc == (lamportClock + 1)){
+                        break;
+                    }
+                }
 
-	    if(packetToClients.packet_type == MazePacket.CLIENT_REGISTER){
-		data.acquireSemaphore(socketOutList.size() - 1);
-	    }
+                data.setLamportClock(requested_lc);
+                packetToClients.lamportClock = requested_lc;
 
-        } catch (IOException e) {
-            e.printStackTrace();
+                // Go through each client, even yourself	    
+                for(int i=0;i < socketOutList.size(); i++){
+                    ((ObjectOutputStream)socketOutList.get(i)).writeObject(packetToClients);
+                }
+
+                if(packetToClients.packet_type == MazePacket.CLIENT_REGISTER){
+                    data.acquireSemaphore(socketOutList.size() - 1);
+                }
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
-	}
     }
 
 

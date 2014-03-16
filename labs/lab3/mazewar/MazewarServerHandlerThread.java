@@ -306,6 +306,11 @@ public class MazewarServerHandlerThread extends Thread {
             eventPacket.lookupTable = new ConcurrentHashMap();
             //eventPacket.lookupTable.put(chandler.getMyId(), chandler.getMe());
 
+            /* Get new client socket info */
+            String hostname = packetFromRC.client_host;
+            int port = packetFromRC.client_port;
+            dispatcher.connectToPeer(hostname, port);
+
             /* Add packet to event queue */
             dispatcher.sendToClient(packetFromRC.client_id,eventPacket);
 
