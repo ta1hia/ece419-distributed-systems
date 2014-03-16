@@ -200,16 +200,12 @@ public class Mazewar extends JFrame {
         debug(String.format("registering with lookup on port %d", client_port));
         clientHandler.registerClientWithLookup(client_port, name);
 
-        // Broadcast your first event!
-        // Tell other clients to give their Points, Directions, and wait until I finish spawning
-        clientHandler.broadcastNewClient();
-
         clientHandler.me = guiClient;
         maze.addClient(guiClient);
         this.addKeyListener(guiClient);
 
         // Broadcast your point and direction to all clients!
-        clientHandler.broadcastNewClientLocation();
+        //clientHandler.broadcastNewClientLocation();
 
         // Create the panel that will display the maze.
         overheadPanel = new OverheadMazePanel(maze, guiClient);

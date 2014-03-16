@@ -160,6 +160,8 @@ public class ClientHandlerThread extends Thread {
     }
 
     public void broadcastNewClient(){
+        System.out.print("Broadcasting CLIENT_REGISTER");
+
         MazePacket packetToClients = new MazePacket();
 
         packetToClients.packet_type = MazePacket.CLIENT_REGISTER;
@@ -199,7 +201,6 @@ public class ClientHandlerThread extends Thread {
         myId = packetFromLookup.client_id;
 
 
-        System.out.print("TESTING !!!" + lookupTable.size());
 
         // Connect to all currently existing users
         // Save their out ports!
@@ -210,10 +211,6 @@ public class ClientHandlerThread extends Thread {
             // Connect to all client listeners, except for yourself
             for(int i = 0; i < size; i++){
                 int key = Integer.parseInt(keys[i].toString());
-
-                if(key == myId)
-                    continue;
-
                 System.out.print("Adding client " + key);
 
                 ClientData client_data = lookupTable.get(key);
@@ -238,342 +235,337 @@ public class ClientHandlerThread extends Thread {
                     System.err.println("ERROR: Coudn't connect to currently existing client");
                 }				    
             }
-
-
-        }
-
-        broadcastNewClient();
-
-    }
-
-
-    // Store all clients
-    // ID, host name, port
-    private void lookupGetEvent(){
-        // May not need
-    }
-
-    //Remove the client that is quitting.
-    private void clientQuitEvent(){	
-        System.out.println("Remove quitting client");
-        String name = packetFromLookup.client_name;
-        if (clientTable.containsKey(name)) { 
-            Client c = clientTable.get(name);
-
-            maze.removeClient(c);
-        } else {
-            System.out.println("CLIENT: no client named " + name + " in backup");
+            broadcastNewClient();
         }
     }
 
-    private void clientRespawnEvent(){
-        System.out.println("Respawning client");
-        String name = packetFromLookup.tc;
-
-        if (clientTable.containsKey(name)) { 
-            Client tc = clientTable.get(name);
-
-            tc.getLock();
-
-            Client sc = clientTable.get(packetFromLookup.sc);
-            Point p = packetFromLookup.client_location;
-            Direction d = packetFromLookup.client_direction;
-
-            maze.setClient(sc, tc, p,d);
-
-            tc.setKilledTo(false);
-            tc.releaseLock();
-
-        } else {
-            System.out.println("CLIENT: no client named " + name + " in respawn");
+        // Store all clients
+        // ID, host name, port
+        private void lookupGetEvent(){
+            // May not need
         }
-    }
 
-    /**
-     * Process server packet eventsi
-     * */
-    private void addClientEvent() {
-        String name = packetFromLookup.client_name;
-        ConcurrentHashMap<String, ClientData> clientTableFromLookup = packetFromLookup.client_list;
-        System.out.println("CLIENT: Lookup sent addClient event");
+        //Remove the client that is quitting.
+        private void clientQuitEvent(){	
+            System.out.println("Remove quitting client");
+            String name = packetFromLookup.client_name;
+            if (clientTable.containsKey(name)) { 
+                Client c = clientTable.get(name);
 
-        if (name.equals(me.getName())) {
-            System.out.println("CLIENT: Lookup added me!");
-        }
-        else {
-            System.out.println("CLIENT: Lookup adding new client " + name);
-            int clientType = packetFromLookup.client_type;
-
-            switch (clientType) {
-                case ClientData.REMOTE:
-                    //add remote client
-                    RemoteClient c = new RemoteClient(name);
-                    clientTable.put(name, c);
-                    maze.addRemoteClient(c, packetFromLookup.client_location, packetFromLookup.client_direction);
-                    break;
-                case ClientData.ROBOT:
-                    //add robot client
-                    break;
-                default:
-                    System.out.println("CLIENT: no new clients on add client event");
-                    break;
+                maze.removeClient(c);
+            } else {
+                System.out.println("CLIENT: no client named " + name + " in backup");
             }
         }
 
-        seqNum = packetFromLookup.sequence_num;
+        private void clientRespawnEvent(){
+            System.out.println("Respawning client");
+            String name = packetFromLookup.tc;
 
-        // else server is telling you to add a new client
-        // create new clients into clientTable based on any
-        // new clients seen in clientTableFromLookup
-        for (Map.Entry<String, ClientData> entry : clientTableFromLookup.entrySet()) {
-            String key = entry.getKey();
-            System.out.println(key);
-            if (!clientTable.containsKey(key)) {
-                ClientData cData = entry.getValue();
+            if (clientTable.containsKey(name)) { 
+                Client tc = clientTable.get(name);
 
-                switch (cData.client_type) {
+                tc.getLock();
+
+                Client sc = clientTable.get(packetFromLookup.sc);
+                Point p = packetFromLookup.client_location;
+                Direction d = packetFromLookup.client_direction;
+
+                maze.setClient(sc, tc, p,d);
+
+                tc.setKilledTo(false);
+                tc.releaseLock();
+
+            } else {
+                System.out.println("CLIENT: no client named " + name + " in respawn");
+            }
+        }
+
+        /**
+         * Process server packet eventsi
+         * */
+        private void addClientEvent() {
+            String name = packetFromLookup.client_name;
+            ConcurrentHashMap<String, ClientData> clientTableFromLookup = packetFromLookup.client_list;
+            System.out.println("CLIENT: Lookup sent addClient event");
+
+            if (name.equals(me.getName())) {
+                System.out.println("CLIENT: Lookup added me!");
+            }
+            else {
+                System.out.println("CLIENT: Lookup adding new client " + name);
+                int clientType = packetFromLookup.client_type;
+
+                switch (clientType) {
                     case ClientData.REMOTE:
                         //add remote client
-                        RemoteClient c = new RemoteClient(key);
-                        clientTable.put(key, c);
-                        maze.addRemoteClient(c, cData.client_location, cData.client_direction);
+                        RemoteClient c = new RemoteClient(name);
+                        clientTable.put(name, c);
+                        maze.addRemoteClient(c, packetFromLookup.client_location, packetFromLookup.client_direction);
                         break;
                     case ClientData.ROBOT:
                         //add robot client
                         break;
                     default:
+                        System.out.println("CLIENT: no new clients on add client event");
                         break;
                 }
             }
-        }
-    }
 
-    private void clientForwardEvent() {
-        // get client with name from client list
-        // client.foward
-        String name = packetFromLookup.client_name;
+            seqNum = packetFromLookup.sequence_num;
 
-        if (clientTable.containsKey(name) && !clientTable.get(name).isKilled()) { 
-            Client c = clientTable.get(name);
+            // else server is telling you to add a new client
+            // create new clients into clientTable based on any
+            // new clients seen in clientTableFromLookup
+            for (Map.Entry<String, ClientData> entry : clientTableFromLookup.entrySet()) {
+                String key = entry.getKey();
+                System.out.println(key);
+                if (!clientTable.containsKey(key)) {
+                    ClientData cData = entry.getValue();
 
-            c.getLock();
-            c.forward();
-            c.releaseLock();
-
-        } else {
-            System.out.println("CLIENT: no client named " + name + " in forward");
-        }
-    }
-
-    private void clientBackEvent() {
-        // get client with name from client list
-        // client.foward
-        String name = packetFromLookup.client_name;
-
-        if (clientTable.containsKey(name) && !clientTable.get(name).isKilled()) { 
-            Client c = clientTable.get(name);
-
-            c.getLock();
-            c.backup();
-            c.releaseLock();
-
-        } else {
-            System.out.println("CLIENT: no client named " + name + " in backup");
-        }
-    }
-
-    private void clientLeftEvent() {
-        // get client with name from client list
-        // client.foward
-        String name = packetFromLookup.client_name;
-
-        if (clientTable.containsKey(name) && !clientTable.get(name).isKilled()) { 
-            Client c = clientTable.get(name);
-
-            c.getLock();
-            c.turnLeft();
-            c.releaseLock();
-
-        } else {
-            System.out.println("CLIENT: no client named " + name + " in left");
-        }
-    }
-
-    private void clientRightEvent() {
-        // get client with name from client list
-        // client.foward
-        String name = packetFromLookup.client_name;
-
-        if (clientTable.containsKey(name) && !clientTable.get(name).isKilled()) { 
-            Client c = clientTable.get(name);
-
-            c.getLock();
-            c.turnRight();
-            c.releaseLock();
-
-        } else {
-            System.out.println("CLIENT: no client named " + name + " in right");
-        }
-    }
-
-
-    private void clientFireEvent() {
-        // get client with name from client list
-        // client.foward
-        String name = packetFromLookup.client_name;
-
-        if (clientTable.containsKey(name) && !clientTable.get(name).isKilled()) { 
-            Client c = clientTable.get(name);
-
-            c.getLock();
-            c.fire();
-            c.releaseLock();
-
-            // Decrement score.
-            //scoreTable.clientFired(clientTable.get(name));
-
-        } else {
-            System.out.println("CLIENT: no client named " + name + " in fire");
-        }
-    }
-
-    /**
-     * Listen for client keypress and send server packets 
-     * */
-    public void handleKeyPress(KeyEvent e) {
-        // If the user pressed Q, invoke the cleanup code and quit. 
-        if((e.getKeyChar() == 'q') || (e.getKeyChar() == 'Q')) {
-            System.out.println("CLIENT: Quitting");
-
-            quitting = true;
-            sendPacketToLookup(MazePacket.CLIENT_QUIT);
-
-            try{
-                out.close();
-                in.close();
-                cSocket.close();
-            } catch(Exception e1){
-                System.out.println("CLIENT: Couldn't close sockets...");
+                    switch (cData.client_type) {
+                        case ClientData.REMOTE:
+                            //add remote client
+                            RemoteClient c = new RemoteClient(key);
+                            clientTable.put(key, c);
+                            maze.addRemoteClient(c, cData.client_location, cData.client_direction);
+                            break;
+                        case ClientData.ROBOT:
+                            //add robot client
+                            break;
+                        default:
+                            break;
+                    }
+                }
             }
-
-            Mazewar.quit();
-            // Up-arrow moves forward.
-        } else if(e.getKeyCode() == KeyEvent.VK_UP && !me.isKilled()) {
-            sendPacketToLookup(MazePacket.CLIENT_FORWARD);
-            // Down-arrow moves backward.
-        } else if(e.getKeyCode() == KeyEvent.VK_DOWN && !me.isKilled()) {
-            sendPacketToLookup(MazePacket.CLIENT_BACK);
-            //backup();
-            // Left-arrow turns left.
-        } else if(e.getKeyCode() == KeyEvent.VK_LEFT && !me.isKilled()) {
-            sendPacketToLookup(MazePacket.CLIENT_LEFT);
-            //turnLeft();
-            // Right-arrow turns right.
-        } else if(e.getKeyCode() == KeyEvent.VK_RIGHT && !me.isKilled()) {
-            sendPacketToLookup(MazePacket.CLIENT_RIGHT);
-            //turnRight();
-            // Spacebar fires.
-        } else if(e.getKeyCode() == KeyEvent.VK_SPACE && !me.isKilled()) {
-            sendPacketToLookup(MazePacket.CLIENT_FIRE);
-            //fire();
         }
-    }
 
-    private void sendPacketToLookup(int packetType) {
-        // try {
-        //     MazePacket packetToLookup = new MazePacket();
-        //     packetToLookup.packet_type = packetType;
-        //     packetToLookup.client_name = me.getName();
-        //     out.writeObject(packetToLookup);
-        //     // //Wait... Else If another remote client is in front of you, it will glitch!
-        //     // Thread.sleep(200);
+        private void clientForwardEvent() {
+            // get client with name from client list
+            // client.foward
+            String name = packetFromLookup.client_name;
 
-        // } catch (Exception e) {
-        //     e.printStackTrace();
-        // }
-    }
+            if (clientTable.containsKey(name) && !clientTable.get(name).isKilled()) { 
+                Client c = clientTable.get(name);
 
-    // Try and reserve a point!
-    public boolean reservePoint(Point point){
-        MazePacket packetToLookup = new MazePacket();
+                c.getLock();
+                c.forward();
+                c.releaseLock();
 
-        // try{
-        //     packetToLookup.packet_type = MazePacket.RESERVE_POINT;
-        //     packetToLookup.client_name = me.getName();
-        //     packetToLookup.client_location = point;
-        //     packetToLookup.client_direction = null;
-        //     packetToLookup.client_type = MazePacket.REMOTE;
-        //     System.out.println("CLIENT " + me.getName() + " RESERVING POINT");
-        //     out.writeObject(packetToLookup);
+            } else {
+                System.out.println("CLIENT: no client named " + name + " in forward");
+            }
+        }
 
-        //     packetFromLookup = new MazePacket();
-        //     packetFromLookup = (MazePacket) in.readObject();
+        private void clientBackEvent() {
+            // get client with name from client list
+            // client.foward
+            String name = packetFromLookup.client_name;
 
-        //     int error_code = packetFromLookup.error_code;
+            if (clientTable.containsKey(name) && !clientTable.get(name).isKilled()) { 
+                Client c = clientTable.get(name);
 
-        //     if(error_code == 0)
-        // 	return true;
-        //     else
-        //     	return false;
+                c.getLock();
+                c.backup();
+                c.releaseLock();
+
+            } else {
+                System.out.println("CLIENT: no client named " + name + " in backup");
+            }
+        }
+
+        private void clientLeftEvent() {
+            // get client with name from client list
+            // client.foward
+            String name = packetFromLookup.client_name;
+
+            if (clientTable.containsKey(name) && !clientTable.get(name).isKilled()) { 
+                Client c = clientTable.get(name);
+
+                c.getLock();
+                c.turnLeft();
+                c.releaseLock();
+
+            } else {
+                System.out.println("CLIENT: no client named " + name + " in left");
+            }
+        }
+
+        private void clientRightEvent() {
+            // get client with name from client list
+            // client.foward
+            String name = packetFromLookup.client_name;
+
+            if (clientTable.containsKey(name) && !clientTable.get(name).isKilled()) { 
+                Client c = clientTable.get(name);
+
+                c.getLock();
+                c.turnRight();
+                c.releaseLock();
+
+            } else {
+                System.out.println("CLIENT: no client named " + name + " in right");
+            }
+        }
 
 
-        // }catch (Exception e){
-        //     e.printStackTrace();
-        //     System.out.println("ERROR: reserving point");
-        //     return false;
-        // }
-        return true;
-    }
+        private void clientFireEvent() {
+            // get client with name from client list
+            // client.foward
+            String name = packetFromLookup.client_name;
 
-    public boolean clientIsMe(Client c){
-        if(c == me)
+            if (clientTable.containsKey(name) && !clientTable.get(name).isKilled()) { 
+                Client c = clientTable.get(name);
+
+                c.getLock();
+                c.fire();
+                c.releaseLock();
+
+                // Decrement score.
+                //scoreTable.clientFired(clientTable.get(name));
+
+            } else {
+                System.out.println("CLIENT: no client named " + name + " in fire");
+            }
+        }
+
+        /**
+         * Listen for client keypress and send server packets 
+         * */
+        public void handleKeyPress(KeyEvent e) {
+            // If the user pressed Q, invoke the cleanup code and quit. 
+            if((e.getKeyChar() == 'q') || (e.getKeyChar() == 'Q')) {
+                System.out.println("CLIENT: Quitting");
+
+                quitting = true;
+                sendPacketToLookup(MazePacket.CLIENT_QUIT);
+
+                try{
+                    out.close();
+                    in.close();
+                    cSocket.close();
+                } catch(Exception e1){
+                    System.out.println("CLIENT: Couldn't close sockets...");
+                }
+
+                Mazewar.quit();
+                // Up-arrow moves forward.
+            } else if(e.getKeyCode() == KeyEvent.VK_UP && !me.isKilled()) {
+                sendPacketToLookup(MazePacket.CLIENT_FORWARD);
+                // Down-arrow moves backward.
+            } else if(e.getKeyCode() == KeyEvent.VK_DOWN && !me.isKilled()) {
+                sendPacketToLookup(MazePacket.CLIENT_BACK);
+                //backup();
+                // Left-arrow turns left.
+            } else if(e.getKeyCode() == KeyEvent.VK_LEFT && !me.isKilled()) {
+                sendPacketToLookup(MazePacket.CLIENT_LEFT);
+                //turnLeft();
+                // Right-arrow turns right.
+            } else if(e.getKeyCode() == KeyEvent.VK_RIGHT && !me.isKilled()) {
+                sendPacketToLookup(MazePacket.CLIENT_RIGHT);
+                //turnRight();
+                // Spacebar fires.
+            } else if(e.getKeyCode() == KeyEvent.VK_SPACE && !me.isKilled()) {
+                sendPacketToLookup(MazePacket.CLIENT_FIRE);
+                //fire();
+            }
+        }
+
+        private void sendPacketToLookup(int packetType) {
+            // try {
+            //     MazePacket packetToLookup = new MazePacket();
+            //     packetToLookup.packet_type = packetType;
+            //     packetToLookup.client_name = me.getName();
+            //     out.writeObject(packetToLookup);
+            //     // //Wait... Else If another remote client is in front of you, it will glitch!
+            //     // Thread.sleep(200);
+
+            // } catch (Exception e) {
+            //     e.printStackTrace();
+            // }
+        }
+
+        // Try and reserve a point!
+        public boolean reservePoint(Point point){
+            MazePacket packetToLookup = new MazePacket();
+
+            // try{
+            //     packetToLookup.packet_type = MazePacket.RESERVE_POINT;
+            //     packetToLookup.client_name = me.getName();
+            //     packetToLookup.client_location = point;
+            //     packetToLookup.client_direction = null;
+            //     packetToLookup.client_type = MazePacket.REMOTE;
+            //     System.out.println("CLIENT " + me.getName() + " RESERVING POINT");
+            //     out.writeObject(packetToLookup);
+
+            //     packetFromLookup = new MazePacket();
+            //     packetFromLookup = (MazePacket) in.readObject();
+
+            //     int error_code = packetFromLookup.error_code;
+
+            //     if(error_code == 0)
+            // 	return true;
+            //     else
+            //     	return false;
+
+
+            // }catch (Exception e){
+            //     e.printStackTrace();
+            //     System.out.println("ERROR: reserving point");
+            //     return false;
+            // }
             return true;
-        else
-            return false;
+        }
+
+        public boolean clientIsMe(Client c){
+            if(c == me)
+                return true;
+            else
+                return false;
+        }
+
+
+        public void sendClientRespawn(String sc, String tc, Point p, Direction d) {
+            // try {
+            //     MazePacket packetToLookup = new MazePacket();
+            //     packetToLookup.packet_type = MazePacket.CLIENT_RESPAWN;
+            //     packetToLookup.sc = sc;
+            //     packetToLookup.tc = tc;
+            //     packetToLookup.client_location = p;
+            //     packetToLookup.client_direction = d;
+            //     out.writeObject(packetToLookup);
+            // } catch (IOException e) {
+            //     e.printStackTrace();
+            // }
+        }
+
+        public void spawnClient(Integer id, ConcurrentHashMap<Integer,ClientData> tuple){
+
+            ClientData cd = tuple.get(id);
+
+            // Spawn client	
+            RemoteClient c = new RemoteClient(cd.client_name);
+            maze.addRemoteClient(c, cd.client_location, cd.client_direction);
+
+            // Update tuple
+            cd.c = c;
+            lookupTable.put(id, cd);
+
+        }
+
+        public ClientData getMe() {
+            ClientData clientData = new ClientData();
+            clientData.client_id = myId;
+            clientData.client_name = me.getName();
+            clientData.client_location = maze.getClientPoint(me);
+            clientData.client_direction = me.getOrientation();
+            return clientData;
+        }
+
+        public Integer getMyId() {
+            return myId;
+        }
+
     }
-
-
-    public void sendClientRespawn(String sc, String tc, Point p, Direction d) {
-        // try {
-        //     MazePacket packetToLookup = new MazePacket();
-        //     packetToLookup.packet_type = MazePacket.CLIENT_RESPAWN;
-        //     packetToLookup.sc = sc;
-        //     packetToLookup.tc = tc;
-        //     packetToLookup.client_location = p;
-        //     packetToLookup.client_direction = d;
-        //     out.writeObject(packetToLookup);
-        // } catch (IOException e) {
-        //     e.printStackTrace();
-        // }
-    }
-
-    public void spawnClient(Integer id, ConcurrentHashMap<Integer,ClientData> tuple){
-
-        ClientData cd = tuple.get(id);
-
-        // Spawn client	
-        RemoteClient c = new RemoteClient(cd.client_name);
-        maze.addRemoteClient(c, cd.client_location, cd.client_direction);
-
-        // Update tuple
-        cd.c = c;
-        lookupTable.put(id, cd);
-
-    }
-
-    public ClientData getMe() {
-        ClientData clientData = new ClientData();
-        clientData.client_id = myId;
-        clientData.client_name = me.getName();
-        clientData.client_location = maze.getClientPoint(me);
-        clientData.client_direction = me.getOrientation();
-        return clientData;
-    }
-
-    public Integer getMyId() {
-        return myId;
-    }
-
-}
 
 

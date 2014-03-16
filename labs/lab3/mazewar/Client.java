@@ -22,13 +22,14 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.io.Serializable;
 
 /**
  * An abstract class for clients in a maze. 
  * @author Geoffrey Washburn &lt;<a href="mailto:geoffw@cis.upenn.edu">geoffw@cis.upenn.edu</a>&gt;
  * @version $Id: Client.java 343 2004-01-24 03:43:45Z geoffw $
  */
-public abstract class Client {
+public abstract class Client implements Serializable{
 
     public Lock lock = new ReentrantLock();
 
