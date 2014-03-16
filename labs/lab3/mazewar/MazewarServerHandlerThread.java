@@ -64,8 +64,10 @@ public class MazewarServerHandlerThread extends Thread {
                 switch (packetFromRC.packet_type) {
                     case MazePacket.CLIENT_CLOCK:
                         clientClock();
+			break;
                     case MazePacket.CLIENT_AWK:
                         clientAwk();
+			break;
                     case MazePacket.CLIENT_REGISTER:
                         registerClientEvent();
                         break;

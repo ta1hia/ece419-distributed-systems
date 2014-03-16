@@ -173,20 +173,19 @@ public class ClientHandlerThread extends Thread {
     }
 
     public void broadcastNewClientLocation(){
-        ClientData cd = lookupTable.get(myId);
-        cd.client_name = me.getName();
-        cd.client_type = MazePacket.REMOTE;
-        cd.client_location = me.getPoint();
-        cd.client_direction = me.getOrientation();
-        cd.c = me;
-
-        lookupTable.put(myId,cd);
+        ClientData cd = new ClientData();
+        cd = getMe();
 
         MazePacket packetToClients = new MazePacket();
 
         packetToClients.packet_type = MazePacket.CLIENT_SPAWN;
+	packetToClients.for_new_client = false;
+	packetToClients.client_id = myId;
         packetToClients.lookupTable = new ConcurrentHashMap();
-        packetToClients.lookupTable.put(myId,cd);
+        packetToClients.lookupTable.put(myId,getMe());
+
+        cd.c = me;
+        lookupTable.put(myId,cd);
 
         dispatcher.send(packetToClients);
 
@@ -235,7 +234,7 @@ public class ClientHandlerThread extends Thread {
 
                     System.out.print("Success!");
                 } catch(Exception e){
-                    System.err.println("ERROR: Coudn't connect to currently existing client");
+                    System.err.println("ERROR: Couldn't connect to currently existing client");
                 }				    
             }
             broadcastNewClient();

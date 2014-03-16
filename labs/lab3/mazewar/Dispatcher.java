@@ -108,19 +108,21 @@ public class Dispatcher extends Thread {
         if(socketOutList.size() > 0){
             try{
                 // Request a lamport clock if there is more than one client.
-                if(packetToClients.packet_type != MazePacket.CLIENT_REGISTER && packetToClients.packet_type != MazePacket.CLIENT_SPAWN){
+                if(packetToClients.packet_type != MazePacket.CLIENT_REGISTER){
                     while(true){
                         getClock.packet_type = MazePacket.CLIENT_CLOCK;
 
                         getClock.lamportClock = requested_lc;
+			getClock.client_id = packetToClients.client_id;
 
 
                         // Request awknowledgement from everyone, but yourself
-                        for(int i=0;i < socketOutList.size(); i++){
-                            System.out.print("Calling client for clock: " + i);
-                            ((ObjectOutputStream)socketOutList.get(i)).writeObject(getClock);
+			// Go through each remote client	    
+			for (ObjectOutputStream out : socketOutList.values()) {
+			    out.writeObject(getClock);
+                            System.out.print("Calling client for clock: ");	    
+			}
 
-                        }
 
 
                         // Wait until all clients have aknowledged!
