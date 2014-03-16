@@ -203,6 +203,7 @@ public class MazewarServerHandlerThread extends Thread {
 
             eventPacket.packet_type = MazePacket.GET_SEQ_NUM;
 
+            // TODO: handle this?
             chandler.addEventToQueue(eventPacket);
         } catch (Exception e) {
             e.printStackTrace();
@@ -230,7 +231,6 @@ public class MazewarServerHandlerThread extends Thread {
         }
     }
 
-
     private void clientBackEvent() {
         try { 
             MazePacket eventPacket = new MazePacket();
@@ -242,6 +242,7 @@ public class MazewarServerHandlerThread extends Thread {
             eventPacket.lamportClock = packetFromRC.lamportClock;
 
             chandler.addEventToQueue(eventPacket);
+            chandler.runEventFromQueue(packetFromRC.lamportClock);
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println("server done broke");
@@ -259,6 +260,7 @@ public class MazewarServerHandlerThread extends Thread {
             eventPacket.lamportClock = packetFromRC.lamportClock;
 
             chandler.addEventToQueue(eventPacket);
+            chandler.runEventFromQueue(packetFromRC.lamportClock);
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println("server done broke");
@@ -276,6 +278,7 @@ public class MazewarServerHandlerThread extends Thread {
             eventPacket.lamportClock = packetFromRC.lamportClock;
 
             chandler.addEventToQueue(eventPacket);
+            chandler.runEventFromQueue(packetFromRC.lamportClock);
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println("server done broke");
@@ -293,6 +296,7 @@ public class MazewarServerHandlerThread extends Thread {
             eventPacket.lamportClock = packetFromRC.lamportClock;
 
             chandler.addEventToQueue(eventPacket);
+            chandler.runEventFromQueue(packetFromRC.lamportClock);
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println("server done broke");

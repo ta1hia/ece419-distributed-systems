@@ -375,9 +375,7 @@ public class ClientHandlerThread extends Thread {
     }
 
     private void clientForwardEvent(Client c) {
-        System.out.println("CHANDLIER IN clientForwardEvent");
         if (!c.isKilled()) { 
-            System.out.println("EXECUTING CLIEnt FORWARD");
             c.forward();
         } else {
             System.out.println("CLIENT: no client " +packetFromClient.client_id+ " in forward");
@@ -578,14 +576,12 @@ public class ClientHandlerThread extends Thread {
 
     private void executeEvent(Client c) {
         // called in runEventFromQueue
-        System.out.println("executeEvent");
         c.getLock();		
         switch (packetFromClient.packet_type) {
             case MazePacket.CLIENT_REGISTER:
                 addClientEvent();
                 break;
             case MazePacket.CLIENT_FORWARD:	
-                System.out.println("FORWARD EVENT IN executeEvent");
                 clientForwardEvent(c);
                 break;
             case MazePacket.CLIENT_BACK:
