@@ -20,6 +20,7 @@ USA.
 import java.awt.event.KeyListener;
 import java.awt.event.KeyEvent;
 
+import java.io.Serializable;
 /**
  * An implementation of {@link LocalClient} that is controlled by the keyboard
  * of the computer on which the game is being run.  
@@ -27,7 +28,7 @@ import java.awt.event.KeyEvent;
  * @version $Id: GUIClient.java 343 2004-01-24 03:43:45Z geoffw $
  */
 
-public class GUIClient extends LocalClient implements KeyListener {
+public class GUIClient extends LocalClient implements KeyListener, Serializable{
 
         /**
          * Create a GUI controlled {@link LocalClient}.  

@@ -295,6 +295,8 @@ public class MazewarServerHandlerThread extends Thread {
      */
     private void registerClientEvent() {
         try {
+	    System.out.print("registerClientEvent");
+
             /* Wait for handshaking packet from client, store client state in 
              * global client table */
             MazePacket eventPacket = new MazePacket();

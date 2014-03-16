@@ -157,6 +157,8 @@ public class ClientHandlerThread extends Thread {
     }
 
     public void broadcastNewClient(){
+	System.out.print("Broadcasting CLIENT_REGISTER");
+
 	MazePacket packetToClients = new MazePacket();
 
 	packetToClients.packet_type = MazePacket.CLIENT_REGISTER;
@@ -195,9 +197,6 @@ public class ClientHandlerThread extends Thread {
 
 	myId = packetFromLookup.client_id;
 
-
-	System.out.print("TESTING !!!" + lookupTable.size());
-
 	// Connect to all currently existing users
 	// Save their out ports!
 	if(!lookupTable.isEmpty()){
@@ -210,8 +209,6 @@ public class ClientHandlerThread extends Thread {
 
 		if(key == myId)
 		    continue;
-
-		System.out.print("Adding client " + key);
 
 		ClientData client_data = lookupTable.get(key);
 		String client_host = client_data.client_host;
@@ -230,7 +227,6 @@ public class ClientHandlerThread extends Thread {
 
 		    data.addSocketOutToList(t_out);
 
-		    System.out.print("Success!");
 		} catch(Exception e){
 		    System.err.println("ERROR: Coudn't connect to currently existing client");
 		}				    
@@ -240,7 +236,6 @@ public class ClientHandlerThread extends Thread {
 	}
 
 	broadcastNewClient();
-
     }
 
 
