@@ -160,9 +160,11 @@ public class ClientHandlerThread extends Thread {
 	MazePacket packetToClients = new MazePacket();
 
 	packetToClients.packet_type = MazePacket.CLIENT_REGISTER;
-	packetToClients.client_id = myId;      
+	packetToClients.client_id = myId; 
+	packetToClients.client_host = lookupTable.get(myId).client_host;
+	packetToClients.client_port = lookupTable.get(myId).client_port;  
 
-	//dispatcher.send(packetToClients);
+	dispatcher.send(packetToClients);
     }
 
     public void broadcastNewClientLocation(){
@@ -227,7 +229,6 @@ public class ClientHandlerThread extends Thread {
 		    //t_in = new ObjectInputStream(socket.getInputStream());
 
 		    data.addSocketOutToList(t_out);
-
 
 		    System.out.print("Success!");
 		} catch(Exception e){
