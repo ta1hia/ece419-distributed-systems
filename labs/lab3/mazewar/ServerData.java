@@ -9,23 +9,26 @@ import java.util.concurrent.Semaphore;
 
 public class ServerData implements Serializable {
 
+    /**
+     * Game state 
+     */
     BlockingQueue<MazePacket> eventQueue = new LinkedBlockingQueue();
-    ConcurrentHashMap<String, ClientData> clientTable = new ConcurrentHashMap(); //Might need reference to actual thread here, for dispatcher
-    ConcurrentHashMap<Integer, ObjectOutputStream> socketOutList = new ConcurrentHashMap(); //Might need reference to actual thread here, for dispatcher
-    //ArrayList socketOutList = new ArrayList();
-    ConcurrentHashMap<String, Point> clientPosition = new ConcurrentHashMap();
-    MazePacket [] eventArray = new MazePacket[20];
-    int eventIndex = 0;
-
+    ConcurrentHashMap<String, ClientData> clientTable = new ConcurrentHashMap();  // TODO: get rid of this old stuff
+    ConcurrentHashMap<Integer, ObjectOutputStream> socketOutList = new ConcurrentHashMap(); 
     ConcurrentHashMap<Integer, ClientData> lookupTable = new ConcurrentHashMap(); // Contains all client data
-    int lamportClock; // This client's lamport clock
-    Semaphore sem = new Semaphore(0); // Sempahore for client awknowledgement sinconization
+
+    /**
+     * Client Data
+     */
     int myId;
+    ConcurrentHashMap<String, Point> clientPosition = new ConcurrentHashMap();
 
-    public void addEventToEventArray(MazePacket p) {
-	eventArray[p.lamportClock] =  p;
-    }
-
+    /**
+     * Distributed synchronization resources
+     */
+    int eventIndex = 0;     // Global lamport clock
+    int lamportClock;       // This client's lamport clock
+    Semaphore sem = new Semaphore(0); 
 
 
     // public MazePacket getNextEvent() {

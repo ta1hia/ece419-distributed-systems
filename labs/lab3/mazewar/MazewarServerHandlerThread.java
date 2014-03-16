@@ -203,7 +203,7 @@ public class MazewarServerHandlerThread extends Thread {
 
             eventPacket.packet_type = MazePacket.GET_SEQ_NUM;
 
-            data.addEventToQueue(eventPacket);
+            chandler.addEventToQueue(eventPacket);
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println("server done broke");
@@ -222,7 +222,8 @@ public class MazewarServerHandlerThread extends Thread {
 
 	    System.out.println("THIS IS THE LAMPORT CLOCK: "+ eventPacket.lamportClock);
 
-            data.addEventToEventArray(eventPacket);
+            chandler.addEventToQueue(eventPacket);
+            chandler.runEventFromQueue(packetFromRC.lamportClock);
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println("server done broke");
@@ -240,7 +241,7 @@ public class MazewarServerHandlerThread extends Thread {
             eventPacket.packet_type = MazePacket.CLIENT_BACK;
             eventPacket.lamportClock = packetFromRC.lamportClock;
 
-            data.addEventToEventArray(eventPacket);
+            chandler.addEventToQueue(eventPacket);
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println("server done broke");
@@ -257,7 +258,7 @@ public class MazewarServerHandlerThread extends Thread {
             eventPacket.packet_type = MazePacket.CLIENT_LEFT;
             eventPacket.lamportClock = packetFromRC.lamportClock;
 
-            data.addEventToEventArray(eventPacket);
+            chandler.addEventToQueue(eventPacket);
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println("server done broke");
@@ -274,7 +275,7 @@ public class MazewarServerHandlerThread extends Thread {
             eventPacket.packet_type = MazePacket.CLIENT_RIGHT;
             eventPacket.lamportClock = packetFromRC.lamportClock;
 
-            data.addEventToEventArray(eventPacket);
+            chandler.addEventToQueue(eventPacket);
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println("server done broke");
@@ -291,7 +292,7 @@ public class MazewarServerHandlerThread extends Thread {
             eventPacket.packet_type = MazePacket.CLIENT_FIRE;
             eventPacket.lamportClock = packetFromRC.lamportClock;
 
-            data.addEventToEventArray(eventPacket);
+            chandler.addEventToQueue(eventPacket);
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println("server done broke");
