@@ -147,6 +147,7 @@ public class MazewarServerHandlerThread extends Thread {
     }
 
     private void clientSpawn(){
+
         chandler.spawnClient(packetFromRC.client_id,packetFromRC.lookupTable);
         if (packetFromRC.for_new_client) {
             data.releaseSemaphore(1);
@@ -303,11 +304,11 @@ public class MazewarServerHandlerThread extends Thread {
             MazePacket eventPacket = new MazePacket();
 
             /* Add to client list */
+            eventPacket.client_id = chandler.getMyId();
             eventPacket.packet_type = MazePacket.CLIENT_SPAWN;
             eventPacket.for_new_client = true;
-
             eventPacket.lookupTable = new ConcurrentHashMap();
-            //eventPacket.lookupTable.put(chandler.getMyId(), chandler.getMe());
+            eventPacket.lookupTable.put(chandler.getMyId(), chandler.getMe());
 
             /* Get new client socket info */
             String hostname = packetFromRC.client_host;

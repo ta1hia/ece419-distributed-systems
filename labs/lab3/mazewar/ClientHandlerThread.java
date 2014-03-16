@@ -541,7 +541,8 @@ public class ClientHandlerThread extends Thread {
 
         public void spawnClient(Integer id, ConcurrentHashMap<Integer,ClientData> tuple){
 
-            ClientData cd = tuple.get(id);
+            ClientData cd = new ClientData();
+            cd = tuple.get(id);
 
             // Spawn client	
             RemoteClient c = new RemoteClient(cd.client_name);
