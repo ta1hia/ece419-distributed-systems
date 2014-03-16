@@ -64,10 +64,10 @@ public class MazewarServerHandlerThread extends Thread {
                 switch (packetFromRC.packet_type) {
                     case MazePacket.CLIENT_CLOCK:
                         clientClock();
-			break;
+                        break;
                     case MazePacket.CLIENT_AWK:
                         clientAwk();
-			break;
+                        break;
                     case MazePacket.CLIENT_REGISTER:
                         registerClientEvent();
                         break;
@@ -105,7 +105,6 @@ public class MazewarServerHandlerThread extends Thread {
                         System.out.println("S_HANDLER: Could not recognize packet type");
                         break;
                 }
-
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -141,7 +140,6 @@ public class MazewarServerHandlerThread extends Thread {
         // try{
 
         // 	this.cout.writeObject(eventPacket);
-
         // } catch (Exception e) {
         // 	e.printStackTrace();
         // }
@@ -290,7 +288,7 @@ public class MazewarServerHandlerThread extends Thread {
             eventPacket.client_id = id;
             eventPacket.packet_type = MazePacket.CLIENT_FIRE;
             eventPacket.lamportClock = packetFromRC.lamportClock;
-            
+
             data.addEventToEventArray(eventPacket);
         } catch (Exception e) {
             e.printStackTrace();
@@ -303,7 +301,7 @@ public class MazewarServerHandlerThread extends Thread {
      */
     private void registerClientEvent() {
         try {
-	    System.out.print("registerClientEvent");
+            System.out.print("registerClientEvent");
 
             /* Wait for handshaking packet from client, store client state in 
              * global client table */
