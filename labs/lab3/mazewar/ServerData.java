@@ -143,4 +143,8 @@ public class ServerData implements Serializable {
 	return eventIndex;
     }
 
+    public void setEventIndex(Integer i){
+	eventIndex = i;
+    }
+
 }

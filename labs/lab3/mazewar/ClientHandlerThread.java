@@ -529,8 +529,10 @@ public class ClientHandlerThread extends Thread {
                 if (!executed) break;
                 i = i + 1;
             }
-            System.out.println("CHANDLER: now lc is  " + i);
-            data.eventIndex = i;
+            System.out.println("CHANDLER: eventIndex is now  " + i);
+            data.setEventIndex(i);
+	    if(packetFromClient.client_id != myId)
+		data.incrementLamportClock();
         } 
     }
 
