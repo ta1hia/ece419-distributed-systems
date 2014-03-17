@@ -144,6 +144,13 @@ public class Dispatcher extends Thread {
             myEvent.client_id = packetToSelf.client_id;
             myEvent.lamportClock = packetToSelf.lamportClock;
 
+            if (packetToSelf.packet_type == MazePacket.CLIENT_RESPAWN) {
+                myEvent.shooter = packetToSelf.shooter;
+                myEvent.target = packetToSelf.target;
+                myEvent.client_location = packetToSelf.client_location;
+                myEvent.client_direction = packetToSelf.client_direction;
+            }
+
             chandler.addEventToQueue(myEvent);
             chandler.runEventFromQueue(packetToSelf.lamportClock);
         }
