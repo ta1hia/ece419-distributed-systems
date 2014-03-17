@@ -75,66 +75,6 @@ public class ClientHandlerThread extends Thread {
         System.out.println("I am leaving. Goodbye");
     }
 
-    // Event queue
-   /* public void run() {
-        while(true)  {
-            int i = data.eventIndex;
-
-            // Check if event should be run right away or put into queue
-            if(data.eventArray[i] == null){	
-                continue;
-            } else {
-                packetFromClient = new MazePacket();
-                packetFromClient = data.eventArray[i];
-
-                System.out.println("Did I go forward..?!?!?!");
-                // Lock this client down!
-                Client c = (lookupTable.get(packetFromClient.client_id)).c;
-
-                c.getLock();		
-
-                switch (packetFromClient.packet_type) {
-                    case MazePacket.CLIENT_REGISTER:
-                        addClientEvent();
-                        break;
-                    case MazePacket.CLIENT_FORWARD:	
-                        clientForwardEvent(c);
-                        break;
-                    case MazePacket.CLIENT_BACK:
-                        clientBackEvent(c);
-                        break;
-                    case MazePacket.CLIENT_LEFT:
-                        clientLeftEvent(c);
-                        break;
-                    case MazePacket.CLIENT_RIGHT:
-                        clientRightEvent(c);
-                        break;
-                    case MazePacket.CLIENT_FIRE:
-                        clientFireEvent(c);
-                        break;
-                    case MazePacket.CLIENT_RESPAWN:
-                        clientRespawnEvent();
-                        break;
-                    case MazePacket.CLIENT_QUIT:
-                        clientQuitEvent();
-                        break;
-                    default:
-                        System.out.println("Could not recognize packet type");
-                        break;
-                }
-
-                if(i == 19)
-                    data.eventIndex = 0;
-                else
-                    data.eventIndex++;
-
-                c.releaseLock();
-
-            }
-        }
-    } */
-
-
     public void registerMaze(Maze maze) {
         this.maze = maze;
     }
@@ -156,8 +96,6 @@ public class ClientHandlerThread extends Thread {
             packetFromLookup = (MazePacket) in.readObject();
 
             lookupRegisterEvent();
-
-
         }catch (Exception e){
             e.printStackTrace();
             System.out.println("ERROR: registering with server");
@@ -524,7 +462,10 @@ public class ClientHandlerThread extends Thread {
         // }
     }
 
-    public void spawnClient(Integer id, ConcurrentHashMap<Integer,ClientData> tuple){
+    public void spawnClient(){
+	Integer id = packetFromClient.client_id;
+	ConcurrentHashMap<Integer,ClientData> tuple = packetFromClient.lookupTable;
+
         ClientData cd = new ClientData();
         cd = tuple.get(id);
 
@@ -535,7 +476,6 @@ public class ClientHandlerThread extends Thread {
         // Update tuple
         cd.c = c;
         lookupTable.put(id, cd);
-
     }
 
     public ClientData getMe() {
@@ -552,6 +492,7 @@ public class ClientHandlerThread extends Thread {
     }
 
     public void addEventToQueue(MazePacket p) {
+	System.out.println("CHANDLER: Saving lc: " + p.lamportClock);
         eventQueue[p.lamportClock] =  p;
     }
 
@@ -568,7 +509,7 @@ public class ClientHandlerThread extends Thread {
                 Client c = (lookupTable.get(packetFromClient.client_id)).c;
                 executed = executeEvent(c);
                 if (!executed) break;
-                i = (i + 1) % 20;
+                i = i + 1;
             }
             System.out.println("CHANDLER: now lc is  " + i);
             data.eventIndex = i;
@@ -606,6 +547,9 @@ public class ClientHandlerThread extends Thread {
             case MazePacket.CLIENT_QUIT:
                 clientQuitEvent();
                 break;
+	    case MazePacket.CLIENT_SPAWN:
+		spawnClient();
+		break;
             default:
                 System.out.println("Could not recognize packet type:" + packetFromClient.packet_type);
                 success = false;

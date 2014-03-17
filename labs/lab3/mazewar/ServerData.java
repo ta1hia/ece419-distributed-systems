@@ -124,12 +124,20 @@ public class ServerData implements Serializable {
 
     public void setLamportClock(int value){
         lamportClock = value;
+	eventIndex = value;
     }
 
     public Integer incrementLamportClock() {
-        Integer newClock = (lamportClock + 1) % 20;
-        lamportClock = newClock;
-        return newClock;
+        lamportClock++;
+	if(lamportClock == 20)
+	    lamportClock = 0;
+
+        return lamportClock;
     }
+
+    public Integer getLamportClock(){
+	return lamportClock;
+    }
+
 
 }

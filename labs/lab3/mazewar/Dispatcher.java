@@ -35,47 +35,8 @@ public class Dispatcher extends Thread {
         this.eventQueue = data.eventQueue;
         this.clientTable = data.clientTable;
         this.socketOutList = data.socketOutList;
-        this.lamportClock = data.lamportClock;
         this.sem = data.sem;
     }
-
-    // Continually check eventqueue
-    // Broadcast whenever queue is not empty
-    // public void run(){
-    //     MazePacket event;
-    // 	seqNum = 1;
-
-    //     try {
-
-    //         while(true){
-    //             if(eventQueue.peek() != null){
-    //                 event = eventQueue.take();
-    //                 System.out.println("DISPATCHER: sending packet type " + event.packet_type + " with sequence number " + seqNum);
-
-    // 		    event.sequence_num = seqNum;
-
-    //                 // Go through each client	    
-    //                 for(int i=0;i < socketOutList.size(); i++){
-    //                     ((ObjectOutputStream)socketOutList.get(i)).writeObject(event);
-
-
-    // 		    }
-
-
-    // 		    seqNum++;
-    // 		    if(seqNum == 21)
-    // 			seqNum = 1;
-    // 		}
-
-    //             // Thread.sleep(200);
-    //         }
-    //     } catch (IOException e) {
-    //         e.printStackTrace();
-    //     } catch (InterruptedException e) {
-    //         e.printStackTrace();
-    //     }
-
-    // }
 
     public void connectToPeer(Integer id, String host, int port) {
         Socket socket = null;
@@ -106,7 +67,7 @@ public class Dispatcher extends Thread {
         // Try and get a valid lamport clock!
         MazePacket getClock = new MazePacket();
 
-        int requested_lc = lamportClock;
+        int requested_lc;
 
         debug("number of peers to broadcast to: " + socketOutList.size());
         if(socketOutList.size() > 0){
@@ -115,6 +76,7 @@ public class Dispatcher extends Thread {
                 if(packetToClients.packet_type != MazePacket.CLIENT_REGISTER){
                     while(true){
                         getClock.packet_type = MazePacket.CLIENT_CLOCK;
+			requested_lc = data.getLamportClock();
                         getClock.lamportClock = requested_lc;
                         getClock.client_id = packetToClients.client_id;
 
@@ -126,22 +88,19 @@ public class Dispatcher extends Thread {
                         }
 
                         // Wait until all clients have aknowledged!
-                        data.acquireSemaphore(socketOutList.size() - 1);
+                        data.acquireSemaphore(socketOutList.size());
 
                         // You've finally woken up
                         // Check if the lamport clock is valid
                         // If lamport clock is the same as before, it is valid
                         // If it is not, it is invalid and you have to do it all over again
-                        if(requested_lc == lamportClock){
+                        if(requested_lc == data.getLamportClock()){
                             break;
-                        }
+                        }			
                     }
 
                     packetToClients.lamportClock = requested_lc;
-                    debug("lamport clock before " + data.lamportClock);
-                    data.incrementLamportClock();
-                    //data.setLamportClock(requested_lc + 1);
-                    debug("lamport clock after " + data.lamportClock);
+                    System.out.println("DISPATCHER: lamport clock before " + data.getLamportClock());
 
                 }
 
@@ -150,17 +109,24 @@ public class Dispatcher extends Thread {
                     out.writeObject(packetToClients);
                     debug("sending a packet to client");		    
                 }
-                debug("sending packets to other clients finished, now adding to own queue");
-                addEventToOwnQueue(packetToClients);
 
-                if(packetToClients.packet_type == MazePacket.CLIENT_REGISTER){
-                    data.acquireSemaphore(socketOutList.size() - 1);
-                }
 
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
+
+        if(packetToClients.packet_type == MazePacket.CLIENT_REGISTER){
+	    data.acquireSemaphore(socketOutList.size());
+	    return;
+	} else if (packetToClients.packet_type != MazePacket.CLIENT_SPAWN){
+	    debug("sending packets to other clients finished, now adding to own queue");
+	    addEventToOwnQueue(packetToClients);
+	}
+
+	data.incrementLamportClock();
+	System.out.println("DISPATCHER: lamport clock after " + data.getLamportClock());
+
     }
 
     private void addEventToOwnQueue(MazePacket packetToSelf) {

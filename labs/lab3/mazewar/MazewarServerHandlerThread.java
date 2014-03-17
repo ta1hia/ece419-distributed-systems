@@ -120,13 +120,15 @@ public class MazewarServerHandlerThread extends Thread {
         int requested_lc = packetFromRC.lamportClock;    
         //int lamportClock = dispatcher.getLamportClock();
         eventPacket.packet_type = MazePacket.CLIENT_ACK;
-        debug("requested lc is " + requested_lc);
+
+
+        debug("S_HANDER: requested_lc: " + requested_lc + " current lamportClock: " + data.getLamportClock());
+        eventPacket.lamportClock = data.getLamportClock();
 
         if(requested_lc == lamportClock){
             debug("incrementing my lc after recieving CLIENT_CLOCK packet");
             // Clock is valid!
-            data.setLamportClock(lamportClock + 1);
-
+            data.incrementLamportClock();
             //Set up and send awknowledgement packet
             //eventPacket.lamportClock = lamportClock;
             eventPacket.isValidClock = true;
@@ -137,23 +139,20 @@ public class MazewarServerHandlerThread extends Thread {
             eventPacket.isValidClock = false;
         }
 
-        eventPacket.lamportClock = requested_lc;
-
         dispatcher.sendToClient(packetFromRC.client_id, (MazePacket) eventPacket);
-
-        // try{
-
-        // 	this.cout.writeObject(eventPacket);
-        // } catch (Exception e) {
-        // 	e.printStackTrace();
-        // }
     }
 
     private void clientSpawn(){
 
-        chandler.spawnClient(packetFromRC.client_id,packetFromRC.lookupTable);
+	chandler.addEventToQueue(packetFromRC);
+	chandler.runEventFromQueue(packetFromRC.lamportClock);
+
+        //chandler.spawnClient(packetFromRC.client_id,packetFromRC.lookupTable);
         if (packetFromRC.for_new_client) {
             data.releaseSemaphore(1);
+	    
+	    // Update to the latest lamport clock
+	    data.setLamportClock(packetFromRC.lamportClock);
         }
     }
 
@@ -165,7 +164,7 @@ public class MazewarServerHandlerThread extends Thread {
 
         if(!clockIsValid){
             // Update the current lamport clock
-            data.lamportClock = this.lamportClock;
+            data.setLamportClock(packetFromRC.lamportClock);
         }
 
         data.releaseSemaphore(1);
@@ -225,7 +224,7 @@ public class MazewarServerHandlerThread extends Thread {
             eventPacket.packet_type = MazePacket.CLIENT_FORWARD;
             eventPacket.lamportClock = packetFromRC.lamportClock;
 
-	    System.out.println("THIS IS THE LAMPORT CLOCK: "+ eventPacket.lamportClock);
+	    System.out.println("LISTENER: THIS IS THE LAMPORT CLOCK: "+ eventPacket.lamportClock);
 
             chandler.addEventToQueue(eventPacket);
             chandler.runEventFromQueue(packetFromRC.lamportClock);
@@ -324,6 +323,7 @@ public class MazewarServerHandlerThread extends Thread {
             eventPacket.for_new_client = true;
             eventPacket.lookupTable = new ConcurrentHashMap();
             eventPacket.lookupTable.put(chandler.getMyId(), chandler.getMe());
+	    eventPacket.lamportClock = data.getLamportClock();
 
             /* Get new client socket info */
             String hostname = packetFromRC.client_host;
