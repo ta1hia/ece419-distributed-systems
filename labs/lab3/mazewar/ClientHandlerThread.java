@@ -39,7 +39,7 @@ public class ClientHandlerThread extends Thread {
 
     ServerData data = new ServerData();
 
-    Dispatcher dispatcher = new Dispatcher(data);    
+    Dispatcher dispatcher = new Dispatcher(data, this);    
 
     MazePacket packetFromLookup = new MazePacket();
     MazePacket packetFromClient;
@@ -230,6 +230,7 @@ public class ClientHandlerThread extends Thread {
         lookupTable = packetFromLookup.lookupTable;
 
         myId = packetFromLookup.client_id;
+        //data.addSocketOutToList(myId, out);
 
 
 
@@ -555,7 +556,9 @@ public class ClientHandlerThread extends Thread {
     }
 
     public void runEventFromQueue(Integer lc){
+        boolean executed;
         Integer currentLC = data.eventIndex;
+        System.out.println("CHANDLER: in runEventFromQueue, plc is " + lc + ", current lc is " + currentLC);
 
         if (data.eventIndex == lc) {
             int i = lc;
@@ -563,7 +566,8 @@ public class ClientHandlerThread extends Thread {
                 System.out.println("CHANDLER: running event with lc = " + i);
                 packetFromClient = eventQueue[lc];
                 Client c = (lookupTable.get(packetFromClient.client_id)).c;
-                executeEvent(c);
+                executed = executeEvent(c);
+                if (!executed) break;
                 i = (i + 1) % 20;
             }
             System.out.println("CHANDLER: now lc is  " + i);
@@ -573,8 +577,9 @@ public class ClientHandlerThread extends Thread {
         }
     }
 
-    private void executeEvent(Client c) {
+    private boolean executeEvent(Client c) {
         // called in runEventFromQueue
+        boolean success = true;
         c.getLock();		
         switch (packetFromClient.packet_type) {
             case MazePacket.CLIENT_REGISTER:
@@ -602,10 +607,12 @@ public class ClientHandlerThread extends Thread {
                 clientQuitEvent();
                 break;
             default:
-                System.out.println("Could not recognize packet type");
+                System.out.println("Could not recognize packet type:" + packetFromClient.packet_type);
+                success = false;
                 break;
         }
         c.releaseLock();
+        return success;
     }
 
 }

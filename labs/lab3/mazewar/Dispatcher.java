@@ -23,14 +23,15 @@ public class Dispatcher extends Thread {
     int lamportClock;
     Semaphore sem;
     ServerData data;
+    ClientHandlerThread chandler;
 
     Lock lock = new ReentrantLock();
 
     boolean debug = true;
 
-    public Dispatcher(ServerData data) {
+    public Dispatcher(ServerData data, ClientHandlerThread chandler) {
         this.data = data;
-
+        this.chandler = chandler;
         this.eventQueue = data.eventQueue;
         this.clientTable = data.clientTable;
         this.socketOutList = data.socketOutList;
@@ -121,7 +122,7 @@ public class Dispatcher extends Thread {
                         // Go through each remote client	    
                         for (ObjectOutputStream out : socketOutList.values()) {
                             out.writeObject(getClock);
-                            debug("calling client for clock: ");	    
+                            debug("calling client for clock: " + requested_lc);	    
                         }
 
                         // Wait until all clients have aknowledged!
@@ -146,6 +147,8 @@ public class Dispatcher extends Thread {
                     out.writeObject(packetToClients);
                     debug("sending a packet to client");		    
                 }
+                debug("sending packets to other clients finished, now adding to own queue");
+                addEventToOwnQueue(packetToClients);
 
                 if(packetToClients.packet_type == MazePacket.CLIENT_REGISTER){
                     data.acquireSemaphore(socketOutList.size() - 1);
@@ -154,6 +157,20 @@ public class Dispatcher extends Thread {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    private void addEventToOwnQueue(MazePacket packetToSelf) {
+        debug("adding own event to queue");
+        if (packetToSelf.packet_type != MazePacket.CLIENT_REGISTER) {
+            MazePacket myEvent = new MazePacket();
+            myEvent.packet_type = packetToSelf.packet_type;
+            myEvent.client_name = packetToSelf.client_name;
+            myEvent.client_id = packetToSelf.client_id;
+            myEvent.lamportClock = packetToSelf.lamportClock;
+
+            chandler.addEventToQueue(myEvent);
+            chandler.runEventFromQueue(packetToSelf.lamportClock);
         }
     }
 
