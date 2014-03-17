@@ -57,10 +57,10 @@ public class MazewarServerHandlerThread extends Thread {
 
         try {
             /* Loop: 
-             */
+            */
             cin = new ObjectInputStream(rcSocket.getInputStream());
             while (!quitting && ((packetFromRC = (MazePacket) cin.readObject()) != null)) {
-                System.out.println("S_HANDLER: packet type is " + packetFromRC.packet_type);
+                debug("packet type is " + packetFromRC.packet_type);
 
                 /* Process each packet */
                 switch (packetFromRC.packet_type) {
@@ -139,7 +139,7 @@ public class MazewarServerHandlerThread extends Thread {
             eventPacket.isValidClock = false;
         }
 
-	System.out.println("S_HANDLER: Clock is " + eventPacket.isValidClock + " with timestamp " + eventPacket.lamportClock);
+        debug("Clock is " + eventPacket.isValidClock + " with timestamp " + eventPacket.lamportClock);
 
         dispatcher.sendToClient(packetFromRC.client_id, (MazePacket) eventPacket);
     }
@@ -149,16 +149,16 @@ public class MazewarServerHandlerThread extends Thread {
         //chandler.spawnClient(packetFromRC.client_id,packetFromRC.lookupTable);
         if (packetFromRC.for_new_client) {
             data.releaseSemaphore(1);
-	    
-	    // Update to the latest lamport clock
-	    data.setLamportClock(packetFromRC.lamportClock);
-	    
-	    chandler.spawnClient(packetFromRC.client_id,packetFromRC.lookupTable);
-	  
+
+            // Update to the latest lamport clock
+            data.setLamportClock(packetFromRC.lamportClock);
+
+            chandler.spawnClient(packetFromRC.client_id,packetFromRC.lookupTable);
+
         } else { 
-	    chandler.addEventToQueue(packetFromRC);
-	    chandler.runEventFromQueue(packetFromRC.lamportClock);
-	}
+            chandler.addEventToQueue(packetFromRC);
+            chandler.runEventFromQueue(packetFromRC.lamportClock);
+        }
 
     }
 
@@ -170,7 +170,7 @@ public class MazewarServerHandlerThread extends Thread {
 
         if(!clockIsValid){
             // Update the current lamport clock
-	    debug("Awknowledgement failed. LC set to: " +  packetFromRC.lamportClock);
+            debug("Awknowledgement failed. LC set to: " +  packetFromRC.lamportClock);
             data.setLamportClock(packetFromRC.lamportClock);
         }
 
@@ -182,7 +182,7 @@ public class MazewarServerHandlerThread extends Thread {
         try{
             MazePacket eventPacket = new MazePacket();
             String rc_name = packetFromRC.client_name;
-            System.out.println("S_HANDLER: " + rc_name + " is quitting");
+            debug(rc_name + " is quitting");
 
             eventPacket.client_name = rc_name;
             eventPacket.packet_type = MazePacket.CLIENT_QUIT;
@@ -209,7 +209,7 @@ public class MazewarServerHandlerThread extends Thread {
     private void getSeqNum(){
         try { 
             MazePacket eventPacket = new MazePacket();
-            System.out.println("S_HANDLER: Send sequence number.");
+            debug("in getSeqNum");
 
             eventPacket.packet_type = MazePacket.GET_SEQ_NUM;
 
@@ -225,13 +225,13 @@ public class MazewarServerHandlerThread extends Thread {
         try { 
             MazePacket eventPacket = new MazePacket();
             Integer id = packetFromRC.client_id;
-            System.out.println("S_HANDLER: " + id + " forward");
+            debug(id + " forward");
 
             eventPacket.client_id = id;
             eventPacket.packet_type = MazePacket.CLIENT_FORWARD;
             eventPacket.lamportClock = packetFromRC.lamportClock;
 
-	    System.out.println("LISTENER: THIS IS THE LAMPORT CLOCK: "+ eventPacket.lamportClock);
+            System.out.println("LISTENER: THIS IS THE LAMPORT CLOCK: "+ eventPacket.lamportClock);
 
             chandler.addEventToQueue(eventPacket);
             chandler.runEventFromQueue(packetFromRC.lamportClock);
@@ -245,7 +245,7 @@ public class MazewarServerHandlerThread extends Thread {
         try { 
             MazePacket eventPacket = new MazePacket();
             Integer id = packetFromRC.client_id;
-            System.out.println("S_HANDLER: " + id + " back");
+            debug(id + " back");
 
             eventPacket.client_id = id;
             eventPacket.packet_type = MazePacket.CLIENT_BACK;
@@ -263,7 +263,7 @@ public class MazewarServerHandlerThread extends Thread {
         try { 
             MazePacket eventPacket = new MazePacket();
             Integer id = packetFromRC.client_id;
-            System.out.println("S_HANDLER: " + id + " left");
+            debug(id + " left");
 
             eventPacket.client_id = id;
             eventPacket.packet_type = MazePacket.CLIENT_LEFT;
@@ -281,7 +281,7 @@ public class MazewarServerHandlerThread extends Thread {
         try { 
             MazePacket eventPacket = new MazePacket();
             Integer id = packetFromRC.client_id;
-            System.out.println("S_HANDLER: " + id + " right");
+            debug(id + " right");
 
             eventPacket.client_id = id;
             eventPacket.packet_type = MazePacket.CLIENT_RIGHT;
@@ -299,7 +299,7 @@ public class MazewarServerHandlerThread extends Thread {
         try { 
             MazePacket eventPacket = new MazePacket();
             Integer id = packetFromRC.client_id;
-            System.out.println("S_HANDLER: " + id + " fire");
+            debug(id + " fire");
 
             eventPacket.client_id = id;
             eventPacket.packet_type = MazePacket.CLIENT_FIRE;
@@ -318,7 +318,7 @@ public class MazewarServerHandlerThread extends Thread {
      */
     private void registerClientEvent() {
         try {
-            System.out.print("registerClientEvent");
+            debug("registerClientEvent");
 
             /* Wait for handshaking packet from client, store client state in 
              * global client table */
@@ -330,7 +330,7 @@ public class MazewarServerHandlerThread extends Thread {
             eventPacket.for_new_client = true;
             eventPacket.lookupTable = new ConcurrentHashMap();
             eventPacket.lookupTable.put(chandler.getMyId(), chandler.getMe());
-	    eventPacket.lamportClock = data.getLamportClock();
+            eventPacket.lamportClock = data.getLamportClock();
 
             /* Get new client socket info */
             String hostname = packetFromRC.client_host;
@@ -348,7 +348,7 @@ public class MazewarServerHandlerThread extends Thread {
     }
 
     /* When a client spawns.moves, it needs to reserve its position (aka. Point). You don't want multiple clients spawning in the same spot!
-     */
+    */
     private void reservePoint(){
         // Check if another client currently has that position.
 
@@ -362,10 +362,10 @@ public class MazewarServerHandlerThread extends Thread {
 
         if(data.setPosition(rc_name,rc_point)){
             serverResponse.error_code = 0;
-            System.out.println("S_HANDLER: Reserving position successful. " + rc_name );
+            debug("reserving position successful. " + rc_name );
         }else{	
             serverResponse.error_code = MazePacket.ERROR_RESERVED_POSITION;
-            System.out.println("S_HANDLER: Reserving position failed. " + rc_name );
+            debug("Reserving position failed. " + rc_name );
         }
 
         try{
@@ -383,7 +383,7 @@ public class MazewarServerHandlerThread extends Thread {
             Point p = packetFromRC.client_location;
             Direction d = packetFromRC.client_direction;
 
-            System.out.println("S_HANDLER: " + packetFromRC.target + " respawning");
+            debug(packetFromRC.target + " respawning");
 
             eventPacket.client_id = packetFromRC.client_id;
             eventPacket.lamportClock = packetFromRC.lamportClock;

@@ -66,7 +66,7 @@ public class Dispatcher extends Thread {
     public void send(MazePacket packetToClients){
         // Try and get a valid lamport clock!
         MazePacket getClock = new MazePacket();
-	packetToClients.lamportClock = data.getLamportClock();
+        packetToClients.lamportClock = data.getLamportClock();
 
         int requested_lc;
 
@@ -76,7 +76,7 @@ public class Dispatcher extends Thread {
                 if(packetToClients.packet_type != MazePacket.CLIENT_REGISTER){
                     while(true){
                         getClock.packet_type = MazePacket.CLIENT_CLOCK;
-			requested_lc = data.getLamportClock();
+                        requested_lc = data.getLamportClock();
                         getClock.lamportClock = requested_lc;
                         getClock.client_id = packetToClients.client_id;
 
@@ -100,7 +100,7 @@ public class Dispatcher extends Thread {
                     }
 
                     packetToClients.lamportClock = requested_lc;
-                    System.out.println("DISPATCHER: lamport clock before " + data.getLamportClock());
+                    debug("lamport clock before " + data.getLamportClock());
 
                 }
 
@@ -114,24 +114,24 @@ public class Dispatcher extends Thread {
                 e.printStackTrace();
             }
 
-	    if (packetToClients.packet_type == MazePacket.CLIENT_SPAWN) {
-		data.setLamportClock(data.getLamportClock() + 1);
-		return;
-	    }
+            if (packetToClients.packet_type == MazePacket.CLIENT_SPAWN) {
+                data.setLamportClock(data.getLamportClock() + 1);
+                return;
+            }
 
         } 
 
         if(packetToClients.packet_type == MazePacket.CLIENT_REGISTER){
-	    data.acquireSemaphore(socketOutList.size());
-	    return;
-	} else if (packetToClients.packet_type == MazePacket.CLIENT_SPAWN) {	   
-	    return;
-	}
+            data.acquireSemaphore(socketOutList.size());
+            return;
+        } else if (packetToClients.packet_type == MazePacket.CLIENT_SPAWN) {	   
+            return;
+        }
 
-	addEventToOwnQueue(packetToClients);
-	
-	data.incrementLamportClock();
-	System.out.println("DISPATCHER: lamport clock after " + data.getLamportClock());
+        addEventToOwnQueue(packetToClients);
+
+        data.incrementLamportClock();
+        debug("lamport clock after " + data.getLamportClock());
 
     }
 
