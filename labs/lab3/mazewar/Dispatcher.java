@@ -69,7 +69,6 @@ public class Dispatcher extends Thread {
 
         int requested_lc;
 
-        debug("number of peers to broadcast to: " + socketOutList.size());
         if(socketOutList.size() > 0){
             try{
                 // Request a lamport clock if there is more than one client.
@@ -84,7 +83,7 @@ public class Dispatcher extends Thread {
                         // Go through each remote client	    
                         for (ObjectOutputStream out : socketOutList.values()) {
                             out.writeObject(getClock);
-                            debug("calling client for clock: " + requested_lc);	    
+                            debug("DISPATCHER: Calling client for clock: " + requested_lc);	    
                         }
 
                         // Wait until all clients have aknowledged!
@@ -119,11 +118,15 @@ public class Dispatcher extends Thread {
         if(packetToClients.packet_type == MazePacket.CLIENT_REGISTER){
 	    data.acquireSemaphore(socketOutList.size());
 	    return;
-	} else if (packetToClients.packet_type != MazePacket.CLIENT_SPAWN){
-	    debug("sending packets to other clients finished, now adding to own queue");
-	    addEventToOwnQueue(packetToClients);
+	} else if (packetToClients.packet_type == MazePacket.CLIENT_SPAWN) {
+	    data.setLamportClock(data.getLamportClock() + 1);
+	    System.out.println("DISPATCHER: Sent out spawn. LC now: " + data.getLamportClock());
+	    return;
 	}
 
+	debug("sending packets to other clients finished, now adding to own queue");
+	addEventToOwnQueue(packetToClients);
+	
 	data.incrementLamportClock();
 	System.out.println("DISPATCHER: lamport clock after " + data.getLamportClock());
 

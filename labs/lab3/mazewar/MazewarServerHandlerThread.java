@@ -144,16 +144,20 @@ public class MazewarServerHandlerThread extends Thread {
 
     private void clientSpawn(){
 
-	chandler.addEventToQueue(packetFromRC);
-	chandler.runEventFromQueue(packetFromRC.lamportClock);
-
         //chandler.spawnClient(packetFromRC.client_id,packetFromRC.lookupTable);
         if (packetFromRC.for_new_client) {
             data.releaseSemaphore(1);
 	    
 	    // Update to the latest lamport clock
 	    data.setLamportClock(packetFromRC.lamportClock);
-        }
+	    
+	    chandler.spawnClient(packetFromRC.client_id,packetFromRC.lookupTable);
+	  
+        } else { 
+	    chandler.addEventToQueue(packetFromRC);
+	    chandler.runEventFromQueue(packetFromRC.lamportClock);
+	}
+
     }
 
     // This client is awknowledging/disawk for lamport clock validation

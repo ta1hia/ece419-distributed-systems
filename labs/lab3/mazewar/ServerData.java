@@ -139,5 +139,8 @@ public class ServerData implements Serializable {
 	return lamportClock;
     }
 
+    public Integer getEventIndex(){
+	return eventIndex;
+    }
 
 }
