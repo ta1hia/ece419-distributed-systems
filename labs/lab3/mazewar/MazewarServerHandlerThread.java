@@ -383,15 +383,18 @@ public class MazewarServerHandlerThread extends Thread {
             Point p = packetFromRC.client_location;
             Direction d = packetFromRC.client_direction;
 
-            System.out.println("S_HANDLER: " + packetFromRC.tc + " respawning");
+            System.out.println("S_HANDLER: " + packetFromRC.target + " respawning");
 
-            eventPacket.sc = packetFromRC.sc;
-            eventPacket.tc = packetFromRC.tc;
+            eventPacket.client_id = packetFromRC.client_id;
+            eventPacket.lamportClock = packetFromRC.lamportClock;
+            eventPacket.shooter = packetFromRC.shooter;
+            eventPacket.target = packetFromRC.target;
             eventPacket.client_location = p;
             eventPacket.client_direction = d;
             eventPacket.packet_type = MazePacket.CLIENT_RESPAWN;
 
-            data.addEventToQueue(eventPacket);
+            chandler.addEventToQueue(eventPacket);
+            chandler.runEventFromQueue(packetFromRC.lamportClock);
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println("server done broke");

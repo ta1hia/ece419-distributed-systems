@@ -45,6 +45,8 @@ public class ClientHandlerThread extends Thread {
     MazePacket packetFromClient;
     MazewarServer mserver;
 
+    boolean debug = true;
+
     public ClientHandlerThread(String lookup_host, int lookup_port, int client_port){
         /* Connect to naming service. */
         try {
@@ -155,6 +157,7 @@ public class ClientHandlerThread extends Thread {
         packetToClients.lookupTable.put(myId,getMe());
 
         cd.c = me;
+        cd.c.setId(myId);
         lookupTable.put(myId,cd);
 
         dispatcher.send(packetToClients);
@@ -169,8 +172,6 @@ public class ClientHandlerThread extends Thread {
 
         myId = packetFromLookup.client_id;
         //data.addSocketOutToList(myId, out);
-
-
 
         // Connect to all currently existing users
         // Save their out ports!
@@ -232,17 +233,18 @@ public class ClientHandlerThread extends Thread {
     }
 
     private void clientRespawnEvent(){
-        System.out.println("Respawning client");
-        String name = packetFromLookup.tc;
+        Integer t_id = packetFromClient.target;
+        Integer s_id = packetFromClient.shooter;
+        debug("in clientRespawnEvent(), shooter is " +  s_id + ", respawnning target " + t_id);
 
-        if (clientTable.containsKey(name)) { 
-            Client tc = clientTable.get(name);
+        if (lookupTable.containsKey(t_id)){
+            Client tc = (lookupTable.get(t_id)).c;
 
             tc.getLock();
 
-            Client sc = clientTable.get(packetFromLookup.sc);
-            Point p = packetFromLookup.client_location;
-            Direction d = packetFromLookup.client_direction;
+            Client sc = (lookupTable.get(s_id)).c;
+            Point p = packetFromClient.client_location;
+            Direction d = packetFromClient.client_direction;
 
             maze.setClient(sc, tc, p,d);
 
@@ -250,9 +252,10 @@ public class ClientHandlerThread extends Thread {
             tc.releaseLock();
 
         } else {
-            System.out.println("CLIENT: no client named " +packetFromClient.client_id+ " in respawn");
+            System.out.println("CLIENT: no client with id " +packetFromClient.client_id+ " in respawn");
         }
     }
+
 
     /**
      * Process server packet eventsi
@@ -448,18 +451,17 @@ public class ClientHandlerThread extends Thread {
     }
 
 
-    public void sendClientRespawn(String sc, String tc, Point p, Direction d) {
-        // try {
-        //     MazePacket packetToLookup = new MazePacket();
-        //     packetToLookup.packet_type = MazePacket.CLIENT_RESPAWN;
-        //     packetToLookup.sc = sc;
-        //     packetToLookup.tc = tc;
-        //     packetToLookup.client_location = p;
-        //     packetToLookup.client_direction = d;
-        //     out.writeObject(packetToLookup);
-        // } catch (IOException e) {
-        //     e.printStackTrace();
-        // }
+    public void sendClientRespawn(Integer sc, Integer tc, Point p, Direction d) {
+        debug("I just died. in sendClientRespawn");
+        debug(String.format("in sendClientRespawnEvent, params: %d %d", sc, tc));
+        MazePacket respawnPacket = new MazePacket();
+        respawnPacket.client_id = myId;
+        respawnPacket.packet_type = MazePacket.CLIENT_RESPAWN;
+        respawnPacket.shooter = sc;
+        respawnPacket.target = tc;
+        respawnPacket.client_location = p;
+        respawnPacket.client_direction = d;
+        dispatcher.send(respawnPacket);
     }
 
 
@@ -473,12 +475,13 @@ public class ClientHandlerThread extends Thread {
 
         // Update tuple
         cd.c = c;
+        cd.c.setId(id);
         lookupTable.put(id, cd);
     }
 
     public void spawnClient(){
-	Integer id = packetFromClient.client_id;
-	ConcurrentHashMap<Integer,ClientData> tuple = packetFromClient.lookupTable;
+        Integer id = packetFromClient.client_id;
+        ConcurrentHashMap<Integer,ClientData> tuple = packetFromClient.lookupTable;
 
         ClientData cd = new ClientData();
         cd = tuple.get(id);
@@ -489,6 +492,7 @@ public class ClientHandlerThread extends Thread {
 
         // Update tuple
         cd.c = c;
+        cd.c.setId(id);
         lookupTable.put(id, cd);
     }
 
@@ -506,7 +510,7 @@ public class ClientHandlerThread extends Thread {
     }
 
     public void addEventToQueue(MazePacket p) {
-	System.out.println("CHANDLER: Saving event at index: " + p.lamportClock);
+        System.out.println("CHANDLER: Saving event at index: " + p.lamportClock);
         eventQueue[p.lamportClock] =  p;
     }
 
@@ -521,9 +525,9 @@ public class ClientHandlerThread extends Thread {
                 System.out.println("CHANDLER: running event with lc = " + i);
                 packetFromClient = eventQueue[lc];
 
-		Client c = null;
-		if(packetFromClient.packet_type != MazePacket.CLIENT_SPAWN)
-                	c = (lookupTable.get(packetFromClient.client_id)).c;
+                Client c = null;
+                if(packetFromClient.packet_type != MazePacket.CLIENT_SPAWN)
+                    c = (lookupTable.get(packetFromClient.client_id)).c;
 
                 executed = executeEvent(c);
                 if (!executed) break;
@@ -531,8 +535,8 @@ public class ClientHandlerThread extends Thread {
             }
             System.out.println("CHANDLER: eventIndex is now  " + i);
             data.setEventIndex(i);
-	    if(packetFromClient.client_id != myId)
-		data.incrementLamportClock();
+            if(packetFromClient.client_id != myId)
+                data.incrementLamportClock();
         } 
     }
 
@@ -540,8 +544,8 @@ public class ClientHandlerThread extends Thread {
         // called in runEventFromQueue
         boolean success = true;
 
-	if(c != null)
-        	c.getLock();		
+        if(c != null)
+            c.getLock();		
 
         switch (packetFromClient.packet_type) {
             case MazePacket.CLIENT_REGISTER:
@@ -568,19 +572,25 @@ public class ClientHandlerThread extends Thread {
             case MazePacket.CLIENT_QUIT:
                 clientQuitEvent();
                 break;
-	    case MazePacket.CLIENT_SPAWN:
-		spawnClient();
-		break;
+            case MazePacket.CLIENT_SPAWN:
+                spawnClient();
+                break;
             default:
                 System.out.println("Could not recognize packet type:" + packetFromClient.packet_type);
                 success = false;
                 break;
         }
-	
-	if(c != null)
-        	c.releaseLock();
+
+        if(c != null)
+            c.releaseLock();
 
         return success;
+    }
+
+    private void debug(String s) {
+        if (debug) {
+            System.out.println("CHANDLER: " + s);
+        }
     }
 
 }

@@ -55,13 +55,13 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
 
     // Get access to chandler.
     public void addClientHandler(ClientHandlerThread ch){
-	chandler = ch;
+        chandler = ch;
     }
 
     public void addLock(Lock l){
-	lock = l;
+        lock = l;
     }
-    
+
     /**
      * Create a {@link Maze}.
      * @param point Treat the {@link Point} as a maginude specifying the
@@ -220,15 +220,15 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
         Random rand = new Random(pointSeed);
         Point point = new Point(rand.nextInt(maxX),rand.nextInt(maxY));
         CellImpl cell = getCellImpl(point);
-        
-	boolean setPosition = client.setPosition(point);
+
+        boolean setPosition = client.setPosition(point);
 
         // Repeat until we find an empty cell
         while(cell.getContents() != null || !setPosition) {
             point = new Point(rand.nextInt(maxX),rand.nextInt(maxY));
             cell = getCellImpl(point);
 
-	    setPosition = client.setPosition(point);
+            setPosition = client.setPosition(point);
         } 
         addClient(client, point, null);
     }
@@ -269,14 +269,14 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
     }
 
     public synchronized boolean clientFire(Client client) {
-	System.out.println("Fired! Client: " + client.getName());
-	lock.lock();
+        System.out.println("Fired! Client: " + client.getName());
+        lock.lock();
 
         assert(client != null);
         // If the client already has a projectile in play
         // fail.
         if(clientFired.contains(client)) {
-	    lock.unlock();
+            lock.unlock();
             return false;
         }
 
@@ -286,13 +286,13 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
 
         /* Check that you can fire in that direction */
         if(cell.isWall(d)) {
-	    lock.unlock();
+            lock.unlock();
             return false;
         }
 
         DirectedPoint newPoint = new DirectedPoint(point.move(d), d);
 
-	System.out.println("STARTING PROJ IS at X: " + newPoint.getX() + " Y: " + newPoint.getY());
+        System.out.println("STARTING PROJ IS at X: " + newPoint.getX() + " Y: " + newPoint.getY());
 
         /* Is the point withint the bounds of maze? */
         assert(checkBounds(newPoint));
@@ -306,12 +306,12 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
                 killClient(client, (Client)contents);
                 update();
 
-		lock.unlock();
+                lock.unlock();
                 return true; 
             } else {
                 // Otherwise fail (bullets will destroy each other)
 
-		lock.unlock();
+                lock.unlock();
                 return false;
             }
         }
@@ -325,7 +325,7 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
         notifyClientFired(client);
         update();
 
-	lock.unlock();
+        lock.unlock();
         return true; 
     }
 
@@ -382,45 +382,45 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
         while(true) {
             if(!projectileMap.isEmpty()) {
 
-		System.out.println("Projectile occured!!!");
+                System.out.println("Projectile occured!!!");
 
                 Iterator it = projectileMap.keySet().iterator();
                 synchronized(projectileMap) {
                     while(it.hasNext()) {   
                         Object o = it.next();
                         assert(o instanceof Projectile);
-			lock.lock();
+                        lock.lock();
                         deadPrj.addAll(moveProjectile((Projectile)o));
 
-			Projectile prj = (Projectile)o;
-			Object asdf = projectileMap.get((Projectile)o);
-        DirectedPoint dp = (DirectedPoint)asdf;
-        Direction d = dp.getDirection();
+                        Projectile prj = (Projectile)o;
+                        Object asdf = projectileMap.get((Projectile)o);
+                        DirectedPoint dp = (DirectedPoint)asdf;
+                        Direction d = dp.getDirection();
 
-	System.out.println("***Owner's " + prj.getOwner().getName() + " prj at X: " + dp.getX() + " Y: " + dp.getY());
+                        System.out.println("***Owner's " + prj.getOwner().getName() + " prj at X: " + dp.getX() + " Y: " + dp.getY());
 
-			lock.unlock();
-			
+                        lock.unlock();
+
                     }               
                     it = deadPrj.iterator();
-		    lock.lock();
+                    lock.lock();
                     while(it.hasNext()) {
 
                         Object o = it.next();
                         assert(o instanceof Projectile);
                         Projectile prj = (Projectile)o;
 
-        // Object asdf = projectileMap.get(prj);
-        // DirectedPoint dp = (DirectedPoint)asdf;
-        // Direction d = dp.getDirection();
+                        // Object asdf = projectileMap.get(prj);
+                        // DirectedPoint dp = (DirectedPoint)asdf;
+                        // Direction d = dp.getDirection();
 
-	// System.out.println("Deleting projectile for owner " + prj.getOwner().getName() + " prj at X: " + dp.getX() + " Y: " + dp.getY());
+                        // System.out.println("Deleting projectile for owner " + prj.getOwner().getName() + " prj at X: " + dp.getX() + " Y: " + dp.getY());
 
                         projectileMap.remove(prj);	
                         clientFired.remove(prj.getOwner());
 
                     }
-		    lock.unlock();
+                    lock.unlock();
                     deadPrj.clear();
                 }
             }
@@ -443,7 +443,7 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
         Direction d = dp.getDirection();
         CellImpl cell = getCellImpl(dp);
 
-	System.out.println("Owner: " + prj.getOwner().getName() + " at X: " + dp.getX() + " Y: " + dp.getY());
+        System.out.println("Owner: " + prj.getOwner().getName() + " at X: " + dp.getX() + " Y: " + dp.getY());
 
 
         /* Check for a wall */
@@ -480,16 +480,16 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
                 deadPrj.add(prj);
                 deadPrj.add(contents);
 
-		Projectile other_prj = (Projectile) contents;
-		other_prj.isDestroyed = true;
-		
+                Projectile other_prj = (Projectile) contents;
+                other_prj.isDestroyed = true;
+
                 update();
 
                 return deadPrj;
             } 
         } else if (prj.isDestroyed){
-	    	return deadPrj;
-	}
+            return deadPrj;
+        }
 
         /* Clear the old cell */
         cell.setContents(null);
@@ -530,117 +530,118 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
      * @param target The {@link Client} that was killed.
      */
     private synchronized void killClient(Client source, Client target) {
-	target.getLock();
-	source.getLock();
-	target.setKilledTo(true);
+        target.getLock();
+        source.getLock();
+        target.setKilledTo(true);
 
-	boolean clientIsMe = chandler.clientIsMe(target);
-	if(clientIsMe){
-	    assert(source != null);
-	    assert(target != null);
-	    // Mazewar.consolePrintLn(source.getName() + " just vaporized " + 
-	    // 			   target.getName());
+        boolean clientIsMe = chandler.clientIsMe(target);
+        if(clientIsMe){
+            assert(source != null);
+            assert(target != null);
+            // Mazewar.consolePrintLn(source.getName() + " just vaporized " + 
+            // 			   target.getName());
 
-	    Point oldPoint = target.getPoint();
+            Point oldPoint = target.getPoint();
 
-	    Object o = clientMap.get(target);
-	    assert(o instanceof Point);
-	    Point point = (Point)o;
-	    CellImpl cell = getCellImpl(point);
-	    //cell.setContents(null);
-	    // Pick a random starting point, and check to see if it is already occupied
-	    point = new Point(randomGen.nextInt(maxX),randomGen.nextInt(maxY));
-	    cell = getCellImpl(point);
-	
-	    // Make killed client choose where to spawn.
-	    //boolean reservePoint;
+            Object o = clientMap.get(target);
+            assert(o instanceof Point);
+            Point point = (Point)o;
+            CellImpl cell = getCellImpl(point);
+            //cell.setContents(null);
+            // Pick a random starting point, and check to see if it is already occupied
+            point = new Point(randomGen.nextInt(maxX),randomGen.nextInt(maxY));
+            cell = getCellImpl(point);
 
-	    //reservePoint = chandler.reservePoint(point);
+            // Make killed client choose where to spawn.
+            //boolean reservePoint;
 
-	    // Repeat until we find an empty cell
-	    while(cell.getContents() != null && oldPoint != point){ //|| !reservePoint) {
-		point = new Point(randomGen.nextInt(maxX),randomGen.nextInt(maxY));
-		cell = getCellImpl(point);
+            //reservePoint = chandler.reservePoint(point);
 
-		//reservePoint = chandler.reservePoint(point);
-	    }
-    
+            // Repeat until we find an empty cell
+            while(cell.getContents() != null && oldPoint != point){ //|| !reservePoint) {
+                point = new Point(randomGen.nextInt(maxX),randomGen.nextInt(maxY));
+                cell = getCellImpl(point);
+
+                //reservePoint = chandler.reservePoint(point);
+            }
+
             System.out.println("Found point to respawn at!");
 
-	    Direction d = Direction.random();
+            Direction d = Direction.random();
 
-	    while(cell.isWall(d)) {
-		d = Direction.random();
-	    }
+            while(cell.isWall(d)) {
+                d = Direction.random();
+            }
 
 
-	    // Broadcast where the killed client will re-spawn
-	    chandler.sendClientRespawn(source.getName(),target.getName(),point,d);
+            // Broadcast where the killed client will re-spawn
+            System.out.println(String.format("MAZEIMPL in killClient(), shooter %d, targer %d", source.getId(), target.getId()));
+            chandler.sendClientRespawn(source.getId(),target.getId(),point,d);
 
-	    //cell.setContents(target);
-	    //clientMap.put(target, new DirectedPoint(point, d));
-	    update();
-	    // notifyClientKilled(source, target);
+            //cell.setContents(target);
+            //clientMap.put(target, new DirectedPoint(point, d));
+            update();
+            // notifyClientKilled(source, target);
 
-	} else {
-	    assert(source != null);
-	    assert(target != null);
-	    // Mazewar.consolePrintLn(source.getName() + " just vaporized " + 
-	    // 			   target.getName());
-	    Object o = clientMap.get(target);
-	    assert(o instanceof Point);
-	    Point point = (Point)o;
-	    CellImpl cell = getCellImpl(point);
-	    //cell.setContents(null);
-	    // Pick a random starting point, and check to see if it is already occupied
-	    // point = new Point(randomGen.nextInt(maxX),randomGen.nextInt(maxY));
-	    // cell = getCellImpl(point);
+            } else {
+                assert(source != null);
+                assert(target != null);
+                // Mazewar.consolePrintLn(source.getName() + " just vaporized " + 
+                // 			   target.getName());
+                Object o = clientMap.get(target);
+                assert(o instanceof Point);
+                Point point = (Point)o;
+                CellImpl cell = getCellImpl(point);
+                //cell.setContents(null);
+                // Pick a random starting point, and check to see if it is already occupied
+                // point = new Point(randomGen.nextInt(maxX),randomGen.nextInt(maxY));
+                // cell = getCellImpl(point);
 
-	    // //boolean reservePoint;
+                // //boolean reservePoint;
 
-	    // // Repeat until we find an empty cell
-	    // while(cell.getContents() != null) {
-	    // 	point = new Point(randomGen.nextInt(maxX),randomGen.nextInt(maxY));
-	    // 	cell = getCellImpl(point);
+                // // Repeat until we find an empty cell
+                // while(cell.getContents() != null) {
+                // 	point = new Point(randomGen.nextInt(maxX),randomGen.nextInt(maxY));
+                // 	cell = getCellImpl(point);
 
-	    // 	//reservePoint = chandler.reservePoint(point);
-	    // }
+                // 	//reservePoint = chandler.reservePoint(point);
+                // }
 
-	    // Direction d = Direction.random();
-	    // while(cell.isWall(d)) {
-	    // 	d = Direction.random();
-	    // }
+                // Direction d = Direction.random();
+                // while(cell.isWall(d)) {
+                // 	d = Direction.random();
+                // }
 
-	    //cell.setContents(target);
-	    //clientMap.put(target, new DirectedPoint(point, d));
-	    update();
-	    //notifyClientKilled(source, target);
-		
-	}
-	target.releaseLock();
-	source.releaseLock();
+                //cell.setContents(target);
+                //clientMap.put(target, new DirectedPoint(point, d));
+                update();
+                //notifyClientKilled(source, target);
+
+            }
+            target.releaseLock();
+            source.releaseLock();
     }
 
     public void setClient(Client sc, Client tc, Point p, Direction d){
         // Object o = clientMap.remove(tc);
-	// Point point = (Point)o;
+        // Point point = (Point)o;
         // CellImpl cell = getCellImpl(point);
         // cell.setContents(null);
-	// point = p;
+        // point = p;
 
-	    Mazewar.consolePrintLn(sc.getName() + " just vaporized " + 
-				   tc.getName());
+        Mazewar.consolePrintLn(sc.getName() + " just vaporized " + 
+                tc.getName());
 
-	Object o = clientMap.remove(tc);
-	Point oldPoint = (Point)o;
-	CellImpl cell = getCellImpl(oldPoint);
-	cell.setContents(null);
+        Object o = clientMap.remove(tc);
+        Point oldPoint = (Point)o;
+        CellImpl cell = getCellImpl(oldPoint);
+        cell.setContents(null);
 
-	cell = getCellImpl(p);
-	cell.setContents(tc);
-	clientMap.put(tc, new DirectedPoint(p, d));
-	update();
-	notifyClientKilled(sc,tc);
+        cell = getCellImpl(p);
+        cell.setContents(tc);
+        clientMap.put(tc, new DirectedPoint(p, d));
+        update();
+        notifyClientKilled(sc,tc);
     }
 
     /**
