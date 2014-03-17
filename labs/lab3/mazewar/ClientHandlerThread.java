@@ -462,6 +462,20 @@ public class ClientHandlerThread extends Thread {
         // }
     }
 
+
+    public void spawnClient(Integer id, ConcurrentHashMap<Integer,ClientData> tuple){
+        ClientData cd = new ClientData();
+        cd = tuple.get(id);
+
+        // Spawn client	
+        RemoteClient c = new RemoteClient(cd.client_name);
+        maze.addRemoteClient(c, cd.client_location, cd.client_direction);
+
+        // Update tuple
+        cd.c = c;
+        lookupTable.put(id, cd);
+    }
+
     public void spawnClient(){
 	Integer id = packetFromClient.client_id;
 	ConcurrentHashMap<Integer,ClientData> tuple = packetFromClient.lookupTable;
@@ -498,30 +512,35 @@ public class ClientHandlerThread extends Thread {
 
     public void runEventFromQueue(Integer lc){
         boolean executed;
-        Integer currentLC = data.eventIndex;
+        Integer currentLC = data.getEventIndex();
         System.out.println("CHANDLER: in runEventFromQueue, plc is " + lc + ", current lc is " + currentLC);
 
-        if (data.eventIndex == lc) {
+        if (data.getEventIndex() == lc) {
             int i = lc;
             while (eventQueue[i] != null) {
                 System.out.println("CHANDLER: running event with lc = " + i);
                 packetFromClient = eventQueue[lc];
-                Client c = (lookupTable.get(packetFromClient.client_id)).c;
+
+		Client c = null;
+		if(packetFromClient.packet_type != MazePacket.CLIENT_SPAWN)
+                	c = (lookupTable.get(packetFromClient.client_id)).c;
+
                 executed = executeEvent(c);
                 if (!executed) break;
                 i = i + 1;
             }
             System.out.println("CHANDLER: now lc is  " + i);
             data.eventIndex = i;
-        } else {
-            
-        }
+        } 
     }
 
     private boolean executeEvent(Client c) {
         // called in runEventFromQueue
         boolean success = true;
-        c.getLock();		
+
+	if(c != null)
+        	c.getLock();		
+
         switch (packetFromClient.packet_type) {
             case MazePacket.CLIENT_REGISTER:
                 addClientEvent();
@@ -555,7 +574,10 @@ public class ClientHandlerThread extends Thread {
                 success = false;
                 break;
         }
-        c.releaseLock();
+	
+	if(c != null)
+        	c.releaseLock();
+
         return success;
     }
 
