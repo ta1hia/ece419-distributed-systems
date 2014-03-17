@@ -506,14 +506,14 @@ public class ClientHandlerThread extends Thread {
     }
 
     public void addEventToQueue(MazePacket p) {
-	System.out.println("CHANDLER: Saving lc: " + p.lamportClock);
+	System.out.println("CHANDLER: Saving event at index: " + p.lamportClock);
         eventQueue[p.lamportClock] =  p;
     }
 
     public void runEventFromQueue(Integer lc){
         boolean executed;
         Integer currentLC = data.getEventIndex();
-        System.out.println("CHANDLER: in runEventFromQueue, plc is " + lc + ", current lc is " + currentLC);
+        System.out.println("CHANDLER: in runEventFromQueue, got lamportClock " + lc + ", current eventIndex is " + currentLC);
 
         if (data.getEventIndex() == lc) {
             int i = lc;

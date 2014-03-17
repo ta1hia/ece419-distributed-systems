@@ -66,6 +66,7 @@ public class Dispatcher extends Thread {
     public void send(MazePacket packetToClients){
         // Try and get a valid lamport clock!
         MazePacket getClock = new MazePacket();
+	getClock.lamportClock = data.getLamportClock();
 
         int requested_lc;
 
@@ -112,7 +113,7 @@ public class Dispatcher extends Thread {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        }
+        } 
 
         if(packetToClients.packet_type == MazePacket.CLIENT_REGISTER){
 	    data.acquireSemaphore(socketOutList.size());
