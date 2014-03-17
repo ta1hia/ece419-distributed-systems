@@ -322,7 +322,7 @@ public class ClientHandlerThread extends Thread {
     }
 
     private void clientBackEvent(Client c) {
-        if (clientTable.containsKey(packetFromClient.client_id) && !c.isKilled()) { 
+        if (!c.isKilled()) { 
             c.backup();
         } else {
             System.out.println("CLIENT: no client named " +packetFromClient.client_id+ " in backup");
@@ -330,7 +330,7 @@ public class ClientHandlerThread extends Thread {
     }
 
     private void clientLeftEvent(Client c) {
-        if (clientTable.containsKey(packetFromClient.client_id) && !c.isKilled()) { 
+        if (!c.isKilled()) { 
             c.turnLeft();
         } else {
             System.out.println("CLIENT: no client named " +packetFromClient.client_id+ " in left");
@@ -338,7 +338,7 @@ public class ClientHandlerThread extends Thread {
     }
 
     private void clientRightEvent(Client c) {
-        if (clientTable.containsKey(packetFromClient.client_id) && !c.isKilled()) { 
+        if (!c.isKilled()) { 
             c.turnRight();
         } else {
             System.out.println("CLIENT: no client named " +packetFromClient.client_id+ " in right");
@@ -347,7 +347,7 @@ public class ClientHandlerThread extends Thread {
 
 
     private void clientFireEvent(Client c) {
-        if (clientTable.containsKey(packetFromClient.client_id) && !c.isKilled()) { 
+        if (!c.isKilled()) { 
             c.fire();
             // Decrement score.
             //scoreTable.clientFired(clientTable.get(name));
