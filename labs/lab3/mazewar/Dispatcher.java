@@ -138,7 +138,10 @@ public class Dispatcher extends Thread {
                     }
 
                     packetToClients.lamportClock = requested_lc;
-                    data.setLamportClock(requested_lc + 1);
+                    debug("lamport clock before " + data.lamportClock);
+                    data.incrementLamportClock();
+                    //data.setLamportClock(requested_lc + 1);
+                    debug("lamport clock after " + data.lamportClock);
 
                 }
 
