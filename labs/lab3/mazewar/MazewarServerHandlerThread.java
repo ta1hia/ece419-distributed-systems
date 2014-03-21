@@ -133,6 +133,8 @@ public class MazewarServerHandlerThread extends Thread {
             //eventPacket.lamportClock = lamportClock;]
             eventPacket.isValidClock = true;
 
+            debug("Incremented lc is " + data.getLamportClock());
+
         } else{
             // Oh no! The lamport clock is not valid.
             // Send the latest lamport clock and disawknowledgement packet

@@ -551,8 +551,8 @@ public class ClientHandlerThread extends Thread {
             }
             System.out.println("CHANDLER: eventIndex is now  " + i);
             data.setEventIndex(i);
-            if(packetFromClient.client_id != myId)
-                data.incrementLamportClock();
+            //if(packetFromClient.client_id != myId)
+            //    data.incrementLamportClock();
         } 
     }
 
