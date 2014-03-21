@@ -369,12 +369,27 @@ public class ClientHandlerThread extends Thread {
             System.out.println("CLIENT: Quitting");
 
             quitting = true;
-            sendPacketToClients(MazePacket.CLIENT_QUIT);
 
             try{
+
+		// Send lookup that you are quitting
+		MazePacket packetToLookup = new MazePacket();
+		packetToLookup.packet_type = MazePacket.LOOKUP_QUIT;
+		out.writeObject(packetToLookup);
+
+		// Send to other clients you are quitting
+		MazePacket packetToClients = new MazePacket();
+		packetToLookup.packet_type = MazePacket.CLIENT_QUIT;
+		dispatcher.send(packetToClients);
+
+		// Close lookup connection.
                 out.close();
                 in.close();
                 cSocket.close();
+
+		// Close client connections.
+		// data.quit();
+
             } catch(Exception e1){
                 System.out.println("CLIENT: Couldn't close sockets...");
             }
