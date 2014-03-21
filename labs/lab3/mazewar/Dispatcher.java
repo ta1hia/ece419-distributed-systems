@@ -117,7 +117,7 @@ public class Dispatcher extends Thread {
 
 	    // Client doesn't have to add a itself again. Exit right away.
             if (packetToClients.packet_type == MazePacket.CLIENT_SPAWN) {
-                data.setLamportClock(data.getLamportClock() + 1);
+                data.setClockAndIndex(data.getLamportClock() + 1);
                 return;
             }
 
@@ -127,7 +127,7 @@ public class Dispatcher extends Thread {
         if(packetToClients.packet_type == MazePacket.CLIENT_REGISTER){
             data.acquireSemaphore(socketOutList.size());
             return;
-        } else if (packetToClients.packet_type == MazePacket.CLIENT_SPAWN) {	   
+        } else if (packetToClients.packet_type == MazePacket.CLIENT_SPAWN) {	
             return;
         }
 

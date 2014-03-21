@@ -124,7 +124,6 @@ public class ServerData implements Serializable {
 
     public void setLamportClock(int value){
         lamportClock = value;
-	eventIndex = value;
     }
 
     public Integer incrementLamportClock() {
@@ -145,6 +144,12 @@ public class ServerData implements Serializable {
 
     public void setEventIndex(Integer i){
 	eventIndex = i;
+    }
+
+
+    public void setClockAndIndex(int value){
+        lamportClock = value;
+	eventIndex = value;
     }
 
 }

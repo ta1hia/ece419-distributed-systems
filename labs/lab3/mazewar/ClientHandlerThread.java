@@ -239,17 +239,20 @@ public class ClientHandlerThread extends Thread {
 
         if (lookupTable.containsKey(t_id)){
             Client tc = (lookupTable.get(t_id)).c;
-
-            tc.getLock();
+            //tc.getLock();
 
             Client sc = (lookupTable.get(s_id)).c;
+	    sc.getLock();
+
             Point p = packetFromClient.client_location;
             Direction d = packetFromClient.client_direction;
 
             maze.setClient(sc, tc, p,d);
 
             tc.setKilledTo(false);
-            tc.releaseLock();
+
+            //tc.releaseLock();
+	    sc.releaseLock();
 
         } else {
             System.out.println("CLIENT: no client with id " +packetFromClient.client_id+ " in respawn");
@@ -540,6 +543,7 @@ public class ClientHandlerThread extends Thread {
             while (eventQueue[i] != null) {
                 System.out.println("CHANDLER: running event with lc = " + i);
                 packetFromClient = eventQueue[lc];
+		eventQueue[lc] = null;
 
                 Client c = null;
                 if(packetFromClient.packet_type != MazePacket.CLIENT_SPAWN)
@@ -547,7 +551,10 @@ public class ClientHandlerThread extends Thread {
 
                 executed = executeEvent(c);
                 if (!executed) break;
+
                 i = i + 1;
+		if(i == 20)
+		    i = 0;
             }
             System.out.println("CHANDLER: eventIndex is now  " + i);
             data.setEventIndex(i);
@@ -600,6 +607,7 @@ public class ClientHandlerThread extends Thread {
         if(c != null)
             c.releaseLock();
 
+	System.out.println("I RELEASED THE LOCK!!!");
         return success;
     }
 

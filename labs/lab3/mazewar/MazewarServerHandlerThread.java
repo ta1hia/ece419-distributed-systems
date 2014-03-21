@@ -125,10 +125,14 @@ public class MazewarServerHandlerThread extends Thread {
         debug("requested_lc: " + requested_lc + " current lamportClock: " + data.getLamportClock());
         eventPacket.lamportClock = data.getLamportClock();
 
-        if(requested_lc == lamportClock){
+        if(requested_lc >= lamportClock){
             debug("incrementing my lc after recieving CLIENT_CLOCK packet");
             // Clock is valid!
-            data.incrementLamportClock();
+	    if(requested_lc == 19){
+		data.setLamportClock(0);
+	    } else {
+		data.setLamportClock(requested_lc + 1);
+	    }
             //Set up and send awknowledgement packet
             //eventPacket.lamportClock = lamportClock;]
             eventPacket.isValidClock = true;
@@ -153,7 +157,7 @@ public class MazewarServerHandlerThread extends Thread {
 
             // Update to the latest lamport clock
             if(data.getLamportClock() < packetFromRC.lamportClock)
-		data.setLamportClock(packetFromRC.lamportClock);
+		data.setClockAndIndex(packetFromRC.lamportClock);
 	    
 
             chandler.spawnClient(packetFromRC.client_id,packetFromRC.lookupTable);
@@ -176,8 +180,8 @@ public class MazewarServerHandlerThread extends Thread {
         if(!clockIsValid){
             // Update the current lamport clock
             debug("Awknowledgement failed. LC set to: " +  packetFromRC.lamportClock);
-	    if(data.getLamportClock() < packetFromRC.lamportClock)
-            	data.setLamportClock(packetFromRC.lamportClock);
+	    //if(data.getLamportClock() < packetFromRC.lamportClock)
+            	data.setClockAndIndex(packetFromRC.lamportClock);
         }
 
         data.releaseSemaphore(1);
