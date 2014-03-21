@@ -68,7 +68,7 @@ public class MazewarServerHandlerThread extends Thread {
                         clientClock();
                         break;
                     case MazePacket.CLIENT_ACK:
-                        clientAwk();
+                        clientAck();
                         break;
                     case MazePacket.CLIENT_REGISTER:
                         registerClientEvent();
@@ -130,7 +130,7 @@ public class MazewarServerHandlerThread extends Thread {
             // Clock is valid!
             data.incrementLamportClock();
             //Set up and send awknowledgement packet
-            //eventPacket.lamportClock = lamportClock;
+            //eventPacket.lamportClock = lamportClock;]
             eventPacket.isValidClock = true;
 
         } else{
@@ -148,12 +148,15 @@ public class MazewarServerHandlerThread extends Thread {
 
         //chandler.spawnClient(packetFromRC.client_id,packetFromRC.lookupTable);
         if (packetFromRC.for_new_client) {
-            data.releaseSemaphore(1);
 
             // Update to the latest lamport clock
-            data.setLamportClock(packetFromRC.lamportClock);
+            if(data.getLamportClock() < packetFromRC.lamportClock)
+		data.setLamportClock(packetFromRC.lamportClock);
+	    
 
             chandler.spawnClient(packetFromRC.client_id,packetFromRC.lookupTable);
+
+            data.releaseSemaphore(1);
 
         } else { 
             chandler.addEventToQueue(packetFromRC);
@@ -164,14 +167,15 @@ public class MazewarServerHandlerThread extends Thread {
 
     // This client is awknowledging/disawk for lamport clock validation
     // Count the amount of awks
-    private void clientAwk(){
+    private void clientAck(){
         int lamportClock = packetFromRC.lamportClock;
         boolean clockIsValid = packetFromRC.isValidClock;
 
         if(!clockIsValid){
             // Update the current lamport clock
             debug("Awknowledgement failed. LC set to: " +  packetFromRC.lamportClock);
-            data.setLamportClock(packetFromRC.lamportClock);
+	    if(data.getLamportClock() < packetFromRC.lamportClock)
+            	data.setLamportClock(packetFromRC.lamportClock);
         }
 
         data.releaseSemaphore(1);

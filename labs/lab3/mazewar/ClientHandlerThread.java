@@ -375,11 +375,12 @@ public class ClientHandlerThread extends Thread {
 		// Send lookup that you are quitting
 		MazePacket packetToLookup = new MazePacket();
 		packetToLookup.packet_type = MazePacket.LOOKUP_QUIT;
+		packetToLookup.client_id = myId;
 		out.writeObject(packetToLookup);
-
 		// Send to other clients you are quitting
 		MazePacket packetToClients = new MazePacket();
 		packetToLookup.packet_type = MazePacket.CLIENT_QUIT;
+		packetToLookup.client_id = myId;
 		dispatcher.send(packetToClients);
 
 		// Close lookup connection.

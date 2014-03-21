@@ -73,6 +73,7 @@ public class Dispatcher extends Thread {
         if(socketOutList.size() > 0){
             try{
                 // Request a lamport clock if there is more than one client.
+		// If packet is for Register, send it to clients right away
                 if(packetToClients.packet_type != MazePacket.CLIENT_REGISTER){
                     while(true){
                         getClock.packet_type = MazePacket.CLIENT_CLOCK;
@@ -114,6 +115,7 @@ public class Dispatcher extends Thread {
                 e.printStackTrace();
             }
 
+	    // Client doesn't have to add a itself again. Exit right away.
             if (packetToClients.packet_type == MazePacket.CLIENT_SPAWN) {
                 data.setLamportClock(data.getLamportClock() + 1);
                 return;
@@ -121,6 +123,7 @@ public class Dispatcher extends Thread {
 
         } 
 
+	
         if(packetToClients.packet_type == MazePacket.CLIENT_REGISTER){
             data.acquireSemaphore(socketOutList.size());
             return;
@@ -129,7 +132,7 @@ public class Dispatcher extends Thread {
         }
 
         addEventToOwnQueue(packetToClients);
-
+	
         data.incrementLamportClock();
         debug("lamport clock after " + data.getLamportClock());
 
