@@ -191,6 +191,9 @@ public class MazewarServerHandlerThread extends Thread {
     private void clientQuit(){
         try{
             MazePacket eventPacket = new MazePacket();
+	    eventPacket.client_id = packetFromRC.client_id;
+	    eventPacket.packet_type = MazePacket.CLIENT_QUIT;
+	    eventPacket.lamportClock = packetFromRC.lamportClock;
             //String rc_name = packetFromRC.client_name;
             //debug(rc_name + " is quitting");
 
@@ -201,14 +204,15 @@ public class MazewarServerHandlerThread extends Thread {
 
             // Remove that client from the client table!
             //data.removeClientFromTable(rc_name);
-            //data.removeSocketOutFromList(cout);
+            data.removeSocketOutFromList(packetFromRC.client_id);
 
             // Close all connections!
             cin.close();
             cout.close();
             rcSocket.close();
 
-            data.addEventToQueue(eventPacket);
+            chandler.addEventToQueue(packetFromRC);
+	    chandler.runEventFromQueue(packetFromRC.lamportClock);
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println("server done broke");

@@ -383,6 +383,9 @@ public class ClientHandlerThread extends Thread {
 		packetToLookup.client_id = myId;
 		dispatcher.send(packetToClients);
 
+		// Don't exit until you have recieved all acknowledgements
+		data.acquireSemaphore(data.socketOutList.size());;
+
 		// Close lookup connection.
                 out.close();
                 in.close();
