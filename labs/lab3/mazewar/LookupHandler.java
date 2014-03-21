@@ -79,7 +79,7 @@ public class LookupHandler extends Thread {
 
                 /* CLIENT_QUIT */
                 // Delete client from table if quitting
-                if (packetFromClient.packet_type == MazePacket.CLIENT_QUIT) {
+                if (packetFromClient.packet_type == MazePacket.LOOKUP_QUIT) {
                     packetToClient.packet_type = MazePacket.LOOKUP_REPLY;
 
                     System.out.println("From Client: CLIENT_QUIT ");

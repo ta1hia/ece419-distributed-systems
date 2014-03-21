@@ -191,16 +191,16 @@ public class MazewarServerHandlerThread extends Thread {
     private void clientQuit(){
         try{
             MazePacket eventPacket = new MazePacket();
-            String rc_name = packetFromRC.client_name;
-            debug(rc_name + " is quitting");
+            //String rc_name = packetFromRC.client_name;
+            //debug(rc_name + " is quitting");
 
-            eventPacket.client_name = rc_name;
-            eventPacket.packet_type = MazePacket.CLIENT_QUIT;
+            //eventPacket.client_name = rc_name;
+            //eventPacket.packet_type = MazePacket.CLIENT_QUIT;
 
-            quitting = true;
+            //quitting = true;
 
             // Remove that client from the client table!
-            data.removeClientFromTable(rc_name);
+            //data.removeClientFromTable(rc_name);
             //data.removeSocketOutFromList(cout);
 
             // Close all connections!

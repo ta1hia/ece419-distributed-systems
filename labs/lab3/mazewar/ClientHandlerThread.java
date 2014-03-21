@@ -222,14 +222,9 @@ public class ClientHandlerThread extends Thread {
     //Remove the client that is quitting.
     private void clientQuitEvent(){	
         System.out.println("Remove quitting client");
-        String name = packetFromLookup.client_name;
-        if (clientTable.containsKey(name)) { 
-            Client c = clientTable.get(name);
-
+	Client c = (lookupTable.get(packetFromClient.client_id)).c;
             maze.removeClient(c);
-        } else {
-            System.out.println("CLIENT: no client named " +packetFromClient.client_id+ " in backup");
-        }
+	    
     }
 
     private void clientRespawnEvent(){
@@ -380,6 +375,8 @@ public class ClientHandlerThread extends Thread {
 		packetToLookup.packet_type = MazePacket.LOOKUP_QUIT;
 		packetToLookup.client_id = myId;
 		out.writeObject(packetToLookup);
+		System.out.println("Client quit from lookup.");
+
 		// Send to other clients you are quitting
 		MazePacket packetToClients = new MazePacket();
 		packetToLookup.packet_type = MazePacket.CLIENT_QUIT;
@@ -547,7 +544,8 @@ public class ClientHandlerThread extends Thread {
 
                 Client c = null;
                 if(packetFromClient.packet_type != MazePacket.CLIENT_SPAWN)
-                    c = (lookupTable.get(packetFromClient.client_id)).c;
+		    if(packetFromClient.packet_type != MazePacket.CLIENT_QUIT)
+			c = (lookupTable.get(packetFromClient.client_id)).c;
 
                 executed = executeEvent(c);
                 if (!executed) break;

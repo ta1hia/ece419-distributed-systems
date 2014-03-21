@@ -127,9 +127,11 @@ public class Dispatcher extends Thread {
         if(packetToClients.packet_type == MazePacket.CLIENT_REGISTER){
             data.acquireSemaphore(socketOutList.size());
             return;
-        } else if (packetToClients.packet_type == MazePacket.CLIENT_SPAWN) {	
-            return;
-        }
+        } else if (packetToClients.packet_type == MazePacket.CLIENT_SPAWN) {	            return;
+        } else if (packetToClients.packet_type == MazePacket.CLIENT_QUIT) {
+	    //data.acquireSemaphore(socketOutList.size());
+	    return;
+	}
 
         addEventToOwnQueue(packetToClients);
 	
