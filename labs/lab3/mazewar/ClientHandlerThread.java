@@ -257,6 +257,33 @@ public class ClientHandlerThread extends Thread {
     }
 
 
+    public void clientRespawnEvent(MazePacket packetFromClient){
+        Integer t_id = packetFromClient.target;
+        Integer s_id = packetFromClient.shooter;
+        debug("in clientRespawnEvent(), shooter is " +  s_id + ", respawnning target " + t_id);
+
+        if (lookupTable.containsKey(t_id)){
+            Client tc = (lookupTable.get(t_id)).c;
+            //tc.getLock();
+
+            Client sc = (lookupTable.get(s_id)).c;
+	    sc.getLock();
+
+            Point p = packetFromClient.client_location;
+            Direction d = packetFromClient.client_direction;
+
+            maze.setClient(sc, tc, p,d);
+
+            tc.setKilledTo(false);
+
+            //tc.releaseLock();
+	    sc.releaseLock();
+
+        } else {
+            System.out.println("CLIENT: no client with id " +packetFromClient.client_id+ " in respawn");
+        }
+    }
+
     /**
      * Process server packet eventsi
      * */

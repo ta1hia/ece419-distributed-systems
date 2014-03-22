@@ -303,10 +303,10 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
             // If it is a Client, kill it outright
             if(contents instanceof Client) {
                 notifyClientFired(client);
+		lock.unlock();
                 killClient(client, (Client)contents);
                 update();
 
-                lock.unlock();
                 return true; 
             } else {
                 // Otherwise fail (bullets will destroy each other)
@@ -576,11 +576,17 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
 
             // Broadcast where the killed client will re-spawn
             System.out.println(String.format("MAZEIMPL in killClient(), shooter %d, targer %d", source.getId(), target.getId()));
+
+
+            target.releaseLock();
+            source.releaseLock();
+
             chandler.sendClientRespawn(source.getId(),target.getId(),point,d);
 
+	    return;
             //cell.setContents(target);
             //clientMap.put(target, new DirectedPoint(point, d));
-            update();
+            //update();
             // notifyClientKilled(source, target);
 
             } else {
@@ -614,7 +620,7 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
 
                 //cell.setContents(target);
                 //clientMap.put(target, new DirectedPoint(point, d));
-                update();
+                //update();
                 //notifyClientKilled(source, target);
 
             }

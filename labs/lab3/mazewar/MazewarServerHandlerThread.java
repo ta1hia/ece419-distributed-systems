@@ -193,6 +193,7 @@ public class MazewarServerHandlerThread extends Thread {
         }
 
         data.releaseSemaphore(1);
+	
     }
 
     // The client is quitting.
@@ -418,8 +419,9 @@ public class MazewarServerHandlerThread extends Thread {
             eventPacket.client_direction = d;
             eventPacket.packet_type = MazePacket.CLIENT_RESPAWN;
 
-            chandler.addEventToQueue(eventPacket);
-            chandler.runEventFromQueue(packetFromRC.lamportClock);
+	    chandler.clientRespawnEvent(packetFromRC);
+            // chandler.addEventToQueue(eventPacket);
+            // chandler.runEventFromQueue(packetFromRC.lamportClock);
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println("server done broke");

@@ -69,8 +69,18 @@ public class Dispatcher extends Thread {
         packetToClients.lamportClock = data.getLamportClock();
 
         int requested_lc;
-
-        if(socketOutList.size() > 0){
+	if(packetToClients.packet_type == MazePacket.CLIENT_RESPAWN){
+	    try{
+	    // Go through each remote client	    
+	    for (ObjectOutputStream out : socketOutList.values()) {
+		out.writeObject(packetToClients);
+		System.out.println("DISPATCHER: Sending our respawn packets to other clients");
+	    }
+	    chandler.clientRespawnEvent(packetToClients);
+	    }catch(Exception e){
+	    }
+	    return;
+	} else if(socketOutList.size() > 0){
             try{
                 // Request a lamport clock if there is more than one client.
 		// If packet is for Register, send it to clients right away
