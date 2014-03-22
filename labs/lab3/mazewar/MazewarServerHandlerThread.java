@@ -168,7 +168,7 @@ public class MazewarServerHandlerThread extends Thread {
 		data.setClockAndIndex(packetFromRC.lamportClock);
 	    
 
-            chandler.spawnClient(packetFromRC.client_id,packetFromRC.lookupTable);
+            chandler.spawnClient(packetFromRC.client_id,packetFromRC.lookupTable, packetFromRC.client_score);
 
             data.releaseSemaphore(1);
 
@@ -353,6 +353,8 @@ public class MazewarServerHandlerThread extends Thread {
             eventPacket.for_new_client = true;
             eventPacket.lookupTable = new ConcurrentHashMap();
             eventPacket.lookupTable.put(chandler.getMyId(), chandler.getMe());
+	    eventPacket.client_score = chandler.getMyScore();
+
             eventPacket.lamportClock = data.getLamportClock();
 
             /* Get new client socket info */

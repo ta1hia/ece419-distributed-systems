@@ -47,7 +47,9 @@ public class ClientHandlerThread extends Thread {
 
     boolean debug = true;
 
-    public ClientHandlerThread(String lookup_host, int lookup_port, int client_port){
+    ScoreTableModel scoreModel;
+
+    public ClientHandlerThread(String lookup_host, int lookup_port, int client_port, ScoreTableModel sm){
         /* Connect to naming service. */
         try {
 
@@ -58,7 +60,7 @@ public class ClientHandlerThread extends Thread {
             out = new ObjectOutputStream(cSocket.getOutputStream());
             in = new ObjectInputStream(cSocket.getInputStream());
             clientTable = new ConcurrentHashMap();	 
-
+	    scoreModel = sm;
             // Start the dispatcher
             //		Broadcast this.client's events
             //dispatcher.start();
@@ -487,14 +489,20 @@ public class ClientHandlerThread extends Thread {
         dispatcher.send(respawnPacket);
     }
 
+    public int getMyScore(){
+	return scoreModel.getScore(lookupTable.get(myId).c);
+    }
 
-    public void spawnClient(Integer id, ConcurrentHashMap<Integer,ClientData> tuple){
+    public void spawnClient(Integer id, ConcurrentHashMap<Integer,ClientData> tuple, int score){
         ClientData cd = new ClientData();
         cd = tuple.get(id);
 
         // Spawn client	
         RemoteClient c = new RemoteClient(cd.client_name);
         maze.addRemoteClient(c, cd.client_location, cd.client_direction);
+
+	// Update score
+	scoreModel.setScore(c,score);
 
         // Update tuple
         cd.c = c;

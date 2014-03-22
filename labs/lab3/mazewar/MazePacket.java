@@ -63,6 +63,7 @@ public class MazePacket implements Serializable {
     public Point client_location;
     public Direction client_direction;
     public int client_type;
+    public int client_score; 
 
     public boolean for_new_client = false;
 

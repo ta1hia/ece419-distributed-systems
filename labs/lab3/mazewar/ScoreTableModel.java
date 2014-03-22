@@ -53,7 +53,30 @@ public class ScoreTableModel implements TableModel, MazeListener {
          * {@link Client} loses five points if killed.
          */
         private final int scoreAdjKilled = -5;
-        
+
+    public void setScore(Client client, int score){
+                assert(client != null);
+                Object o = clientMap.get(client);
+                assert(o instanceof ScoreWrapper);
+                scoreSet.remove(o);
+                ScoreWrapper s = (ScoreWrapper)o;
+                s.adjustScore(score);
+                scoreSet.add(s);
+                notifyListeners();
+    }
+
+    public int getScore(Client client){
+                assert(client != null);
+                Object o = clientMap.get(client);
+                assert(o instanceof ScoreWrapper);
+                scoreSet.remove(o);
+                ScoreWrapper s = (ScoreWrapper)o;
+                int score = s.getScore();
+                scoreSet.add(s);
+                notifyListeners();
+		return score;
+    }
+
         /**
          * A wrapper class for pairing a {@link Client} with its
          * score.
