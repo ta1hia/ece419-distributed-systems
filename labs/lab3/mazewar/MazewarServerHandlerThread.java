@@ -103,6 +103,9 @@ public class MazewarServerHandlerThread extends Thread {
                     case MazePacket.CLIENT_QUIT:
                         clientQuit();
                         break;
+		    case MazePacket.CLIENT_REL_SEM:
+			clientReleaseSem();
+			break;
                     default:
                         System.out.println("S_HANDLER: Could not recognize packet type");
                         break;
@@ -112,6 +115,11 @@ public class MazewarServerHandlerThread extends Thread {
             e.printStackTrace();
             System.out.println("server done broke");
         }
+    }
+
+    private void clientReleaseSem(){
+	data.releaseSemaphore(1);
+	System.out.println("Released a semaphore");
     }
 
     // Client is requesting for a valid clock!
@@ -192,7 +200,7 @@ public class MazewarServerHandlerThread extends Thread {
         try{
             MazePacket eventPacket = new MazePacket();
 	    eventPacket.client_id = packetFromRC.client_id;
-	    eventPacket.packet_type = MazePacket.CLIENT_QUIT;
+	    eventPacket.packet_type = MazePacket.CLIENT_REL_SEM;
 	    eventPacket.lamportClock = packetFromRC.lamportClock;
             //String rc_name = packetFromRC.client_name;
             //debug(rc_name + " is quitting");
@@ -204,6 +212,7 @@ public class MazewarServerHandlerThread extends Thread {
 
             // Remove that client from the client table!
             //data.removeClientFromTable(rc_name);
+	    dispatcher.sendToClient(packetFromRC.client_id, eventPacket);
             data.removeSocketOutFromList(packetFromRC.client_id);
 
             // Close all connections!

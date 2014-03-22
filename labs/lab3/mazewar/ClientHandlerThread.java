@@ -370,6 +370,17 @@ public class ClientHandlerThread extends Thread {
 
             try{
 
+
+
+		// Send to other clients you are quitting
+		MazePacket packetToClients = new MazePacket();
+		packetToClients.packet_type = MazePacket.CLIENT_QUIT;
+		packetToClients.client_id = myId;
+		dispatcher.send(packetToClients);
+
+		// Don't exit until you have recieved all acknowledgements
+		//data.acquireSemaphore(data.socketOutList.size());;
+
 		// Send lookup that you are quitting
 		MazePacket packetToLookup = new MazePacket();
 		packetToLookup.packet_type = MazePacket.LOOKUP_QUIT;
@@ -377,14 +388,7 @@ public class ClientHandlerThread extends Thread {
 		out.writeObject(packetToLookup);
 		System.out.println("Client quit from lookup.");
 
-		// Send to other clients you are quitting
-		MazePacket packetToClients = new MazePacket();
-		packetToLookup.packet_type = MazePacket.CLIENT_QUIT;
-		packetToLookup.client_id = myId;
-		dispatcher.send(packetToClients);
-
-		// Don't exit until you have recieved all acknowledgements
-		data.acquireSemaphore(data.socketOutList.size());;
+		System.out.println("Client about to leave.");
 
 		// Close lookup connection.
                 out.close();

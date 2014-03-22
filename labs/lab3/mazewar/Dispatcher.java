@@ -129,7 +129,7 @@ public class Dispatcher extends Thread {
             return;
         } else if (packetToClients.packet_type == MazePacket.CLIENT_SPAWN) {	            return;
         } else if (packetToClients.packet_type == MazePacket.CLIENT_QUIT) {
-	    //data.acquireSemaphore(socketOutList.size());
+	    data.acquireSemaphore(socketOutList.size());
 	    return;
 	}
 

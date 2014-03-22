@@ -33,7 +33,8 @@ public class MazePacket implements Serializable {
     public static final int CLIENT_ACK = 209;
     public static final int CLIENT_CLOCK = 210;
     public static final int CLIENT_SPAWN = 211;
-   
+    public static final int CLIENT_REL_SEM = 212;
+
     // Lookup service
     public static final int LOOKUP_REPLY = 300;
     public static final int LOOKUP_REGISTER = 301;

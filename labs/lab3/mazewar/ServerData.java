@@ -53,7 +53,7 @@ public class ServerData implements Serializable {
     }
 
     public void acquireSemaphore(int num){
-
+	System.out.println("The amount in sem is " + sem.availablePermits() +  ". Amount required is " + num); 
         try{
             sem.acquire(num);
         } catch (Exception e){
@@ -63,6 +63,8 @@ public class ServerData implements Serializable {
     }
 
     public void releaseSemaphore(int num){
+	System.out.println("Releasing " + num + " semaphore(s)");
+
         try{
             sem.release(num);
         } catch (Exception e){
