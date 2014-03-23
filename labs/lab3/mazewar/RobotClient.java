@@ -47,12 +47,6 @@ public class RobotClient extends LocalClient implements Runnable {
          */
         private boolean active = false;
    
-
-    int robot_id;
-    ClientHandlerThread chandler;
-    boolean controlRobot = false;
-
-
         /**
          * Create a computer controlled {@link LocalClient}.
          * @param name The name of this {@link RobotClient}.
@@ -60,24 +54,10 @@ public class RobotClient extends LocalClient implements Runnable {
         public RobotClient(String name) {
                 super(name);
                 assert(name != null);
-                // Create our thread		
+                // Create our thread
                 thread = new Thread(this);
         }
    
-
-    public RobotClient(String name, int id, ClientHandlerThread chandler,boolean cr) {
-                super(name);
-                assert(name != null);
-
-		this.chandler = chandler;
-		robot_id = id;
-
-		controlRobot = cr;
-
-		// Create our thread
-		thread = new Thread(this);
-        }
-
         /** 
          * Override the abstract {@link Client}'s registerMaze method so that we know when to start 
          * control thread.
@@ -87,12 +67,9 @@ public class RobotClient extends LocalClient implements Runnable {
                 assert(maze != null);
                 super.registerMaze(maze);
 
-		System.out.println("About to run robots!");
-		if(controlRobot){
-		    // Get the control thread going.
-		    active = true;
-		    thread.start();
-		}
+                // Get the control thread going.
+                active = true;
+                thread.start();
         }
         
         /** 
@@ -120,33 +97,29 @@ public class RobotClient extends LocalClient implements Runnable {
 
                 // Loop while we are active
                 while(active) {
-		    // Try to move forward
-		    if(checkForward()) {			
-			    chandler.sendRobotPacketToClients(MazePacket.CLIENT_FORWARD,robot_id);
-		    } else {
-			
-			// If we fail...
-			if(randomGen.nextInt(3) == 1) {
-			    // turn left!
-			    chandler.sendRobotPacketToClients(MazePacket.CLIENT_LEFT,robot_id);
-			} else {
-			    // or perhaps turn right!
-			    chandler.sendRobotPacketToClients(MazePacket.CLIENT_RIGHT,robot_id);
-			}
-		    }
+                        // Try to move forward
+                        if(!forward()) {
+                                // If we fail...
+                                if(randomGen.nextInt(3) == 1) {
+                                        // turn left!
+                                        turnLeft();
+                                } else {
+                                        // or perhaps turn right!
+                                        turnRight();
+                                }
+                        }
 
-		    // Shoot at things once and a while.
-		    if(randomGen.nextInt(10) == 1) {
-
-			chandler.sendRobotPacketToClients(MazePacket.CLIENT_FIRE,robot_id);
-		    }
+                        // Shoot at things once and a while.
+                        if(randomGen.nextInt(10) == 1) {
+                                fire();
+                        }
                         
-		    // Sleep so the humans can possibly compete.
-		    try {
-			thread.sleep(200);
-		    } catch(Exception e) {
-			// Shouldn't happen.
-		    }
+                        // Sleep so the humans can possibly compete.
+                        try {
+                                thread.sleep(200);
+                        } catch(Exception e) {
+                                // Shouldn't happen.
+                        }
                 }
         }
 }

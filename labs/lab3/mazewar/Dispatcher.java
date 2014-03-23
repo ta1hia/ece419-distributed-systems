@@ -64,25 +64,12 @@ public class Dispatcher extends Thread {
     }
 
     public void send(MazePacket packetToClients){
-
-	lock.lock();
-	System.out.println("DISPATCHER: Sending packet type " + packetToClients.packet_type);
-
         // Try and get a valid lamport clock!
         MazePacket getClock = new MazePacket();
         packetToClients.lamportClock = data.getLamportClock();
 
         int requested_lc;
-
-	if(packetToClients.client_type == MazePacket.ROBOT){
-            chandler.addEventToQueue(packetToClients);
-            chandler.runEventFromQueue(packetToClients.lamportClock);
-	    data.incrementLamportClock();
-
-
-	    lock.unlock();
-	    return;
-	} else if(packetToClients.packet_type == MazePacket.CLIENT_RESPAWN){
+	if(packetToClients.packet_type == MazePacket.CLIENT_RESPAWN){
 	    try{
 	    // Go through each remote client	    
 	    for (ObjectOutputStream out : socketOutList.values()) {
@@ -92,10 +79,6 @@ public class Dispatcher extends Thread {
 	    chandler.clientRespawnEvent(packetToClients);
 	    }catch(Exception e){
 	    }
-
-	    addEventToOwnQueue(packetToClients);
-
-	    lock.unlock();
 	    return;
 	} else if(socketOutList.size() > 0){
             try{
@@ -115,10 +98,8 @@ public class Dispatcher extends Thread {
                             debug("Calling client for clock: " + requested_lc);	    
                         }
 
-			lock.unlock();
-                        // Wait until all clients have aknowledged!	   
+                        // Wait until all clients have aknowledged!
                         data.acquireSemaphore(socketOutList.size());
-			lock.lock();
 
                         // You've finally woken up
                         // Check if the lamport clock is valid
@@ -147,8 +128,6 @@ public class Dispatcher extends Thread {
 	    // Client doesn't have to add a itself again. Exit right away.
             if (packetToClients.packet_type == MazePacket.CLIENT_SPAWN) {
                 data.setClockAndIndex(data.getLamportClock() + 1);
-
-		lock.unlock();
                 return;
             }
 
@@ -157,27 +136,16 @@ public class Dispatcher extends Thread {
 	
         if(packetToClients.packet_type == MazePacket.CLIENT_REGISTER){
             data.acquireSemaphore(socketOutList.size());
-
-	    lock.unlock();
             return;
-        } else if (packetToClients.packet_type == MazePacket.CLIENT_SPAWN) {	   
-
-	    lock.unlock();         
-	    return;
+        } else if (packetToClients.packet_type == MazePacket.CLIENT_SPAWN) {	            return;
         } else if (packetToClients.packet_type == MazePacket.CLIENT_QUIT) {
 	    data.acquireSemaphore(socketOutList.size());
-
-	    lock.unlock();
 	    return;
 	}
 
-
         addEventToOwnQueue(packetToClients);
 	
-	lock.unlock();
-
         data.incrementLamportClock();
-
         debug("lamport clock after " + data.getLamportClock());
 
     }
