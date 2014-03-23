@@ -47,6 +47,10 @@ public class RobotClient extends LocalClient implements Runnable {
          */
         private boolean active = false;
    
+
+    int robot_id;
+    ClientHandlerThread chandler;
+
         /**
          * Create a computer controlled {@link LocalClient}.
          * @param name The name of this {@link RobotClient}.
@@ -58,6 +62,17 @@ public class RobotClient extends LocalClient implements Runnable {
                 thread = new Thread(this);
         }
    
+
+    public RobotClient(String name, int id, ClientHandlerThread chandler) {
+                super(name);
+                assert(name != null);
+
+		this.chandler = chandler;
+		robot_id = id;
+                // Create our thread
+                thread = new Thread(this);
+        }
+
         /** 
          * Override the abstract {@link Client}'s registerMaze method so that we know when to start 
          * control thread.
@@ -66,6 +81,8 @@ public class RobotClient extends LocalClient implements Runnable {
         public synchronized void registerMaze(Maze maze) {
                 assert(maze != null);
                 super.registerMaze(maze);
+
+		System.out.println("About to run robots!");
 
                 // Get the control thread going.
                 active = true;

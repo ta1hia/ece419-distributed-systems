@@ -32,6 +32,7 @@ public class ClientHandlerThread extends Thread {
     ConcurrentHashMap<String, Client> clientTable; 
     MazePacket [] eventQueue = new MazePacket[20];
     ConcurrentHashMap<Integer, ClientData> lookupTable;
+    ConcurrentHashMap<Integer, ClientData> robotTable;
 
     int seqNum;
     //MazePacket []eventArray = new MazePacket[21];
@@ -131,6 +132,32 @@ public class ClientHandlerThread extends Thread {
             System.out.println("ERROR: registering with server");
         }
 
+    }
+
+    public void addRobots(){
+	robotTable = new ConcurrentHashMap();
+	Client c1 = new RobotClient("Trouble",-1,this);
+	Client c2 = new RobotClient("Mojo Jojo", -2,this);
+
+	ClientData cd1 = new ClientData();
+	ClientData cd2 = new ClientData();
+	
+	cd1.client_name = c1.getName();
+	cd1.client_type = ClientData.ROBOT;
+	cd1.client_id = -1;
+	cd1.c = c1;
+
+	cd2.client_name = c2.getName();
+	cd2.client_type = ClientData.ROBOT;
+	cd2.client_id = -2;
+	cd2.c = c2;
+
+	robotTable.put(-1,cd1);
+	robotTable.put(-2,cd2);
+	
+	maze.addClient(c1);
+	maze.addClient(c2);
+	
     }
 
     public void broadcastNewClient(){

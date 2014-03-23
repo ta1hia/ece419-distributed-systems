@@ -266,6 +266,7 @@ public class Mazewar extends JFrame {
         this.requestFocusInWindow();
 	clientHandler.start();
         clientHandler.broadcastNewClientLocation();
+	clientHandler.addRobots();
     }
 
 
