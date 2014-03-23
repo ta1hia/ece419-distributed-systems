@@ -224,7 +224,7 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
         //boolean setPosition = client.setPosition(point);
 
         // Repeat until we find an empty cell
-        while(cell.getContents() != null){ // || !setPosition) {
+        while(cell.getContents() != null ){//|| !setPosition) {
             point = new Point(rand.nextInt(maxX),rand.nextInt(maxY));
             cell = getCellImpl(point);
 
@@ -335,6 +335,14 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
         assert(o instanceof DirectedPoint);
         DirectedPoint dp = (DirectedPoint)o;
         return moveClient(client, dp.getDirection());
+    }
+
+    public synchronized boolean checkClientForward(Client client) {
+        assert(client != null);
+        Object o = clientMap.get(client);
+        assert(o instanceof DirectedPoint);
+        DirectedPoint dp = (DirectedPoint)o;
+        return checkMoveClient(client, dp.getDirection());
     }
 
     public synchronized boolean moveClientBackward(Client client) {
@@ -534,8 +542,14 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
         source.getLock();
         target.setKilledTo(true);
 
+	 try{
+	     System.out.println("Source: " + source.getId() + " Target: " + target.getId());
+	 Thread.sleep(5000);
+	 }catch(Exception e){
+	 }	 
+
         boolean clientIsMe = chandler.clientIsMe(target);
-        if(clientIsMe){
+        if(clientIsMe || chandler.getControlRobot()){
             assert(source != null);
             assert(target != null);
             // Mazewar.consolePrintLn(source.getName() + " just vaporized " + 
@@ -714,6 +728,43 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
         newCell.setContents(client);
         /* Clear the old cell */
         oldCell.setContents(null);	
+
+        update();
+        return true; 
+    }
+
+    // Check if can move forward. Robots.
+    private synchronized boolean checkMoveClient(Client client, Direction d) {
+        assert(client != null);
+        assert(d != null);
+        Point oldPoint = getClientPoint(client);
+        CellImpl oldCell = getCellImpl(oldPoint);
+
+        /* Check that you can move in the given direction */
+        if(oldCell.isWall(d)) {
+            /* Move failed */
+            clientMap.put(client, oldPoint);
+            return false;
+        }
+
+        DirectedPoint newPoint = new DirectedPoint(oldPoint.move(d), getClientOrientation(client));
+
+        /* Is the point withint the bounds of maze? */
+        assert(checkBounds(newPoint));
+        CellImpl newCell = getCellImpl(newPoint);
+        if(newCell.getContents() != null) {
+            /* Move failed */
+            clientMap.put(client, oldPoint);
+            return false;
+        }
+
+        /* Write the new cell */
+        //clientMap.put(client, newPoint);
+        //newCell.setContents(client);
+        /* Clear the old cell */
+        //oldCell.setContents(null);	
+
+        clientMap.put(client, oldPoint);
 
         update();
         return true; 

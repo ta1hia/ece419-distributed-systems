@@ -199,6 +199,18 @@ public abstract class Client implements Serializable{
         }
     }
 
+    // Check if forward is possible. For robots.
+    protected boolean checkForward() {
+        assert(maze != null);
+
+        if(maze.checkClientForward(this)) {
+            notifyMoveForward();
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     /**
      * Move the client backward.
      * @return <code>true</code> if move was successful, otherwise <code>false</code>.

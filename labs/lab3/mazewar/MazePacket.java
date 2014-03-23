@@ -46,6 +46,17 @@ public class MazePacket implements Serializable {
     public static final int RESERVE_POINT = 401;
     public static final int GET_SEQ_NUM = 402;
 
+    // Robot 
+    public static final int ROBOT_REGISTER = 501; // Client wants to register! IP of client shall be passed in.
+    public static final int ROBOT_FORWARD = 502;
+    public static final int ROBOT_BACK = 503;
+    public static final int ROBOT_LEFT = 504;
+    public static final int ROBOT_RIGHT = 505;
+    public static final int ROBOT_FIRE = 506;
+    public static final int ROBOT_RESPAWN = 507;
+    public static final int ROBOT_QUIT = 508;
+    public static final int ROBOT_SPAWN = 509;
+
     // Error code
     public static final int ERROR_INVALID_ARG = -101;
     public static final int ERROR_RESERVED_POSITION = -102;

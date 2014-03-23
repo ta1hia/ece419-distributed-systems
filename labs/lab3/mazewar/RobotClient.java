@@ -114,29 +114,33 @@ public class RobotClient extends LocalClient implements Runnable {
 
                 // Loop while we are active
                 while(active) {
-                        // Try to move forward
-                        if(!forward()) {
-                                // If we fail...
-                                if(randomGen.nextInt(3) == 1) {
-                                        // turn left!
-                                        turnLeft();
-                                } else {
-                                        // or perhaps turn right!
-                                        turnRight();
-                                }
-                        }
+		    // Try to move forward
+		    if(checkForward()) {			
+			    chandler.sendRobotPacketToClients(MazePacket.CLIENT_FORWARD,robot_id);
+		    } else {
+			
+			// If we fail...
+			if(randomGen.nextInt(3) == 1) {
+			    // turn left!
+			    chandler.sendRobotPacketToClients(MazePacket.CLIENT_LEFT,robot_id);
+			} else {
+			    // or perhaps turn right!
+			    chandler.sendRobotPacketToClients(MazePacket.CLIENT_RIGHT,robot_id);
+			}
+		    }
 
-                        // Shoot at things once and a while.
-                        if(randomGen.nextInt(10) == 1) {
-                                fire();
-                        }
+		    // Shoot at things once and a while.
+		    if(randomGen.nextInt(10) == 1) {
+
+			chandler.sendRobotPacketToClients(MazePacket.CLIENT_FIRE,robot_id);
+		    }
                         
-                        // Sleep so the humans can possibly compete.
-                        try {
-                                thread.sleep(200);
-                        } catch(Exception e) {
-                                // Shouldn't happen.
-                        }
+		    // Sleep so the humans can possibly compete.
+		    try {
+			thread.sleep(200);
+		    } catch(Exception e) {
+			// Shouldn't happen.
+		    }
                 }
         }
 }

@@ -47,6 +47,7 @@ public class ClientHandlerThread extends Thread {
     MazewarServer mserver;
 
     boolean debug = true;
+    boolean controlRobot = false; 
 
     ScoreTableModel scoreModel;
 
@@ -135,6 +136,8 @@ public class ClientHandlerThread extends Thread {
     }
 
     public void addRobots(){
+	controlRobot = true;
+
 	robotTable = new ConcurrentHashMap();
 	Client c1 = new RobotClient("Trouble",-1,this);
 	Client c2 = new RobotClient("Mojo Jojo", -2,this);
@@ -157,8 +160,14 @@ public class ClientHandlerThread extends Thread {
 	
 	maze.addClient(c1);
 	maze.addClient(c2);
-	
+
+	c1.setId(-1);
+	c2.setId(-2);	
     }
+
+    public boolean getControlRobot(){
+	return controlRobot;
+    } 
 
     public void broadcastNewClient(){
         System.out.println("Broadcasting CLIENT_REGISTER");
@@ -261,11 +270,26 @@ public class ClientHandlerThread extends Thread {
         Integer s_id = packetFromClient.shooter;
         debug("in clientRespawnEvent(), shooter is " +  s_id + ", respawnning target " + t_id);
 
-        if (lookupTable.containsKey(t_id)){
-            Client tc = (lookupTable.get(t_id)).c;
+
+	Client tc;
+	Client sc;
+
+	// Get from robot table or client table!
+	if(t_id < 0){
+	    tc = robotTable.get(t_id).c;
+	} else {
+	    tc = lookupTable.get(t_id).c;
+	}
+
+	// Get from robot table or client table!
+	if(s_id < 0){
+	    sc = robotTable.get(s_id).c;
+	} else {
+	    sc = lookupTable.get(s_id).c;
+	}
+
             //tc.getLock();
 
-            Client sc = (lookupTable.get(s_id)).c;
 	    sc.getLock();
 
             Point p = packetFromClient.client_location;
@@ -278,9 +302,6 @@ public class ClientHandlerThread extends Thread {
             //tc.releaseLock();
 	    sc.releaseLock();
 
-        } else {
-            System.out.println("CLIENT: no client with id " +packetFromClient.client_id+ " in respawn");
-        }
     }
 
 
@@ -490,6 +511,18 @@ public class ClientHandlerThread extends Thread {
         dispatcher.send(packetToClients);  
     }
 
+    public void sendRobotPacketToClients(int PacketType,int id){
+        MazePacket packetToClients = new MazePacket();
+        packetToClients.packet_type = PacketType;
+        packetToClients.client_name = me.getName();
+        packetToClients.client_id = id;
+	packetToClients.client_type = MazePacket.ROBOT;
+
+	System.out.println("Robot " + id + " sending command.");
+        dispatcher.send(packetToClients);  
+
+    }
+
     // Try and reserve a point!
     public boolean reservePoint(Point point){
         MazePacket packetToLookup = new MazePacket();
@@ -612,9 +645,18 @@ public class ClientHandlerThread extends Thread {
 		eventQueue[lc] = null;
 
                 Client c = null;
-                if(packetFromClient.packet_type != MazePacket.CLIENT_SPAWN)
-		    if(packetFromClient.packet_type != MazePacket.CLIENT_QUIT)
-			c = (lookupTable.get(packetFromClient.client_id)).c;
+
+		if(packetFromClient.client_type == MazePacket.ROBOT){
+		    c = robotTable.get(packetFromClient.client_id).c;
+		    System.out.println("Going to move client " + c.getName() + " with move " + packetFromClient.packet_type);
+                } else if(packetFromClient.packet_type != MazePacket.CLIENT_SPAWN){
+		    if(packetFromClient.packet_type != MazePacket.CLIENT_QUIT){
+			if(packetFromClient.client_id > 0) 
+			    c = (lookupTable.get(packetFromClient.client_id)).c;
+			else
+			    c = (robotTable.get(packetFromClient.client_id)).c;
+		    }
+		}
 
                 executed = executeEvent(c);
                 if (!executed) break;
