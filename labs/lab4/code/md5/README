@@ -1,0 +1,8 @@
+
+1. MD5Test.java contains a sample method, getHash, to retrieve the MD5 hash from a given word (r41nb0w is the hardcoded word value in the code)
+
+You can also verify by issuing the following command in your shell:
+
+    echo -n r41nb0w | md5sum
+
+2. dictionary directory contains the sample list of words, lowercase.rand, for you to use in the assignment when searching for hash matches
