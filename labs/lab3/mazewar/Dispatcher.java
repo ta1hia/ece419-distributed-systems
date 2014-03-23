@@ -66,6 +66,7 @@ public class Dispatcher extends Thread {
     public void send(MazePacket packetToClients){
 
 	lock.lock();
+	System.out.println("DISPATCHER: Sending packet type " + packetToClients.packet_type);
 
         // Try and get a valid lamport clock!
         MazePacket getClock = new MazePacket();
@@ -114,8 +115,10 @@ public class Dispatcher extends Thread {
                             debug("Calling client for clock: " + requested_lc);	    
                         }
 
-                        // Wait until all clients have aknowledged!
+			lock.unlock();
+                        // Wait until all clients have aknowledged!	   
                         data.acquireSemaphore(socketOutList.size());
+			lock.lock();
 
                         // You've finally woken up
                         // Check if the lamport clock is valid
@@ -171,9 +174,10 @@ public class Dispatcher extends Thread {
 
         addEventToOwnQueue(packetToClients);
 	
+	lock.unlock();
+
         data.incrementLamportClock();
 
-	lock.unlock();
         debug("lamport clock after " + data.getLamportClock());
 
     }

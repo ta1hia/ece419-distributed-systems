@@ -542,11 +542,12 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
         source.getLock();
         target.setKilledTo(true);
 
-	 try{
-	     System.out.println("Source: " + source.getId() + " Target: " + target.getId());
-	 Thread.sleep(5000);
-	 }catch(Exception e){
-	 }	 
+	 // try{
+	 //     System.out.println("Source: " + source.getId() + " Target: " + target.getId());
+	 // Thread.sleep(5000);
+	 // }catch(Exception e){
+	 // }
+	 
 
         boolean clientIsMe = chandler.clientIsMe(target);
         if(clientIsMe || chandler.getControlRobot()){

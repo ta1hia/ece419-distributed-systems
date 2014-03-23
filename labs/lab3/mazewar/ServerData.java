@@ -7,6 +7,9 @@ import java.util.concurrent.BlockingQueue;
 import java.io.Serializable;
 import java.util.concurrent.Semaphore;
 
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 public class ServerData implements Serializable {
 
     /**
@@ -29,6 +32,8 @@ public class ServerData implements Serializable {
     int eventIndex = 0;     // Global lamport clock
     int lamportClock;       // This client's lamport clock
     Semaphore sem = new Semaphore(0); 
+
+    Lock l = new ReentrantLock();
 
 
     // public MazePacket getNextEvent() {
@@ -125,14 +130,17 @@ public class ServerData implements Serializable {
     }
 
     public void setLamportClock(int value){
+	l.lock();
         lamportClock = value;
+	l.unlock();
     }
 
     public Integer incrementLamportClock() {
-        lamportClock++;
+	l.lock();
+	lamportClock++;
 	if(lamportClock == 20)
 	    lamportClock = 0;
-
+	l.unlock();
         return lamportClock;
     }
 
@@ -145,13 +153,17 @@ public class ServerData implements Serializable {
     }
 
     public void setEventIndex(Integer i){
+	l.lock();
 	eventIndex = i;
+	l.unlock();
     }
 
 
     public void setClockAndIndex(int value){
+	l.lock();
         lamportClock = value;
 	eventIndex = value;
+	l.unlock();
     }
 
 }

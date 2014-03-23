@@ -170,6 +170,11 @@ public class MazewarServerHandlerThread extends Thread {
 
             chandler.spawnClient(packetFromRC.client_id,packetFromRC.lookupTable, packetFromRC.client_score);
 
+	    // Add robots, if the sender was the robot controller!
+	    if(packetFromRC.is_robot_controller){
+		chandler.spawnRobots(packetFromRC.robotTable);
+	    }
+
             data.releaseSemaphore(1);
 
         } else { 
@@ -357,6 +362,16 @@ public class MazewarServerHandlerThread extends Thread {
 	    eventPacket.client_score = chandler.getMyScore();
 
             eventPacket.lamportClock = data.getLamportClock();
+
+	    // Add robots, if you are the controller!
+	    if(chandler.getControlRobot()){
+		System.out.println("M_HANDLER: Sending robots!");
+
+		eventPacket.is_robot_controller = true;
+		eventPacket.robotTable = new ConcurrentHashMap();
+		eventPacket.lookupTable.put(-1, chandler.getRobot(-1));	
+		eventPacket.lookupTable.put(-2, chandler.getRobot(-2));
+	    }
 
             /* Get new client socket info */
             String hostname = packetFromRC.client_host;

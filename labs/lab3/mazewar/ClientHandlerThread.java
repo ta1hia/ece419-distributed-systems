@@ -136,11 +136,16 @@ public class ClientHandlerThread extends Thread {
     }
 
     public void addRobots(){
-	controlRobot = true;
+	// Check if someone else has initialized the robots.
+	if(data.socketOutList.size() > 0)
+	    return;
 
+	controlRobot = true;
+	
 	robotTable = new ConcurrentHashMap();
-	Client c1 = new RobotClient("Trouble",-1,this);
-	Client c2 = new RobotClient("Mojo Jojo", -2,this);
+	Client c1 = new RobotClient("Trouble",-1,this,true);
+	Client c2 = new RobotClient("Mojo Jojo", -2,this,true);
+
 
 	ClientData cd1 = new ClientData();
 	ClientData cd2 = new ClientData();
@@ -443,38 +448,39 @@ public class ClientHandlerThread extends Thread {
         if((e.getKeyChar() == 'q') || (e.getKeyChar() == 'Q')) {
             System.out.println("CLIENT: Quitting");
 
-            quitting = true;
 
             try{
+		Client c = lookupTable.get(myId).c;
+		c.getLock();
+		if(quitting == false){
+		    quitting = true;
+		    c.releaseLock();
+		    // Send to other clients you are quitting
+		    MazePacket packetToClients = new MazePacket();
+		    packetToClients.packet_type = MazePacket.CLIENT_QUIT;
+		    packetToClients.client_id = myId;
+		    dispatcher.send(packetToClients);
 
+		    // Don't exit until you have recieved all acknowledgements
+		    //data.acquireSemaphore(data.socketOutList.size());;
 
+		    // Send lookup that you are quitting
+		    MazePacket packetToLookup = new MazePacket();
+		    packetToLookup.packet_type = MazePacket.LOOKUP_QUIT;
+		    packetToLookup.client_id = myId;
+		    out.writeObject(packetToLookup);
+		    System.out.println("Client quit from lookup.");
 
-		// Send to other clients you are quitting
-		MazePacket packetToClients = new MazePacket();
-		packetToClients.packet_type = MazePacket.CLIENT_QUIT;
-		packetToClients.client_id = myId;
-		dispatcher.send(packetToClients);
+		    System.out.println("Client about to leave.");
 
-		// Don't exit until you have recieved all acknowledgements
-		//data.acquireSemaphore(data.socketOutList.size());;
+		    // Close lookup connection.
+		    out.close();
+		    in.close();
+		    cSocket.close();
 
-		// Send lookup that you are quitting
-		MazePacket packetToLookup = new MazePacket();
-		packetToLookup.packet_type = MazePacket.LOOKUP_QUIT;
-		packetToLookup.client_id = myId;
-		out.writeObject(packetToLookup);
-		System.out.println("Client quit from lookup.");
-
-		System.out.println("Client about to leave.");
-
-		// Close lookup connection.
-                out.close();
-                in.close();
-                cSocket.close();
-
-		// Close client connections.
-		// data.quit();
-
+		    // Close client connections.
+		    // data.quit();
+		}
             } catch(Exception e1){
                 System.out.println("CLIENT: Couldn't close sockets...");
             }
@@ -580,6 +586,7 @@ public class ClientHandlerThread extends Thread {
 	return scoreModel.getScore(lookupTable.get(myId).c);
     }
 
+
     public void spawnClient(Integer id, ConcurrentHashMap<Integer,ClientData> tuple, int score){
         ClientData cd = new ClientData();
         cd = tuple.get(id);
@@ -614,6 +621,43 @@ public class ClientHandlerThread extends Thread {
         lookupTable.put(id, cd);
     }
 
+    public void spawnRobots(ConcurrentHashMap<Integer,ClientData> rt){
+        ClientData cd1_temp = new ClientData();
+	ClientData cd2_temp = new ClientData();
+
+        cd1_temp = rt.get(-1);
+	cd2_temp = rt.get(-2);
+
+	robotTable = new ConcurrentHashMap();
+	Client c1 = new RobotClient("Trouble",-1,this,false);
+	Client c2 = new RobotClient("Mojo Jojo", -2,this,false);
+
+	ClientData cd1 = new ClientData();
+	ClientData cd2 = new ClientData();
+	
+	cd1.client_name = c1.getName();
+	cd1.client_type = ClientData.ROBOT;
+	cd1.client_id = -1;
+	cd1.c = c1;
+
+	cd2.client_name = c2.getName();
+	cd2.client_type = ClientData.ROBOT;
+	cd2.client_id = -2;
+	cd2.c = c2;
+
+	robotTable.put(-1,cd1);
+	robotTable.put(-2,cd2);
+
+	maze.addClient(c1);//, cd1_temp.client_location, cd1_temp.client_direction);
+	maze.addClient(c2);//, cd2_temp.client_location, cd2_temp.client_direction);
+
+	scoreModel.setScore(c1, cd1_temp.client_score);
+	scoreModel.setScore(c2, cd2_temp.client_score);
+
+	c1.setId(-1);
+	c2.setId(-2);	
+    }
+
     public ClientData getMe() {
         ClientData clientData = new ClientData();
         clientData.client_id = myId;
@@ -622,6 +666,18 @@ public class ClientHandlerThread extends Thread {
         clientData.client_direction = me.getOrientation();
         return clientData;
     }
+
+
+    public ClientData getRobot(int robot_id){
+	ClientData cd = new ClientData();
+	cd.client_id = robot_id;
+	cd.client_name = robotTable.get(robot_id).c.getName();
+	cd.client_score = scoreModel.getScore(robotTable.get(robot_id).c);
+	cd.client_location =  maze.getClientPoint(robotTable.get(robot_id).c);
+	cd.client_direction = robotTable.get(robot_id).c.getOrientation();
+	return cd;
+    }
+
 
     public Integer getMyId() {
         return myId;
