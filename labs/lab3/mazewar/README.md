@@ -1,4 +1,4 @@
-ece419 - Lab 2
+ece419 - Lab 3
 ======
 
 Starting up
@@ -10,18 +10,21 @@ Starting up
     - Enter username
     - Enter host location (ex. ug224.eecg.utoronto.ca)
     - Enter port server is listening into (ex. 8000)
-  - WAIT for Client 2. Don't move!
-- Start Client2 using same files
+- Start Client2 using same files (dynamic join)
   - On a seperate terminal, run "java Mazewar"
   - Repeat steps as Client1 setup
 - Have fun!
 
 Assumptions
-- There is no dynamic entry. Both clients wait for each other until starting the game.
+- Reliable network connection
+- Lookup always running
+- No failures
+
+Bonus: Dynamic joins
 
 
 Submitted by:
 Kevin Justin Gumba 997585117
 Tahia Khan 998897216
 
-Submission date: January 22, 2014
+Submission date: March 24, 2014
