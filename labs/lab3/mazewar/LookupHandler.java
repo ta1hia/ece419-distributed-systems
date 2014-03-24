@@ -49,6 +49,28 @@ public class LookupHandler extends Thread {
                     System.out.println("Lookup is registering new client.");
                     System.out.println("IP: " + ip + " Port: " + port);
 
+		    // Check if a client is already listening in that port.
+		    Object[] keys = table.keySet().toArray();
+		    int size = table.size();
+		    boolean isError = false;
+		    
+		    for(int i = 0; i < size; i++){
+		    	int c_id = Integer.valueOf(keys[i].toString());
+		    	int c_port = table.get(c_id).client_port;
+		    	
+		    	if(c_port == port){
+		    		System.out.println("Two client's can't have the same port!");
+		    		packetToClient.error_code = MazePacket.ERROR_LOOKUP_PORT;
+		    		toClient.writeObject(packetToClient);
+		    		isError = true;
+		    		break;
+		    	}
+		    }
+		    
+		    if(isError){
+		    	continue;
+		    }
+	
                     // Find empty ID
                     int client_id = 1;
                     while(table.containsKey(client_id)){
