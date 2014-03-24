@@ -8,6 +8,8 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.Set;
 import java.io.*;
 import java.net.*;
+import java.sql.Timestamp;
+import java.util.Date;
 
 /* Dispatcher class
  * Dispatches messages from event queue and broadcasts
@@ -67,6 +69,10 @@ public class Dispatcher extends Thread {
         // Try and get a valid lamport clock!
         MazePacket getClock = new MazePacket();
         packetToClients.lamportClock = data.getLamportClock();
+
+	// Get timestamp for report
+	Date date = new Date();
+	System.out.println("Current timestamp " + date.getTime());
 
         int requested_lc;
 	if(packetToClients.packet_type == MazePacket.CLIENT_RESPAWN){
@@ -148,6 +154,9 @@ public class Dispatcher extends Thread {
         data.incrementLamportClock();
         debug("lamport clock after " + data.getLamportClock());
 
+
+	// Get timestamp for report
+	System.out.println("After timestamp " + date.getTime());
     }
 
     private void addEventToOwnQueue(MazePacket packetToSelf) {

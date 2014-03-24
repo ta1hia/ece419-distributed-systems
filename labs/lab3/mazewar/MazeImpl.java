@@ -583,11 +583,12 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
 
             chandler.sendClientRespawn(source.getId(),target.getId(),point,d);
 
-	    return;
             //cell.setContents(target);
             //clientMap.put(target, new DirectedPoint(point, d));
-            //update();
+            update();
             // notifyClientKilled(source, target);
+
+	    return;
 
             } else {
                 assert(source != null);
@@ -620,7 +621,7 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
 
                 //cell.setContents(target);
                 //clientMap.put(target, new DirectedPoint(point, d));
-                //update();
+                update();
                 //notifyClientKilled(source, target);
 
             }
