@@ -74,6 +74,9 @@ public class Dispatcher extends Thread {
 	Date date = new Date();
 	System.out.println("Current timestamp " + date.getTime());
 
+
+	System.out.println("Client want to send out packet type " + packetToClients.packet_type);
+
         int requested_lc;
 	if(packetToClients.packet_type == MazePacket.CLIENT_RESPAWN){
 	    try{

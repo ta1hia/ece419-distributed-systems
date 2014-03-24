@@ -170,7 +170,7 @@ public class ClientHandlerThread extends Thread {
     private void lookupRegisterEvent(){
     	// Check if there is an error
     	if(packetFromLookup.error_code == MazePacket.ERROR_LOOKUP_PORT){
-    		System.out.println("The a different port!");
+    		System.out.println("Try a different port!");
     		Mazewar.quit();
     	}
     	

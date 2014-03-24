@@ -128,7 +128,7 @@ public class MazewarListenerHandlerThread extends Thread {
         int requested_lc = packetFromRC.lamportClock;    
         //int lamportClock = dispatcher.getLamportClock();
         eventPacket.packet_type = MazePacket.CLIENT_ACK;
-
+	data.getLock();
 
         debug("requested_lc: " + requested_lc + " current lamportClock: " + data.getLamportClock());
         eventPacket.lamportClock = data.getLamportClock();
@@ -155,6 +155,7 @@ public class MazewarListenerHandlerThread extends Thread {
 
         debug("Clock is " + eventPacket.isValidClock + " with timestamp " + eventPacket.lamportClock);
 
+	data.releaseLock();
         dispatcher.sendToClient(packetFromRC.client_id, (MazePacket) eventPacket);
     }
 
