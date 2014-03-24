@@ -49,6 +49,7 @@ public class MazePacket implements Serializable {
     // Error code
     public static final int ERROR_INVALID_ARG = -101;
     public static final int ERROR_RESERVED_POSITION = -102;
+    public static final int ERROR_LOOKUP_PORT = -103;
 
     // Client type
     public static final int ROBOT = 1;
