@@ -22,14 +22,14 @@ public class Dispatcher extends Thread {
 
     int lamportClock;
     Semaphore sem;
-    ServerData data;
+    ListenerData data;
     ClientHandlerThread chandler;
 
     Lock lock = new ReentrantLock();
 
     boolean debug = true;
 
-    public Dispatcher(ServerData data, ClientHandlerThread chandler) {
+    public Dispatcher(ListenerData data, ClientHandlerThread chandler) {
         this.data = data;
         this.chandler = chandler;
         this.eventQueue = data.eventQueue;

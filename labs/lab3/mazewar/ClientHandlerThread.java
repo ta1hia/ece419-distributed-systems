@@ -14,11 +14,11 @@ import java.net.*;
  * Each client will be registered with a client handler
 
  Client connects to Lookup
- Client creates a server thread here for other clients to connect to handle all incoming packet events
+ Client creates a listener thread here for other clients to connect to handle all incoming packet events
  Client creates a dispatcher thread to send out its events
 
- * Listens for actions by GUI client and notifies server
- * Receives game events queue from server and executes events 
+ * Listens for actions by GUI client and notifies listener
+ * Receives game events queue from listener and executes events 
  * 
  */
 
@@ -37,13 +37,13 @@ public class ClientHandlerThread extends Thread {
     //MazePacket []eventArray = new MazePacket[21];
     boolean quitting = false;
 
-    ServerData data = new ServerData();
+    ListenerData data = new ListenerData();
 
     Dispatcher dispatcher = new Dispatcher(data, this);    
 
     MazePacket packetFromLookup = new MazePacket();
     MazePacket packetFromClient;
-    MazewarServer mserver;
+    MazewarListener mlistener;
 
     boolean debug = true;
 
@@ -65,12 +65,12 @@ public class ClientHandlerThread extends Thread {
             //		Broadcast this.client's events
             //dispatcher.start();
 
-            // Start client server
+            // Start client listener
             // 		- for other clients to connect to
             //		- to handle incoming packets
-            MazewarServer mazewarServer = new MazewarServer(client_port,data, dispatcher, this);
-            mserver = mazewarServer;
-            (new Thread(mazewarServer)).start();
+            MazewarListener mazewarListener = new MazewarListener(client_port,data, dispatcher, this);
+            mlistener = mazewarListener;
+            (new Thread(mazewarListener)).start();
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -102,7 +102,7 @@ public class ClientHandlerThread extends Thread {
             lookupRegisterEvent();
         }catch (Exception e){
             e.printStackTrace();
-            System.out.println("ERROR: registering with server");
+            System.out.println("ERROR: registering with listener");
         }
 
     }
@@ -112,7 +112,7 @@ public class ClientHandlerThread extends Thread {
 
         try{
 
-            /* Initialize handshaking with server */
+            /* Initialize handshaking with listener */
             Random rand = new Random();
 
             packetToLookup.packet_type = MazePacket.CLIENT_REGISTER;
@@ -128,7 +128,7 @@ public class ClientHandlerThread extends Thread {
 
         }catch (IOException e){
             e.printStackTrace();
-            System.out.println("ERROR: registering with server");
+            System.out.println("ERROR: registering with listener");
         }
 
     }
@@ -291,7 +291,7 @@ public class ClientHandlerThread extends Thread {
     }
 
     /**
-     * Process server packet eventsi
+     * Process listener packet eventsi
      * */
     private void addClientEvent() {
         String name = packetFromLookup.client_name;
@@ -323,7 +323,7 @@ public class ClientHandlerThread extends Thread {
 
         seqNum = packetFromLookup.sequence_num;
 
-        // else server is telling you to add a new client
+        // else listener is telling you to add a new client
         // create new clients into clientTable based on any
         // new clients seen in clientTableFromLookup
         for (Map.Entry<String, ClientData> entry : clientTableFromLookup.entrySet()) {
@@ -394,7 +394,7 @@ public class ClientHandlerThread extends Thread {
     }
 
     /**
-     * Listen for client keypress and send server packets 
+     * Listen for client keypress and send listener packets 
      * */
     public void handleKeyPress(KeyEvent e) {
         // If the user pressed Q, invoke the cleanup code and quit. 
