@@ -168,6 +168,12 @@ public class ClientHandlerThread extends Thread {
 
     // Check if registration successful
     private void lookupRegisterEvent(){
+    	// Check if there is an error
+    	if(packetFromLookup.error_code == MazePacket.ERROR_LOOKUP_PORT){
+    		System.out.println("The a different port!");
+    		Mazewar.quit();
+    	}
+    	
         // Get the current lookup table
         lookupTable = new ConcurrentHashMap();
         lookupTable = packetFromLookup.lookupTable;
