@@ -13,3 +13,7 @@
 java/
 labs/lab2/nasdaq
 
+#eclipse bin
+ece419/labs/lab4/unhasher/bin/
+*.project
+*.classpath
