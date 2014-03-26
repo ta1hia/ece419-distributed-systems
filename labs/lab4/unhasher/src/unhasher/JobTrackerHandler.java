@@ -1,13 +1,51 @@
 package unhasher;
 
-public class JobTrackerHandler {
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.Socket;
+import java.util.concurrent.locks.Lock;
+
+import org.apache.zookeeper.WatchedEvent;
+import org.apache.zookeeper.Watcher;
+import org.apache.zookeeper.ZooKeeper;
+
+public class JobTrackerHandler extends Thread implements Watcher {
+	
+    Socket cSocket = null;
+    ObjectInputStream cin;
+    ObjectOutputStream cout;
+    
+	TaskPacket packetFromCD;
+	ZooKeeper zk;
+	Lock zklock;
+
 
 	/**
 	 * @param args
 	 */
-	public static void main(String[] args) {
-		// TODO Auto-generated method stub
+	public JobTrackerHandler (Socket socket, ZooKeeper zooKeeper, Lock lock) throws IOException {
+        super("JobTrackerHandler");
+        try {
+            this.cSocket = socket;
+            this.cout = new ObjectOutputStream(cSocket.getOutputStream());
+            this.zk = zooKeeper;
+            this.zklock = lock;
 
+            System.out.println("Created new JobTrackerHandler to handle remote client ");
+        } catch (IOException e) {
+            System.out.println("IO Exception");
+        }
+    }
+
+
+
+	@Override
+	public void process(WatchedEvent event) {
+		// TODO Auto-generated method stub
+		
 	}
+	
+
 
 }
