@@ -3,10 +3,12 @@
 MYZK=myzk
 # JAVA_HOME=${MYZK}/java/jdk1.6.0/
 
-echo -n "Enter the hostname of zookeper: "
-read hostname
-echo -n "Enter the port of zookeeper: "
-read port
+echo -n "Enter port of JobTracker: "
+read jt_port
+echo -n "Enter hosename of Zookeeper: "
+read zk_hostname
+echo -n "Enter port of Zookeper: "
+read zk_port
 
 ${MYZK}/bin/zkCli.sh -server $hostname:$port
 
