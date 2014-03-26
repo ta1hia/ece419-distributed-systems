@@ -31,6 +31,8 @@ public class JobTracker extends Thread implements Watcher{
 	static String TRACKER_PRIMARY = "primary";
 	static String TRACKER_BACKUP = "backup";
 	
+	boolean debug = true;
+	
 
 	/**
 	 * @param args
@@ -74,39 +76,46 @@ public class JobTracker extends Thread implements Watcher{
 
 	
 	private void initZNodes() {
-		
+		//TODO: a bunch of these things are set to ephemeral, will switch to 
+		//to persistent after implementing fault tolerance 
 		try {
 			
 			// create /tracker, and  set self as primary or backup
 			String trackerNodePath;
 			if (zk.exists(ZK_TRACKER, false) == null) {
-				zk.create(ZK_TRACKER, null, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+				zk.create(ZK_TRACKER, 
+						null, ZooDefs.Ids.OPEN_ACL_UNSAFE, 
+						CreateMode.EPHEMERAL);
 				
 				trackerNodePath = String.format("%s/%s", ZK_TRACKER, addrId);
-				zk.create(trackerNodePath, TRACKER_PRIMARY.getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
+				zk.create(trackerNodePath, 
+						TRACKER_PRIMARY.getBytes(), 
+						ZooDefs.Ids.OPEN_ACL_UNSAFE, 
+						CreateMode.EPHEMERAL);
+				debug("Created /tracker znode and set self as primary");
 			} else {
-				//i am backup
+				//i am backup - create myself and set watch on primary
 				
 			}
 			
 			// create /worker
 			if (zk.exists(ZK_WORKER, false) == null) {
-				zk.create(ZK_WORKER, null, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+				zk.create(ZK_WORKER, null, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
 			}
 			
 			// create /fserver
 			if (zk.exists(ZK_FSERVER, false) == null) {
-				zk.create(ZK_FSERVER, null, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+				zk.create(ZK_FSERVER, null, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
 			}
 			
 			// create /jobs
 			if (zk.exists(ZK_JOBS, false) == null) {
-				zk.create(ZK_JOBS, null, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+				zk.create(ZK_JOBS, null, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
 			}
 			
 			// create /results
 			if (zk.exists(ZK_RESULTS, false) == null) {
-				zk.create(ZK_RESULTS, null, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+				zk.create(ZK_RESULTS, null, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
 			}
 			
 		} catch (KeeperException e) {
@@ -124,6 +133,12 @@ public class JobTracker extends Thread implements Watcher{
 	public void process(WatchedEvent event) {
 		// TODO Auto-generated method stub
 		
+	}
+	
+	private void debug (String s) {
+		if (debug) {
+			System.out.println(String.format("TRACKER_%d: %s", port, s ));
+		}
 	}
 
 }
