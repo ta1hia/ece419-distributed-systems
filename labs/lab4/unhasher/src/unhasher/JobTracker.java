@@ -3,6 +3,7 @@ package unhasher;
 import java.io.*;
 import java.net.InetAddress;
 import java.net.ServerSocket;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -10,11 +11,12 @@ import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
+import org.apache.zookeeper.Watcher.Event.KeeperState;
 import org.apache.zookeeper.ZooDefs;
 import org.apache.zookeeper.ZooKeeper;
 
 
-public class JobTracker {
+public class JobTracker extends Thread implements Watcher {
 	
 	private static Integer port;
 	private static String addrId;
@@ -22,6 +24,8 @@ public class JobTracker {
 	
 	
 	// ZooKeeper resources 
+	CountDownLatch connectedSignal = new CountDownLatch(1);
+	
 	static String zkhost;
 	static Integer zkport;
 	static ZooKeeper zk;  //need to lock this
@@ -40,36 +44,6 @@ public class JobTracker {
 	
 	boolean debug = true;
 	
-
-	/**
-	 * @param args
-	 * 
-	 * arg0		port for JobTracker
-	 * arg1 	host name for ZooKeeper
-	 * arg2		port for ZooKeeper
-	 */
-	public static void main(String[] args) throws IOException {
-		
-		if(args.length == 4) {
-			port = Integer.parseInt(args[0]);
-			zkhost = args[1];
-			zkport = Integer.parseInt(args[2]);
-			
-			zklock = new ReentrantLock();
-			sock = new ServerSocket(port);
-
-			addrId = String.format("%s:%d", InetAddress.getLocalHost().getHostAddress(), port);
-		} else {
-			System.err.println("ERROR: Invalid arguments!");
-			System.exit(-1);
-		}
-		
-		// handle clients in a loop here		
-		while (true) {
-			new JobTrackerHandler(sock.accept(), zk, zklock).start();
-		}
-		
-	}
 	
 	/**
 	 * JobTracker
@@ -81,11 +55,23 @@ public class JobTracker {
 		try {
 			zk = new ZooKeeper(String.format("%s:%d", zkhost, zkport),
 					5000, 
-					null); //TODO: add watcher
-			debug("Created ZooKeeper instance zk");
+					new Watcher() {	//anonymous watcher
+						//release lock if ZooKeeper is connected
+						@Override
+						public void process(WatchedEvent event) {
+							if (event.getState() == KeeperState.SyncConnected) {
+								connectedSignal.countDown();
+							}
+						}
+			});
+			connectedSignal.await();
+			debug("Connected to ZooKeeper instance zk");
 
 			initZNodes();
 		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -160,11 +146,48 @@ public class JobTracker {
 		}	
 	}
 	
+	@Override
+	public void process(WatchedEvent event) {
+		// JobTracker watcher: watches if primary JT fails, makes self primary
+	}
+	
+	
+	/**
+	 * @param args
+	 * 
+	 * arg0		port for JobTracker
+	 * arg1 	host name for ZooKeeper
+	 * arg2		port for ZooKeeper
+	 */
+	public static void main(String[] args) throws IOException {
+		
+		if(args.length == 4) {
+			port = Integer.parseInt(args[0]);
+			zkhost = args[1];
+			zkport = Integer.parseInt(args[2]);
+			
+			zklock = new ReentrantLock();
+			sock = new ServerSocket(port);
+
+			addrId = String.format("%s:%d", InetAddress.getLocalHost().getHostAddress(), port);
+		} else {
+			System.err.println("ERROR: Invalid arguments!");
+			System.exit(-1);
+		}
+		
+		// handle clients in a loop here		
+		while (true) {
+			new JobTrackerHandler(sock.accept(), zk, zklock).start();
+		}
+		
+	}
 	
 	private void debug (String s) {
 		if (debug) {
 			System.out.println(String.format("TRACKER_%d: %s", port, s ));
 		}
 	}
+
+
 
 }
