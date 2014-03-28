@@ -35,8 +35,8 @@ public class Worker {
 
     ZkConnector zkc;
 
-    static String myPath = "/Workers";
-    static String jobPath = "/j";
+    static String myPath = "/Workers/w";
+    static String jobPath = "Jobs/j";
     int counter = 1;
 
     boolean isPrimary = false;
@@ -78,10 +78,15 @@ public class Worker {
         }
 
 	Worker w = new Worker(args[0]);
-	
+
+	// Make your own subfolder in the Worker folder
+	// Keeps count of the amount of workers currently present
+	w.createWorkerFolder();
+
 	// Start working!
 	w.start();
     }
+
 
     // Start up ZooKeeper connection
     public Worker(String hosts){
@@ -96,10 +101,22 @@ public class Worker {
 	zk = zkc.getZooKeeper();        		    
     } 	
 
+    // Keep track of all workers currently present
+    private void createWorkerFolder(){
+	// Create your folder in the path
+	zkc.create(
+		   myPath,         // Path of znode
+		   null,           // Data not needed.
+		   CreateMode.EPHEMERAL_SEQUENTIAL   
+		   );
+
+	System.out.println("Successfuly created a /Worker/wX folder");
+    }
+
     // Try to spawn a worker thread when a new job is created
     private boolean start() {
 	while(true){
-	    String path = myPath + jobPath + counter;
+	    String path = jobPath + counter;
 	    
 	    // Wait until job path is created
 	    listenToPath(path, counter);
@@ -107,7 +124,7 @@ public class Worker {
 	    // Congrats! Job path creathed.
 	    // Spawn a worker thread for it.
 	    System.out.println("Creating a new worker thread for " + path);
-	    //new WorkerHandlerThread(zkc,path).start();
+	    //new WorkerHandlerThread(zkc,path,dictionary).start();
 
 	    counter++;
 	}
@@ -118,7 +135,7 @@ public class Worker {
 
 	try {
 	    zk.exists(
-		      path + "/" + i, 
+		      path + i, 
 		      new Watcher() {       // Anonymous Watcher
 			  @Override
 			      public void process(WatchedEvent event) {
