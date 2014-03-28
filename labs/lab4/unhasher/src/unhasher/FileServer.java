@@ -33,6 +33,7 @@ public class FileServer {
 
     ZkConnector zkc;
     static String myPath = "/FileServer";
+    static String jobPath = "/Job";
 
     boolean isPrimary = false;
 
@@ -75,14 +76,13 @@ public class FileServer {
 	FileServer fs = new FileServer(args[0]);
 	fs.setPrimary();
 
-
-	try{ Thread.sleep(50000); } catch (Exception e) {}
 	// You've reached this far into the code
 	// You are the primary!
 	// Now, get to work.
-
+	fs.listenJobs();
     }
 
+    // Start up ZooKeeper connection
     public FileServer(String hosts){
 	// Try to connect to ZkConnector
 	zkc = new ZkConnector();		
@@ -92,30 +92,21 @@ public class FileServer {
 	    System.out.println("Zookeeper connect "+ e.getMessage());
 	}
 
-
-	// Try and be the primary!
-	// Put a watch on ZooKeeper path 'FileServer'
-	zk = zkc.getZooKeeper(); 
-	watcher = new Watcher() { // Anonymous Watcher
-		@Override
-		    public void process(WatchedEvent event) {
-		    handleEvent(event);                        
-		} };                 
-				    
+	zk = zkc.getZooKeeper();        		    
     }
  	
     // Watcher handler
     // Wake up when a node changes in ZooKeeper
-    private void handleEvent(WatchedEvent event) {
+    private void handleEvent(WatchedEvent event, String jobPath) {
         String path = event.getPath();
         EventType type = event.getType();
-        if(path.equalsIgnoreCase(myPath)) {
+        if(path.equalsIgnoreCase(jobPath)) {
             if (type == EventType.NodeDeleted) {
-                System.out.println(myPath + " deleted! Let's go!");       
+                System.out.println(jobPath + " deleted! Let's go!");       
                 setPrimary(); // try to become the boss
             }
             if (type == EventType.NodeCreated) {
-                System.out.println(myPath + " created!");       
+                System.out.println(jobPath + " created!");       
                 try{ Thread.sleep(5000); } catch (Exception e) {}
                 setPrimary(); // re-enable the watch
             }
@@ -139,5 +130,32 @@ public class FileServer {
 
 	return false;
     }
+
+    // Create a thread when a new job (ie. a child in the /Job node) has been created
+    // Place a watch on /Job
+    // Sequential, so keep track of the counter
+    // When a new job spawns, create a new thread FileServerHandler
+    private boolean listenJobs() {
+        Stat stat = zkc.exists(jobPath, watcher);
+        if (stat == null) {              // znode doesn't exist; let's try creating it
+            System.out.println("Creating " + myPath);
+            Code ret = zkc.create(
+                        myPath,         // Path of znode
+                        null,           // Data not needed.
+                        CreateMode.EPHEMERAL   // Znode type, set to EPHEMERAL.
+                        );
+            if (ret == Code.OK){
+		System.out.println("I'm the boss!");
+		return true;
+	    } 
+        } 
+
+	return false;
+    }
+
+    public void processResult(int rc, String path, Object ctx, Stat stat) {
+
+    }
+
 
 }
