@@ -95,17 +95,17 @@ public class ZkConnector implements Watcher {
         }
     }
     
-    public String byteToString(byte[] b) {
-    	String s = null;
-    	if (b != null) {
-    		try {
+	public String byteToString(byte[] b) {
+		String s = null;
+		if (b != null) {
+			try {
 				s = new String(b, "UTF-8");
 			} catch (UnsupportedEncodingException e) {
 				e.printStackTrace();
 			}
-    	}
-    	return s;
-    }
+		}
+		return s;
+	}
     
     public void listenToPath(final String path){
 		final CountDownLatch nodeCreatedSignal = new CountDownLatch(1);

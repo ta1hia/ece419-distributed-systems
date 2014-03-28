@@ -3,12 +3,14 @@ package unhasher;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.KeeperException.Code;
 import org.apache.zookeeper.ZooDefs;
 import org.apache.zookeeper.ZooKeeper;
+import org.apache.zookeeper.data.Stat;
 
 
 public class ClientDriver {
@@ -16,14 +18,18 @@ public class ClientDriver {
 	static BufferedReader br = null;
 
 	static Integer port;
+	
+	// ZooKeeper resources 
+	ZkConnector zkc;
+	static ZooKeeper zk;
 	static String zkhost;
 	static Integer zkport;
-
-	ZkConnector zkc;
-	static ZooKeeper zk;  //need to lock this
+	static String lpath;
 	
-	//ZooKeeper job directory
-	static String ZK_TASK = "/tasks/t";
+	// ZooKeeper directories
+	static String ZK_TASK = "/tasks";
+	static String ZK_SUBTASK = "/t";
+
 
 
 	static boolean debug = true;
@@ -52,21 +58,21 @@ public class ClientDriver {
 	public void sendPacket(TaskPacket p) {
 		String data = p.taskToString();
 		
-		Code ret = createPath(data);
+		Code ret = createTaskPath(data);
 		
 		if (ret == Code.OK) debug("task sent!"); 
 	}
 	
-	private KeeperException.Code createPath(String data) {
+	private KeeperException.Code createTaskPath(String data) {
         try {
             byte[] byteData = null;
             if(data != null) {
                 byteData = data.getBytes();
             }
-            zk.create(ZK_TASK, 
+            lpath = zk.create(ZK_TASK + ZK_SUBTASK, 
             		byteData, 
             		ZooDefs.Ids.OPEN_ACL_UNSAFE, 
-            		CreateMode.EPHEMERAL_SEQUENTIAL);
+            		CreateMode.PERSISTENT_SEQUENTIAL);
             
         } catch(KeeperException e) {
             return e.code();
@@ -74,6 +80,47 @@ public class ClientDriver {
             return KeeperException.Code.SYSTEMERROR;
         }
         return KeeperException.Code.OK;
+	}
+	
+	@SuppressWarnings("unused")
+	private String waitForStatus() {
+		String path = lpath + "/res";
+		
+		byte [] data;
+		String result = null;
+		Stat stat = null;
+
+
+		try {
+			// wait for query result
+			zkc.listenToPath(path);
+			
+			//result is back, get it
+			data = zk.getData(path, false, stat);
+			result = byteToString(data);
+			zk.delete(path, 0);		//delete result from /tasks/t#
+			zk.delete(lpath, 0);	// delete query /tasks
+			
+		} catch (KeeperException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return result;
+	}
+	
+	public String byteToString(byte[] b) {
+		String s = null;
+		if (b != null) {
+			try {
+				s = new String(b, "UTF-8");
+			} catch (UnsupportedEncodingException e) {
+				e.printStackTrace();
+			}
+		}
+		return s;
 	}
 
 	/**
@@ -96,7 +143,7 @@ public class ClientDriver {
 		br = new BufferedReader (new InputStreamReader(System.in));
 
 		// in loop, wait for client input 
-		String buf, cmd, hash;
+		String buf, cmd, hash, result;
 		TaskPacket toZk = null;
 
 		System.out.print("> ");
@@ -115,10 +162,13 @@ public class ClientDriver {
 			
 			if (cmd.equals("job")) {
 				toZk = new TaskPacket(TaskPacket.TASK_SUBMIT, hash);
+				cd.sendPacket(toZk);
 			} else if (cmd.equals("status")) {
 				toZk = new TaskPacket(TaskPacket.TASK_QUERY, hash);
+				cd.sendPacket(toZk);
+				result = cd.waitForStatus();
+				System.out.println(result);
 			} 
-			cd.sendPacket(toZk);
 			System.out.print("> ");
 		}
 	}

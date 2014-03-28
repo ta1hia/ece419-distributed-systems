@@ -5,7 +5,6 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -14,7 +13,6 @@ import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
-import org.apache.zookeeper.Watcher.Event.KeeperState;
 import org.apache.zookeeper.ZooDefs;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.data.Stat;
@@ -207,15 +205,51 @@ public class JobTracker extends Thread implements Watcher {
 
 
 		// check if task is job or query
-
-		// if query, check /result
-		// if not in result, return "still in progress"
-		// if in result, return result
+		switch (p.packet_type) {
+		case TaskPacket.TASK_SUBMIT:
+			break;
+		case TaskPacket.TASK_QUERY:
+			handleQuery(p, path);
+			break;
+		default:
+			debug("packet type could not be recognized");
+			break;
+		
+		}
 
 		// check if task already exists in /job
 		// if not, create /job/j#
 
-		// after handling, remove tasks
+	}
+	
+	private void handleQuery(TaskPacket p, String path) {
+		String resultPath = ZK_RESULTS + "/" + p.hash;
+		String clientResponsePath = ZK_TASKS + "/" + path + "/res";
+		String response = null;
+		
+		try {
+			// if query, check /result/[hash]
+			Stat stat = zk.exists(resultPath, false);
+			// if not in result, return "still in progress"
+			// if in result, return result
+			
+			if (stat == null) {
+				response = "job in progress";
+				debug(String.format("adding result '%s' to path %s", response, clientResponsePath));
+				String res = zk.create(clientResponsePath, 
+						response.getBytes(), 
+						ZooDefs.Ids.OPEN_ACL_UNSAFE, 
+						CreateMode.EPHEMERAL);
+				debug("created in " + res);
+			}
+						
+		} catch (KeeperException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
 	}
 
