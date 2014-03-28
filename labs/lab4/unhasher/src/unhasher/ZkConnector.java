@@ -21,6 +21,8 @@ public class ZkConnector implements Watcher {
 
     // ZooKeeper Object
     ZooKeeper zooKeeper;
+    
+    static boolean debug = true;
 
     // To block any operation until ZooKeeper is connected. It's initialized
     // with count 1, that is, ZooKeeper connect state.
@@ -121,7 +123,7 @@ public class ZkConnector implements Watcher {
 							// verify if this is the defined znode
 							boolean isMyPath = event.getPath().equals(path);
 							if (isNodeCreated && isMyPath) {
-								System.out.println(path + " created!");
+								debug(path + " created!");
 								nodeCreatedSignal.countDown();
 							}
 						}
@@ -132,12 +134,18 @@ public class ZkConnector implements Watcher {
 			System.out.println(e.getMessage());
 		}
 
-		System.out.println("Waiting for " + path + " to be created ...");
+		debug("Waiting for " + path + " to be created ...");
 
 		try{       
 			nodeCreatedSignal.await();
 		} catch(Exception e) {
 			System.out.println(e.getMessage());
+		}
+	}
+    
+	private static void debug (String s) {
+		if (debug) {
+			System.out.println(String.format("ZKCONNECTOR: %s", s ));
 		}
 	}
 }

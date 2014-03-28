@@ -142,7 +142,7 @@ public class JobTracker extends Thread implements Watcher {
 				zk.create(ZK_RESULTS, 
 						null, 
 						ZooDefs.Ids.OPEN_ACL_UNSAFE, 
-						CreateMode.EPHEMERAL);
+						CreateMode.PERSISTENT);
 				debug("Created /results znode");
 			}
 
@@ -228,20 +228,23 @@ public class JobTracker extends Thread implements Watcher {
 		String response = null;
 		
 		try {
-			// if query, check /result/[hash]
+			// for query, check /result/[hash]
 			Stat stat = zk.exists(resultPath, false);
-			// if not in result, return "still in progress"
-			// if in result, return result
 			
 			if (stat == null) {
+				// if not in result, return "still in progress"
 				response = "job in progress";
-				debug(String.format("adding result '%s' to path %s", response, clientResponsePath));
-				String res = zk.create(clientResponsePath, 
-						response.getBytes(), 
-						ZooDefs.Ids.OPEN_ACL_UNSAFE, 
-						CreateMode.EPHEMERAL);
-				debug("created in " + res);
+			} else {
+				// if in result, return result
+				byte[] data = zk.getData(resultPath, false, null);
+				response = "password found: " + byteToString(data);
 			}
+			debug(String.format("adding result '%s' to path %s", response, clientResponsePath));
+			String res = zk.create(clientResponsePath, 
+					response.getBytes(), 
+					ZooDefs.Ids.OPEN_ACL_UNSAFE, 
+					CreateMode.EPHEMERAL);
+			debug("created in " + res);
 						
 		} catch (KeeperException e) {
 			// TODO Auto-generated catch block

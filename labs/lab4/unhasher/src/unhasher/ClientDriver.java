@@ -144,6 +144,7 @@ public class ClientDriver {
 
 		// in loop, wait for client input 
 		String buf, cmd, hash, result;
+		String usage = "Usage: \tjob [hash] OR status [hash] OR quit/q";
 		TaskPacket toZk = null;
 
 		System.out.print("> ");
@@ -151,11 +152,14 @@ public class ClientDriver {
 			String[] tokens = buf.split("[ ]+");
 			cmd = tokens[0].toLowerCase();
 			
-			debug("client command is -> " + buf);
-			
+						
 			if (cmd.equals("quit") || cmd.equals("q") ) {
 				debug("quitting...");
 				return;
+			} else if (tokens.length < 2) {
+				System.out.println(usage);
+				System.out.print("> ");
+				continue;
 			}
 			
 			hash = tokens[1];
@@ -168,7 +172,7 @@ public class ClientDriver {
 				cd.sendPacket(toZk);
 				result = cd.waitForStatus();
 				System.out.println(result);
-			} 
+			} else System.out.println(usage);
 			System.out.print("> ");
 		}
 	}
