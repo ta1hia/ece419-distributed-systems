@@ -24,10 +24,6 @@ import org.apache.zookeeper.data.Stat;
 public class JobTracker extends Thread implements Watcher {
 
 	private static final String ZK_PRIMARY = null;
-	private static Integer port;
-	private static String addrId;		// used for path to self: /tracker/[addrId]
-	static ServerSocket sock = null;
-
 
 	// ZooKeeper resources 
 	static ZkConnector zkc;
@@ -353,10 +349,9 @@ public class JobTracker extends Thread implements Watcher {
 	 */
 	public static void main(String[] args) throws IOException, KeeperException, InterruptedException {
 
-		if(args.length == 3) {
-			port = Integer.parseInt(args[0]);
-			zkhost = args[1];
-			zkport = Integer.parseInt(args[2]);
+		if(args.length == 2) {
+			zkhost = args[0];
+			zkport = Integer.parseInt(args[1]);
 
 			//String addrId = String.format("%s:%d", InetAddress.getLocalHost().getHostAddress(), port);
 			//myPath = String.format("%s/%s", ZK_TRACKER, addrId);
