@@ -22,7 +22,7 @@ public class ZkConnector implements Watcher {
     // ZooKeeper Object
     ZooKeeper zooKeeper;
     
-    static boolean debug = true;
+    static boolean debug = false;
 
     // To block any operation until ZooKeeper is connected. It's initialized
     // with count 1, that is, ZooKeeper connect state.

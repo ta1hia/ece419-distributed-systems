@@ -190,7 +190,7 @@ public class JobTracker extends Thread implements Watcher {
 				data = zk.getData("/tasks/" + path, false, status);
 				if (status != null) {
 					dataStr = byteToString(data);
-					debug(String.format("task in path %s/%s is %s", ZK_TASKS, path, dataStr));
+					//debug(String.format("task in path %s/%s is %s", ZK_TASKS, path, dataStr));
 					handleTask(new TaskPacket(dataStr), path);
 				}
 			}
@@ -203,22 +203,11 @@ public class JobTracker extends Thread implements Watcher {
 
 	private void handleTask(TaskPacket p, String path) {
 
-
 		// check if task is job or query
-		switch (p.packet_type) {
-		case TaskPacket.TASK_SUBMIT:
-			break;
-		case TaskPacket.TASK_QUERY:
-			handleQuery(p, path);
-			break;
-		default:
-			debug("packet type could not be recognized");
-			break;
 		
-		}
-
-		// check if task already exists in /job
-		// if not, create /job/j#
+		if (p.packet_type == TaskPacket.TASK_SUBMIT) handleJob(p, path);
+		else if (p.packet_type == TaskPacket.TASK_QUERY) handleQuery(p, path);
+		else debug("packet type could not be recognized");
 
 	}
 	
@@ -226,7 +215,6 @@ public class JobTracker extends Thread implements Watcher {
 		String resultPath = ZK_RESULTS + "/" + p.hash;
 		String clientResponsePath = ZK_TASKS + "/" + path + "/res";
 		String response = null;
-		
 		try {
 			// for query, check /result/[hash]
 			Stat stat = zk.exists(resultPath, false);
@@ -239,12 +227,12 @@ public class JobTracker extends Thread implements Watcher {
 				byte[] data = zk.getData(resultPath, false, null);
 				response = "password found: " + byteToString(data);
 			}
-			debug(String.format("adding result '%s' to path %s", response, clientResponsePath));
+			//debug(String.format("adding result '%s' to path %s", response, clientResponsePath));
 			String res = zk.create(clientResponsePath, 
 					response.getBytes(), 
 					ZooDefs.Ids.OPEN_ACL_UNSAFE, 
 					CreateMode.EPHEMERAL);
-			debug("created in " + res);
+			//debug("created in " + res);
 						
 		} catch (KeeperException e) {
 			// TODO Auto-generated catch block
@@ -254,6 +242,38 @@ public class JobTracker extends Thread implements Watcher {
 			e.printStackTrace();
 		}
 
+	}
+	
+	private void handleJob(TaskPacket p, String tpath) {
+		// check if task already exists in /job/[hash]
+		// if not, create /job/[hash]
+		String jobPath = ZK_JOBS + "/" + p.hash;
+
+		try {
+			// check if task already exists in /job/[hash]
+			Stat stat = zk.exists(jobPath, false);
+			
+			if (stat == null) {
+				// if not in result, return "still in progress"
+				String res = zk.create(jobPath, 
+						p.hash.getBytes(),  //redundant to put hash here again
+						ZooDefs.Ids.OPEN_ACL_UNSAFE, 
+						CreateMode.PERSISTENT);
+			} else {
+				// if in result, return result
+				debug("job for '"+ p.hash + "' already exists");
+			}
+			
+			zk.delete(ZK_TASKS + "/" + tpath, 0);		//delete job from /tasks/t#			
+		} catch (KeeperException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		
 	}
 
 	public String byteToString(byte[] b) {
