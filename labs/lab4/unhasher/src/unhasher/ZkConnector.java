@@ -3,6 +3,7 @@ package unhasher;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
+import org.apache.zookeeper.Watcher.Event.EventType;
 import org.apache.zookeeper.Watcher.Event.KeeperState;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooKeeper.States;
@@ -92,5 +93,39 @@ public class ZkConnector implements Watcher {
             connectedSignal.countDown();
         }
     }
+    
+    public void listenToPath(final String path){
+		final CountDownLatch nodeCreatedSignal = new CountDownLatch(1);
+
+		try {
+			zooKeeper.exists(
+					path, 
+					new Watcher() {       // Anonymous Watcher
+						@Override
+						public void process(WatchedEvent event) {
+							// check for event type NodeCreated
+							boolean isNodeCreated = event.getType().equals(EventType.NodeCreated);
+							// verify if this is the defined znode
+							boolean isMyPath = event.getPath().equals(path);
+							if (isNodeCreated && isMyPath) {
+								System.out.println(path + " created!");
+								nodeCreatedSignal.countDown();
+							}
+						}
+					});
+		} catch(KeeperException e) {
+			System.out.println(e.code());
+		} catch(Exception e) {
+			System.out.println(e.getMessage());
+		}
+
+		System.out.println("Waiting for " + path + " to be created ...");
+
+		try{       
+			nodeCreatedSignal.await();
+		} catch(Exception e) {
+			System.out.println(e.getMessage());
+		}
+	}
 }
 

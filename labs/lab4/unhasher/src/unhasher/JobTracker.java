@@ -17,6 +17,7 @@ import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.Watcher.Event.KeeperState;
 import org.apache.zookeeper.ZooDefs;
 import org.apache.zookeeper.ZooKeeper;
+import org.apache.zookeeper.data.Stat;
 
 
 public class JobTracker extends Thread implements Watcher {
@@ -28,9 +29,10 @@ public class JobTracker extends Thread implements Watcher {
 	
 	// ZooKeeper resources 
 	ZkConnector zkc;
+	static ZooKeeper zk;  //need to lock this
+
 	static String zkhost;
 	static Integer zkport;
-	static ZooKeeper zk;  //need to lock this
 	static Lock zklock;
 	
 	static String ZK_TRACKER = "/tracker";
@@ -56,7 +58,10 @@ public class JobTracker extends Thread implements Watcher {
 	public JobTracker() {
 		zkc = new ZkConnector();
 		try {
-			zkc.connect(String.format("%s:%d", zkhost, zkport));
+			debug("Connecting to ZooKeeper instance zk");
+			String hosts = String.format("%s:%d", zkhost, zkport);
+			debug(hosts);
+			zkc.connect(hosts);
 			zk = zkc.getZooKeeper();
 			debug("Connected to ZooKeeper instance zk");
 
@@ -83,13 +88,13 @@ public class JobTracker extends Thread implements Watcher {
 			if (zk.exists(ZK_TRACKER, false) == null) {
 				zk.create(ZK_TRACKER, 
 						null, ZooDefs.Ids.OPEN_ACL_UNSAFE, 
-						CreateMode.EPHEMERAL);
+						CreateMode.PERSISTENT);
 				
 				trackerNodePath = String.format("%s/%s", ZK_TRACKER, addrId);
 				zk.create(trackerNodePath, 
 						TRACKER_PRIMARY.getBytes(), 
 						ZooDefs.Ids.OPEN_ACL_UNSAFE, 
-						CreateMode.EPHEMERAL);
+						CreateMode.PERSISTENT);
 				debug("Created /tracker znode and set self as primary");
 			} else {
 				//i am backup - create myself and set watch on primary
@@ -102,6 +107,7 @@ public class JobTracker extends Thread implements Watcher {
 						null, 
 						ZooDefs.Ids.OPEN_ACL_UNSAFE, 
 						CreateMode.EPHEMERAL);
+				debug("Created /worker znode");
 			}
 			
 			// create /fserver
@@ -110,14 +116,17 @@ public class JobTracker extends Thread implements Watcher {
 						null, 
 						ZooDefs.Ids.OPEN_ACL_UNSAFE, 
 						CreateMode.EPHEMERAL);
+				debug("Created /fserver znode");
 			}
+
 			
 			// create /jobs
 			if (zk.exists(ZK_TASKS, false) == null) {
 				zk.create(ZK_TASKS, 
 						null, 
 						ZooDefs.Ids.OPEN_ACL_UNSAFE, 
-						CreateMode.EPHEMERAL);
+						CreateMode.PERSISTENT);
+				debug("Created /tasks znode");
 			}
 			
 			// create /results
@@ -126,6 +135,7 @@ public class JobTracker extends Thread implements Watcher {
 						null, 
 						ZooDefs.Ids.OPEN_ACL_UNSAFE, 
 						CreateMode.EPHEMERAL);
+				debug("Created /results znode");
 			}
 			
 			zklock.unlock();
@@ -141,7 +151,9 @@ public class JobTracker extends Thread implements Watcher {
 	
 	public Runnable listenForTasks() throws KeeperException, InterruptedException {
 		List<String> tasks;
-
+		
+		//zkc.listenToPath(ZK_TASKS);
+		
 		jobSem.acquire();
 		while (true) {
 			
@@ -151,10 +163,10 @@ public class JobTracker extends Thread implements Watcher {
 					// TODO Auto-generated method stub
 					if (event.getType() == Event.EventType.NodeChildrenChanged) {
 				          jobSem.release();
-				        }
-					
+				        }					
 				}
 			});
+			
 						
 			if (tasks.isEmpty()) {
 				debug("No current tasks in /tasks");
@@ -171,39 +183,6 @@ public class JobTracker extends Thread implements Watcher {
 	}
 	
 	
-	/* 
-	 
-	 public void listForever(String groupName)
-          throws KeeperException, InterruptedException {
-    semaphore.acquire();
-    while (true) {
-      list(groupName);
-      semaphore.acquire();
-    }
-  }
-
-  private void list(String groupName)
-          throws KeeperException, InterruptedException {
-    String path = "/" + groupName;
-    List<String> children = zooKeeper.getChildren(path, new Watcher() {
-      @Override
-      public void process(WatchedEvent event) {
-        if (event.getType() == Event.EventType.NodeChildrenChanged) {
-          semaphore.release();
-        }
-      }
-    });
-    if (children.isEmpty()) {
-      System.out.printf("No members in group %s\n", groupName);
-      return;
-    }
-    Collections.sort(children);
-    System.out.println(children);
-    System.out.println("--------------------");
-}
-	 
-
-	 */
 	
 	@Override
 	public void process(WatchedEvent event) {
@@ -228,7 +207,7 @@ public class JobTracker extends Thread implements Watcher {
 			zkport = Integer.parseInt(args[2]);
 			
 			zklock = new ReentrantLock();
-			sock = new ServerSocket(port);
+			//sock = new ServerSocket(port);
 
 			addrId = String.format("%s:%d", InetAddress.getLocalHost().getHostAddress(), port);
 		} else {
