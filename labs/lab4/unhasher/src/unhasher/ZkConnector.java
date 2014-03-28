@@ -15,6 +15,7 @@ import org.apache.zookeeper.data.Stat;
 import java.util.concurrent.CountDownLatch;
 import java.util.List;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 
 public class ZkConnector implements Watcher {
 
@@ -92,6 +93,18 @@ public class ZkConnector implements Watcher {
         if (event.getState() == KeeperState.SyncConnected) {
             connectedSignal.countDown();
         }
+    }
+    
+    public String byteToString(byte[] b) {
+    	String s = null;
+    	if (b != null) {
+    		try {
+				s = new String(b, "UTF-8");
+			} catch (UnsupportedEncodingException e) {
+				e.printStackTrace();
+			}
+    	}
+    	return s;
     }
     
     public void listenToPath(final String path){

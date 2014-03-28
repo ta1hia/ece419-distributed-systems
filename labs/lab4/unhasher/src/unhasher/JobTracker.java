@@ -21,35 +21,36 @@ import org.apache.zookeeper.data.Stat;
 
 
 public class JobTracker extends Thread implements Watcher {
-	
+
 	private static Integer port;
 	private static String addrId;
 	static ServerSocket sock = null;
-	
-	
+
+
 	// ZooKeeper resources 
-	ZkConnector zkc;
+	static ZkConnector zkc;
 	static ZooKeeper zk;  //need to lock this
 
 	static String zkhost;
 	static Integer zkport;
 	static Lock zklock;
-	
+
 	static String ZK_TRACKER = "/tracker";
 	static String ZK_WORKER = "/worker";
 	static String ZK_FSERVER = "/fserver";
-	static String ZK_TASKS = "/tasks";
+	static String ZK_TASKS = "/tasks";  // like an event queue, task can be submit/query
+	static String ZK_JOBS = "/jobs";	// for submit tasks only, used by worker
 	static String ZK_RESULTS = "/results";
-	
+
 	private Semaphore jobSem = new Semaphore(1);
 
 	// JobTracker constants 
 	static String TRACKER_PRIMARY = "primary";
 	static String TRACKER_BACKUP = "backup";
-	
+
 	boolean debug = true;
-	
-	
+
+
 	/**
 	 * JobTracker
 	 * 
@@ -75,21 +76,21 @@ public class JobTracker extends Thread implements Watcher {
 		}
 	}
 
-	
+
 	private void initZNodes() {
 		//TODO: a bunch of these things are set to ephemeral, will switch to 
 		//to persistent after implementing fault tolerance 
 		try {
-			
+
 			zklock.lock();
-			
+
 			// create /tracker, and  set self as primary or backup
 			String trackerNodePath;
 			if (zk.exists(ZK_TRACKER, false) == null) {
 				zk.create(ZK_TRACKER, 
 						null, ZooDefs.Ids.OPEN_ACL_UNSAFE, 
 						CreateMode.PERSISTENT);
-				
+
 				trackerNodePath = String.format("%s/%s", ZK_TRACKER, addrId);
 				zk.create(trackerNodePath, 
 						TRACKER_PRIMARY.getBytes(), 
@@ -98,9 +99,9 @@ public class JobTracker extends Thread implements Watcher {
 				debug("Created /tracker znode and set self as primary");
 			} else {
 				//i am backup - create myself and set watch on primary
-				
+
 			}
-			
+
 			// create /worker
 			if (zk.exists(ZK_WORKER, false) == null) {
 				zk.create(ZK_WORKER, 
@@ -109,7 +110,7 @@ public class JobTracker extends Thread implements Watcher {
 						CreateMode.EPHEMERAL);
 				debug("Created /worker znode");
 			}
-			
+
 			// create /fserver
 			if (zk.exists(ZK_FSERVER, false) == null) {
 				zk.create(ZK_FSERVER, 
@@ -119,8 +120,8 @@ public class JobTracker extends Thread implements Watcher {
 				debug("Created /fserver znode");
 			}
 
-			
-			// create /jobs
+
+			// create /tasks
 			if (zk.exists(ZK_TASKS, false) == null) {
 				zk.create(ZK_TASKS, 
 						null, 
@@ -128,7 +129,16 @@ public class JobTracker extends Thread implements Watcher {
 						CreateMode.PERSISTENT);
 				debug("Created /tasks znode");
 			}
-			
+
+			// create /jobs
+			if (zk.exists(ZK_JOBS, false) == null) {
+				zk.create(ZK_JOBS, 
+						null, 
+						ZooDefs.Ids.OPEN_ACL_UNSAFE, 
+						CreateMode.PERSISTENT);
+				debug("Created /jobs znode");
+			}
+
 			// create /results
 			if (zk.exists(ZK_RESULTS, false) == null) {
 				zk.create(ZK_RESULTS, 
@@ -137,9 +147,9 @@ public class JobTracker extends Thread implements Watcher {
 						CreateMode.EPHEMERAL);
 				debug("Created /results znode");
 			}
-			
+
 			zklock.unlock();
-			
+
 		} catch (KeeperException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -148,48 +158,87 @@ public class JobTracker extends Thread implements Watcher {
 			e.printStackTrace();
 		}	
 	}
-	
-	public Runnable listenForTasks() throws KeeperException, InterruptedException {
+
+	public Runnable listenForTasks() throws KeeperException, InterruptedException, UnsupportedEncodingException {
 		List<String> tasks;
-		
-		//zkc.listenToPath(ZK_TASKS);
-		
+		Stat status;
+		String dataStr;
+		byte[] data;
+
 		jobSem.acquire();
 		while (true) {
-			
+
 			tasks = zk.getChildren(ZK_TASKS, new Watcher() {
 				@Override
 				public void process(WatchedEvent event) {
 					// TODO Auto-generated method stub
 					if (event.getType() == Event.EventType.NodeChildrenChanged) {
-				          jobSem.release();
-				        }					
+						jobSem.release();
+					}					
 				}
 			});
-			
-						
+
 			if (tasks.isEmpty()) {
 				debug("No current tasks in /tasks");
 			}
-			
+
 			//handle tasks 
-			// for now just listing tasks
-		    Collections.sort(tasks);
-		    System.out.println(tasks);
-		    System.out.println("--------------------");		
-		    
+			// for now listing tasks
+			Collections.sort(tasks);
+			debug(tasks.toString());
+
+			for (String path : tasks) {
+				status = new Stat();
+				data = zk.getData("/tasks/" + path, false, status);
+				if (status != null) {
+					dataStr = byteToString(data);
+					debug(String.format("task in path %s/%s is %s", ZK_TASKS, path, dataStr));
+					handleTask(new TaskPacket(dataStr), path);
+				}
+			}
+
+			debug("--------------------");		
+
 			jobSem.acquire();
 		}
 	}
-	
-	
-	
+
+	private void handleTask(TaskPacket p, String path) {
+
+
+		// check if task is job or query
+
+		// if query, check /result
+		// if not in result, return "still in progress"
+		// if in result, return result
+
+		// check if task already exists in /job
+		// if not, create /job/j#
+
+		// after handling, remove tasks
+
+	}
+
+	public String byteToString(byte[] b) {
+		String s = null;
+		if (b != null) {
+			try {
+				s = new String(b, "UTF-8");
+			} catch (UnsupportedEncodingException e) {
+				e.printStackTrace();
+			}
+		}
+		return s;
+	}
+
+
 	@Override
 	public void process(WatchedEvent event) {
 		// JobTracker watcher: watches if primary JT fails, makes self primary
 	}
-	
-	
+
+
+
 	/**
 	 * @param args
 	 * 
@@ -200,12 +249,12 @@ public class JobTracker extends Thread implements Watcher {
 	 * @throws KeeperException 
 	 */
 	public static void main(String[] args) throws IOException, KeeperException, InterruptedException {
-		
+
 		if(args.length == 3) {
 			port = Integer.parseInt(args[0]);
 			zkhost = args[1];
 			zkport = Integer.parseInt(args[2]);
-			
+
 			zklock = new ReentrantLock();
 			//sock = new ServerSocket(port);
 
@@ -214,7 +263,7 @@ public class JobTracker extends Thread implements Watcher {
 			System.err.println("ERROR: Invalid arguments!");
 			System.exit(-1);
 		}
-		
+
 		JobTracker jt = new JobTracker();
 		new Thread(jt.listenForTasks()).start();
 
@@ -222,9 +271,9 @@ public class JobTracker extends Thread implements Watcher {
 		/*while (true) {
 			new JobTrackerHandler(sock.accept(), zk, zklock).start();
 		}*/
-		
+
 	}
-	
+
 	private void debug (String s) {
 		if (debug) {
 			System.out.println(String.format("TRACKER_%d: %s", port, s ));

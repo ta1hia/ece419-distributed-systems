@@ -16,7 +16,15 @@ public class TaskPacket implements Serializable {
 		this.packet_type = type;
 		this.hash = hash;
 	}
-
+	
+	public TaskPacket(String s) {
+		if (s != null) {
+			this.packet_type = Integer.parseInt(s.split(":")[0]);
+			this.hash = s.split(":")[1];
+		}
+		
+	}
+	
 	public String taskToString() {
 		String me = null;
 		if (packet_type != null && hash != null) {
@@ -24,5 +32,5 @@ public class TaskPacket implements Serializable {
 		}
 		return me;
 	}
-
+	
 }
