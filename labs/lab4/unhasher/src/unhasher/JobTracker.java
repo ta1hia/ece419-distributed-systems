@@ -3,7 +3,10 @@ package unhasher;
 import java.io.*;
 import java.net.InetAddress;
 import java.net.ServerSocket;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -24,8 +27,7 @@ public class JobTracker extends Thread implements Watcher {
 	
 	
 	// ZooKeeper resources 
-	CountDownLatch connectedSignal = new CountDownLatch(1);
-	
+	ZkConnector zkc;
 	static String zkhost;
 	static Integer zkport;
 	static ZooKeeper zk;  //need to lock this
@@ -34,10 +36,11 @@ public class JobTracker extends Thread implements Watcher {
 	static String ZK_TRACKER = "/tracker";
 	static String ZK_WORKER = "/worker";
 	static String ZK_FSERVER = "/fserver";
-	static String ZK_JOBS = "/jobs";
+	static String ZK_TASKS = "/tasks";
 	static String ZK_RESULTS = "/results";
 	
-	
+	private Semaphore jobSem = new Semaphore(1);
+
 	// JobTracker constants 
 	static String TRACKER_PRIMARY = "primary";
 	static String TRACKER_BACKUP = "backup";
@@ -51,20 +54,10 @@ public class JobTracker extends Thread implements Watcher {
 	 * Watcher will keep track of switch between primary/backup in case of failure
 	 */
 	public JobTracker() {
-		
+		zkc = new ZkConnector();
 		try {
-			zk = new ZooKeeper(String.format("%s:%d", zkhost, zkport),
-					5000, 
-					new Watcher() {	//anonymous watcher
-						//release lock if ZooKeeper is connected
-						@Override
-						public void process(WatchedEvent event) {
-							if (event.getState() == KeeperState.SyncConnected) {
-								connectedSignal.countDown();
-							}
-						}
-			});
-			connectedSignal.await();
+			zkc.connect(String.format("%s:%d", zkhost, zkport));
+			zk = zkc.getZooKeeper();
 			debug("Connected to ZooKeeper instance zk");
 
 			initZNodes();
@@ -120,8 +113,8 @@ public class JobTracker extends Thread implements Watcher {
 			}
 			
 			// create /jobs
-			if (zk.exists(ZK_JOBS, false) == null) {
-				zk.create(ZK_JOBS, 
+			if (zk.exists(ZK_TASKS, false) == null) {
+				zk.create(ZK_TASKS, 
 						null, 
 						ZooDefs.Ids.OPEN_ACL_UNSAFE, 
 						CreateMode.EPHEMERAL);
@@ -146,6 +139,72 @@ public class JobTracker extends Thread implements Watcher {
 		}	
 	}
 	
+	public Runnable listenForTasks() throws KeeperException, InterruptedException {
+		List<String> tasks;
+
+		jobSem.acquire();
+		while (true) {
+			
+			tasks = zk.getChildren(ZK_TASKS, new Watcher() {
+				@Override
+				public void process(WatchedEvent event) {
+					// TODO Auto-generated method stub
+					if (event.getType() == Event.EventType.NodeChildrenChanged) {
+				          jobSem.release();
+				        }
+					
+				}
+			});
+						
+			if (tasks.isEmpty()) {
+				debug("No current tasks in /tasks");
+			}
+			
+			//handle tasks 
+			// for now just listing tasks
+		    Collections.sort(tasks);
+		    System.out.println(tasks);
+		    System.out.println("--------------------");		
+		    
+			jobSem.acquire();
+		}
+	}
+	
+	
+	/* 
+	 
+	 public void listForever(String groupName)
+          throws KeeperException, InterruptedException {
+    semaphore.acquire();
+    while (true) {
+      list(groupName);
+      semaphore.acquire();
+    }
+  }
+
+  private void list(String groupName)
+          throws KeeperException, InterruptedException {
+    String path = "/" + groupName;
+    List<String> children = zooKeeper.getChildren(path, new Watcher() {
+      @Override
+      public void process(WatchedEvent event) {
+        if (event.getType() == Event.EventType.NodeChildrenChanged) {
+          semaphore.release();
+        }
+      }
+    });
+    if (children.isEmpty()) {
+      System.out.printf("No members in group %s\n", groupName);
+      return;
+    }
+    Collections.sort(children);
+    System.out.println(children);
+    System.out.println("--------------------");
+}
+	 
+
+	 */
+	
 	@Override
 	public void process(WatchedEvent event) {
 		// JobTracker watcher: watches if primary JT fails, makes self primary
@@ -158,10 +217,12 @@ public class JobTracker extends Thread implements Watcher {
 	 * arg0		port for JobTracker
 	 * arg1 	host name for ZooKeeper
 	 * arg2		port for ZooKeeper
+	 * @throws InterruptedException 
+	 * @throws KeeperException 
 	 */
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) throws IOException, KeeperException, InterruptedException {
 		
-		if(args.length == 4) {
+		if(args.length == 3) {
 			port = Integer.parseInt(args[0]);
 			zkhost = args[1];
 			zkport = Integer.parseInt(args[2]);
@@ -175,10 +236,13 @@ public class JobTracker extends Thread implements Watcher {
 			System.exit(-1);
 		}
 		
+		JobTracker jt = new JobTracker();
+		new Thread(jt.listenForTasks()).start();
+
 		// handle clients in a loop here		
-		while (true) {
+		/*while (true) {
 			new JobTrackerHandler(sock.accept(), zk, zklock).start();
-		}
+		}*/
 		
 	}
 	
