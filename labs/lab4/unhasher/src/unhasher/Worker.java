@@ -107,7 +107,7 @@ public class Worker {
 	    // Congrats! Job path creathed.
 	    // Spawn a worker thread for it.
 	    System.out.println("Creating a new worker thread for " + path);
-	    //new WorkerHandlerThread(path).start();
+	    //new WorkerHandlerThread(zkc,path).start();
 
 	    counter++;
 	}
@@ -118,7 +118,7 @@ public class Worker {
 
 	try {
 	    zk.exists(
-		      path, 
+		      path + "/" + i, 
 		      new Watcher() {       // Anonymous Watcher
 			  @Override
 			      public void process(WatchedEvent event) {
