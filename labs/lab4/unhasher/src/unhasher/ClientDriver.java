@@ -60,7 +60,9 @@ public class ClientDriver {
 		
 		Code ret = createTaskPath(data);
 		
-		if (ret == Code.OK) debug("task sent!"); 
+		if (ret != Code.OK) { // debug("task sent!"); 
+			System.out.println("request could not be sent!");
+		}
 	}
 	
 	private KeeperException.Code createTaskPath(String data) {
@@ -82,14 +84,12 @@ public class ClientDriver {
         return KeeperException.Code.OK;
 	}
 	
-	@SuppressWarnings("unused")
 	private String waitForStatus() {
 		String path = lpath + "/res";
 		
 		byte [] data;
 		String result = null;
 		Stat stat = null;
-
 
 		try {
 			// wait for query result
@@ -147,12 +147,12 @@ public class ClientDriver {
 		String usage = "Usage: \tjob [hash] OR status [hash] OR quit/q";
 		TaskPacket toZk = null;
 
+		System.out.println("Unhasher started! " + usage);
 		System.out.print("> ");
 		while ((buf = br.readLine()) != null ) {
 			String[] tokens = buf.split("[ ]+");
 			cmd = tokens[0].toLowerCase();
 			
-						
 			if (cmd.equals("quit") || cmd.equals("q") ) {
 				debug("quitting...");
 				return;
