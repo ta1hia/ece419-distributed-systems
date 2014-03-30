@@ -39,7 +39,7 @@ public class Worker{
     ZkConnector zkc;
 
     static String myPath = "/Workers/w";
-    static String jobsPath = "/job/";
+    static String jobsPath = "/jobs";
     int counter = 1;
 
     boolean isPrimary = false;
@@ -124,11 +124,9 @@ public class Worker{
 
     // Try to spawn a worker thread when a new job is created
     private boolean start() {
-	while(true){
-	    String path = jobsPath;
-	    
+	while(true){	    
 	    // Wait until job path is created
-	    listenToPathChildren(path);
+	    listenToPathChildren(jobsPath);
 	
 	    // Wait until children of path are modified
 	    try{
@@ -180,7 +178,7 @@ public class Worker{
 	for (String path : jobs) {
 	    try{
 		status = new Stat();
-		data = zk.getData(jobsPath + path, false, status);
+		data = zk.getData(jobsPath + "/" + path, false, status);
 
 		if (status != null) {
 		    dataStr = byteToString(data);
@@ -215,7 +213,7 @@ public class Worker{
     private void handle(List <String> newJobs){
 	for(String path : newJobs){
 	    // Spawn a thread
-	    //new WorkerHandler(path);
+	    //new WorkerHandler(zkc,jobsPath + "/" + path).start();
 
 	    // Add to oldJobs list
 	    oldJobs.add(path);

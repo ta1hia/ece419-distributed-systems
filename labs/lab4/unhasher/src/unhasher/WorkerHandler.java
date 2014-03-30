@@ -36,17 +36,15 @@ public class WorkerHandler extends Thread{
     /**
      * @param args
      */
-    public WorkerHandler (ZkConnector zkc, String path, ConcurrentHashMap dictionary) throws IOException {
+    public WorkerHandler (ZkConnector zkc, String path) throws IOException {
         super("WorkerHandler");
       
-	String w_path = path + "/w";
+	// Request for a library partition
+	
+	// Keep a watch on the workers for any changes
 
-	// Create your folder in the path
-	zkc.create(
-		   w_path,         // Path of znode
-		   null,           // Data not needed.
-		   CreateMode.EPHEMERAL_SEQUENTIAL   
-		   );
+
+	// Start traversing through the partition and find the hash!
     }
 
     //Get to work
