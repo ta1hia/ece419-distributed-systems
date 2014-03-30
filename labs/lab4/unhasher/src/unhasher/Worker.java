@@ -199,7 +199,6 @@ public class Worker{
 	return newJobs;
     }
 
-
     public String byteToString(byte[] b) {
 	String s = null;
 	if (b != null) {
@@ -212,8 +211,15 @@ public class Worker{
 	return s;
     }
 
-    private void handle(List newJobs){
+    // Handle all new jobs
+    private void handle(List <String> newJobs){
+	for(String path : newJobs){
+	    // Spawn a thread
+	    //new WorkerHandler(path);
 
+	    // Add to oldJobs list
+	    oldJobs.add(path);
+	}
     }
 
     private static void debug (String s) {
