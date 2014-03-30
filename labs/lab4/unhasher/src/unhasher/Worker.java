@@ -5,6 +5,7 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.List;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
@@ -21,6 +22,7 @@ import org.apache.zookeeper.data.Stat;
 import org.apache.zookeeper.Watcher.Event.EventType;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Semaphore;
 
 /*
 
@@ -31,17 +33,21 @@ import java.util.concurrent.CountDownLatch;
 
 */
 
-public class Worker {
+public class Worker{
 
     ZkConnector zkc;
 
     static String myPath = "/Workers/w";
-    static String jobPath = "Jobs/j";
+    static String tasksPath = "tasks";
     int counter = 1;
 
     boolean isPrimary = false;
 
     Watcher watcher;
+
+    Semaphore workerSem = new Semaphore(1);
+
+    List <String> tasks;
 
     private static Integer port;
     private static String addrId;
@@ -64,7 +70,8 @@ public class Worker {
     static String TRACKER_PRIMARY = "primary";
     static String TRACKER_BACKUP = "backup";
 	
-    boolean debug = true;
+    static String mode;
+    static boolean debug = true;
 	
     /**
      * @param args
@@ -73,7 +80,7 @@ public class Worker {
      */
     public static void main(String[] args) {
         if (args.length != 1) {
-            System.out.println("Usage: java -classpath lib/zookeeper-3.3.2.jar:lib/log4j-1.2.15.jar:. Test zkServer:clientPort");
+            debug("Usage: java -classpath lib/zookeeper-3.3.2.jar:lib/log4j-1.2.15.jar:. Test zkServer:clientPort");
             return;
         }
 
@@ -81,7 +88,7 @@ public class Worker {
 
 	// Make your own subfolder in the Worker folder
 	// Keeps count of the amount of workers currently present
-	w.createWorkerFolder();
+	w.registerWorker();
 
 	// Start working!
 	w.start();
@@ -95,14 +102,14 @@ public class Worker {
 	try {
 	    zkc.connect(hosts);
 	} catch(Exception e) {
-	    System.out.println("Zookeeper connect "+ e.getMessage());
+	    debug("Zookeeper connect "+ e.getMessage());
 	}
 
 	zk = zkc.getZooKeeper();        		    
     } 	
 
     // Keep track of all workers currently present
-    private void createWorkerFolder(){
+    private void registerWorker(){
 	// Create your folder in the path
 	zkc.create(
 		   myPath,         // Path of znode
@@ -110,57 +117,64 @@ public class Worker {
 		   CreateMode.EPHEMERAL_SEQUENTIAL   
 		   );
 
-	System.out.println("Successfuly created a /Worker/wX folder");
+	debug("Successfuly registered as a /Worker/wX");
     }
 
     // Try to spawn a worker thread when a new job is created
     private boolean start() {
 	while(true){
-	    String path = jobPath + counter;
+	    String path = tasksPath;
 	    
 	    // Wait until job path is created
-	    listenToPath(path, counter);
+	    listenToPathChildren(path);
+	
+	    // Wait until children of path are modified
+	    try{
+		workerSem.acquire();
+	    } catch (Exception e){
+		debug("Couldn't release semaphore");
+	    }
 
-	    // Congrats! Job path creathed.
-	    // Spawn a worker thread for it.
-	    System.out.println("Creating a new worker thread for " + path);
-	    //new WorkerHandlerThread(zkc,path,dictionary).start();
+	    // Get any new tasks
+	    //tasks = getNewTasks();
+	    
+	    // Work on new task
 
-	    counter++;
 	}
     }
 
-    private void listenToPath(final String path, int i){
-	final CountDownLatch nodeCreatedSignal = new CountDownLatch(1);
-
+    // Place a watch on the children of a given path
+    private void listenToPathChildren(final String path){
 	try {
-	    zk.exists(
-		      path + i, 
+	    tasks = zk.getChildren(
+		      path, 
 		      new Watcher() {       // Anonymous Watcher
 			  @Override
 			      public void process(WatchedEvent event) {
-			      // check for event type NodeCreated
-			      boolean isNodeCreated = event.getType().equals(EventType.NodeCreated);
-			      // verify if this is the defined znode
-			      boolean isMyPath = event.getPath().equals(path);
-			      if (isNodeCreated && isMyPath) {
-				  System.out.println(myPath + " created!");
-				  nodeCreatedSignal.countDown();
+				      try{
+					  workerSem.release();
+				      } catch (Exception e){
+					  debug("Couldn't release semaphore");
+				      }
 			      }
-			  }
+			  
 		      });
-	} catch(KeeperException e) {
-	    System.out.println(e.code());
+
+	    debug("Worker: Created a watch on " + path + " children.");
 	} catch(Exception e) {
-	    System.out.println(e.getMessage());
+	    e.printStackTrace();
 	}
                             
-	System.out.println("Waiting for " + path + " to be created ...");
         
-	try{       
-	    nodeCreatedSignal.await();
-	} catch(Exception e) {
-	    System.out.println(e.getMessage());
+    }
+
+    private static void debug (String s) {
+	if (debug && mode != null) {
+	    System.out.println(String.format("TRACKER_%s: %s", mode.toUpperCase(), s));
+	} else {
+	    System.out.println(String.format("TRACKER_?: %s", s));		
 	}
     }
+
+
 }
