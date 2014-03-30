@@ -38,7 +38,7 @@ public class Worker{
     ZkConnector zkc;
 
     static String myPath = "/Workers/w";
-    static String tasksPath = "tasks";
+    static String jobsPath = "jobs";
     int counter = 1;
 
     boolean isPrimary = false;
@@ -47,7 +47,8 @@ public class Worker{
 
     Semaphore workerSem = new Semaphore(1);
 
-    List <String> tasks;
+    List <String> jobs;
+    List <String> oldJobs;
 
     private static Integer port;
     private static String addrId;
@@ -123,7 +124,7 @@ public class Worker{
     // Try to spawn a worker thread when a new job is created
     private boolean start() {
 	while(true){
-	    String path = tasksPath;
+	    String path = jobsPath;
 	    
 	    // Wait until job path is created
 	    listenToPathChildren(path);
@@ -135,10 +136,12 @@ public class Worker{
 		debug("Couldn't release semaphore");
 	    }
 
-	    // Get any new tasks
-	    //tasks = getNewTasks();
+	    // Get any new jobs
+	    List <String> newJobs;
+	    newJobs = getNewJobs();
 	    
-	    // Work on new task
+	    // Work on new job
+	    handle(newJobs);
 
 	}
     }
@@ -146,7 +149,7 @@ public class Worker{
     // Place a watch on the children of a given path
     private void listenToPathChildren(final String path){
 	try {
-	    tasks = zk.getChildren(
+	    jobs = zk.getChildren(
 		      path, 
 		      new Watcher() {       // Anonymous Watcher
 			  @Override
@@ -166,6 +169,14 @@ public class Worker{
 	}
                             
         
+    }
+
+    private List<String> getNewJobs(){
+	return null;
+    }
+
+    private void handle(List newJobs){
+
     }
 
     private static void debug (String s) {
