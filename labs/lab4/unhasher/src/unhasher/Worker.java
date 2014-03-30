@@ -6,6 +6,7 @@ import java.net.ServerSocket;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.List;
+import java.util.ArrayList;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
@@ -38,7 +39,7 @@ public class Worker{
     ZkConnector zkc;
 
     static String myPath = "/Workers/w";
-    static String jobsPath = "jobs";
+    static String jobsPath = "/job/";
     int counter = 1;
 
     boolean isPrimary = false;
@@ -48,7 +49,7 @@ public class Worker{
     Semaphore workerSem = new Semaphore(1);
 
     List <String> jobs;
-    List <String> oldJobs;
+    List <String> oldJobs = new ArrayList();
 
     private static Integer port;
     private static String addrId;
@@ -84,7 +85,7 @@ public class Worker{
             debug("Usage: java -classpath lib/zookeeper-3.3.2.jar:lib/log4j-1.2.15.jar:. Test zkServer:clientPort");
             return;
         }
-
+	
 	Worker w = new Worker(args[0]);
 
 	// Make your own subfolder in the Worker folder
@@ -166,13 +167,49 @@ public class Worker{
 	    debug("Worker: Created a watch on " + path + " children.");
 	} catch(Exception e) {
 	    e.printStackTrace();
-	}
-                            
-        
+	}                          
     }
 
+    // Return a list of string continue new jobs
     private List<String> getNewJobs(){
-	return null;
+	List<String> newJobs = new ArrayList();
+	Stat status;
+	String dataStr;
+	byte[] data;
+
+	for (String path : jobs) {
+	    try{
+		status = new Stat();
+		data = zk.getData(jobsPath + path, false, status);
+
+		if (status != null) {
+		    dataStr = byteToString(data);
+
+		    // Add jobs that are new
+		    if(!oldJobs.contains(dataStr)){
+			newJobs.add(dataStr);
+		    }
+		}
+	    } catch (Exception e){
+
+		e.printStackTrace();
+	    }
+	}
+
+	return newJobs;
+    }
+
+
+    public String byteToString(byte[] b) {
+	String s = null;
+	if (b != null) {
+	    try {
+		s = new String(b, "UTF-8");
+	    } catch (UnsupportedEncodingException e) {
+		e.printStackTrace();
+	    }
+	}
+	return s;
     }
 
     private void handle(List newJobs){
