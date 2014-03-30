@@ -4,10 +4,15 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.util.concurrent.CountDownLatch;
+
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.KeeperException.Code;
+import org.apache.zookeeper.WatchedEvent;
+import org.apache.zookeeper.Watcher;
+import org.apache.zookeeper.Watcher.Event.EventType;
 import org.apache.zookeeper.ZooDefs;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.data.Stat;
@@ -15,9 +20,8 @@ import org.apache.zookeeper.data.Stat;
 
 public class ClientDriver {
 
+	static String id;	// used with znode /client/[id]
 	static BufferedReader br = null;
-
-	static Integer port;
 	
 	// ZooKeeper resources 
 	ZkConnector zkc;
@@ -27,10 +31,10 @@ public class ClientDriver {
 	static String lpath;
 	
 	// ZooKeeper directories
+	static String ZK_CLIENTS = "/clients";
 	static String ZK_TASK = "/tasks";
 	static String ZK_SUBTASK = "/t";
-
-
+    CountDownLatch regSig = new CountDownLatch(1);
 
 	static boolean debug = true;
 
@@ -53,6 +57,41 @@ public class ClientDriver {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+	
+	public void registerToService() {
+				
+		try {
+			Stat stat = zk.exists(ZK_CLIENTS, new Watcher() {
+
+				@Override
+				public void process(WatchedEvent event) {
+					boolean isNodeCreated = event.getType().equals(EventType.NodeCreated);
+					
+					if (isNodeCreated) {
+						regSig.countDown();
+					} else {
+						debug("huu?");
+					}
+				}
+			});
+			if (stat == null) {
+				regSig.await();
+			}
+			
+			String path = zk.create(ZK_CLIENTS + "/", 
+					null, 
+					ZooDefs.Ids.OPEN_ACL_UNSAFE, 
+					CreateMode.EPHEMERAL_SEQUENTIAL);
+			
+			id = path.split("/")[2];
+			
+		} catch (KeeperException e) {
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		
 	}
 	
 	public void sendPacket(TaskPacket p) {
@@ -139,6 +178,7 @@ public class ClientDriver {
 		}
 		
 		ClientDriver cd = new ClientDriver();
+		cd.registerToService();
 
 		br = new BufferedReader (new InputStreamReader(System.in));
 
@@ -165,10 +205,10 @@ public class ClientDriver {
 			hash = tokens[1];
 			
 			if (cmd.equals("job")) {
-				toZk = new TaskPacket(TaskPacket.TASK_SUBMIT, hash);
+				toZk = new TaskPacket(id, TaskPacket.TASK_SUBMIT, hash);
 				cd.sendPacket(toZk);
 			} else if (cmd.equals("status")) {
-				toZk = new TaskPacket(TaskPacket.TASK_QUERY, hash);
+				toZk = new TaskPacket(id, TaskPacket.TASK_QUERY, hash);
 				cd.sendPacket(toZk);
 				result = cd.waitForStatus();
 				System.out.println(result);

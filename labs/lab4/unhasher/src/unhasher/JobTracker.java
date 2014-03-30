@@ -3,8 +3,10 @@ package unhasher;
 import java.io.*;
 import java.net.InetAddress;
 import java.net.ServerSocket;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.HashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.locks.Lock;
@@ -37,6 +39,7 @@ public class JobTracker extends Thread implements Watcher {
 	static String ZK_FSERVER = "/fserver";
 	static String ZK_TASKS = "/tasks";  // like an event queue, task can be submit or query
 	static String ZK_JOBS = "/jobs";	// for submit tasks (jobs) only, used by worker
+	static String ZK_CLIENTS = "/clients";
 	static String ZK_RESULTS = "/results";
 
 	private Semaphore jobSem = new Semaphore(1);
@@ -47,6 +50,10 @@ public class JobTracker extends Thread implements Watcher {
 	static String TRACKER_BACKUP = "backup";
 	static String mode;
     static CountDownLatch modeSignal = new CountDownLatch(1);
+    
+    // Client tracking
+    static HashMap <String, ArrayList<String>> clientJobs = 
+    		new HashMap<String, ArrayList<String>>(); // id: [hash1, hash2, hash3...]
 
 
 	static boolean debug = true;
@@ -120,13 +127,22 @@ public class JobTracker extends Thread implements Watcher {
 					debug("in /tracker znode set self as backup");	
 				}
 			}
+			
+			// create /client
+			if (zk.exists(ZK_CLIENTS, false) == null) {
+				zk.create(ZK_CLIENTS, 
+						null, 
+						ZooDefs.Ids.OPEN_ACL_UNSAFE, 
+						CreateMode.PERSISTENT);
+				debug("Created /client znode");
+			}
 
 			// create /worker
 			if (zk.exists(ZK_WORKER, false) == null) {
 				zk.create(ZK_WORKER, 
 						null, 
 						ZooDefs.Ids.OPEN_ACL_UNSAFE, 
-						CreateMode.EPHEMERAL);
+						CreateMode.PERSISTENT);
 				debug("Created /worker znode");
 			}
 
@@ -135,7 +151,7 @@ public class JobTracker extends Thread implements Watcher {
 				zk.create(ZK_FSERVER, 
 						null, 
 						ZooDefs.Ids.OPEN_ACL_UNSAFE, 
-						CreateMode.EPHEMERAL);
+						CreateMode.PERSISTENT);
 				debug("Created /fserver znode");
 			}
 
@@ -272,6 +288,7 @@ public class JobTracker extends Thread implements Watcher {
 
 		try {
 			// check if task already exists in /job/[hash]
+			addJobToMap(p);
 			Stat stat = zk.exists(jobPath, false);
 			
 			if (stat == null) {
@@ -306,19 +323,34 @@ public class JobTracker extends Thread implements Watcher {
 		}
 		return s;
 	}
+	
+	private void addJobToMap(TaskPacket p) {
+		if (clientJobs.get(p.c_id) == null) {
+			clientJobs.put(p.c_id, new ArrayList<String>()); //no ArrayList assigned, create new ArrayList
+		}
+		clientJobs.get(p.c_id).add(p.hash); 
+	}
 
 
 	@Override
 	public void process(WatchedEvent event) {
 		// JobTracker watcher: watches if primary jt fails, makes self primary
-		boolean isPrimaryDeleted;
+		boolean isNodeDeleted;
 		try {
-			isPrimaryDeleted = event.getType().equals(EventType.NodeDeleted);
-			Stat status = zk.exists(ZK_TRACKER, false);
-			if (mode.equals(TRACKER_BACKUP) 
-					&& isPrimaryDeleted 
-					&& status != null 
-					&& status.getNumChildren() == 1) {
+			isNodeDeleted = event.getType().equals(EventType.NodeDeleted);
+			String nodeName = event.getPath().split("/")[1];
+			Stat trackerStat = zk.exists(ZK_TRACKER, false);
+			
+			if (isNodeDeleted 
+					&& !nodeName.equals(TRACKER_PRIMARY)) {
+				debug("client " + nodeName + "disconnected");
+				
+			}
+			if (mode.equals(TRACKER_BACKUP) // primary failure handling
+					&& isNodeDeleted 
+					&& nodeName.equals(TRACKER_PRIMARY)
+					&& trackerStat != null 
+					&& trackerStat.getNumChildren() == 1) {
 				debug("detected primary failure, setting self as new primary");
 				zk.delete(myPath, 0); 							// remove self as backup
 				myPath = ZK_TRACKER + "/" + TRACKER_PRIMARY;	// add self as primary
