@@ -100,9 +100,10 @@ public class FileServer {
         try {
 	    serverSocket = new ServerSocket(Integer.parseInt(port));
         
+	    new FileServerHandler(true);
 
 	    while (listening) {
-		new FileServerHandler(serverSocket.accept(), zkc, zk).start();
+	    	new FileServerHandler(serverSocket.accept(), zkc, zk).start();
 	    }
 
 	    serverSocket.close();
@@ -125,24 +126,6 @@ public class FileServer {
 	zk = zkc.getZooKeeper();        		    
     }
  	
-    // Watcher handler
-    // Wake up when a node changes in ZooKeeper
-    private void handleEvent(WatchedEvent event, String requestsPath) {
-	String path = event.getPath();
-	EventType type = event.getType();
-	if(path.equalsIgnoreCase(requestsPath)) {
-	    if (type == EventType.NodeDeleted) {
-		System.out.println(requestsPath + " deleted! Let's go!");       
-		setPrimary(); // try to become the boss
-	    }
-	    if (type == EventType.NodeCreated) {
-		System.out.println(requestsPath + " created!");       
-		try{ Thread.sleep(5000); } catch (Exception e) {}
-		setPrimary(); // re-enable the watch
-	    }
-	}
-    }
-
     private boolean setPrimary() {
 	Stat stat = zkc.exists(myPath, watcher);
 	if (stat == null) {              // znode doesn't exist; let's try creating it
@@ -159,105 +142,7 @@ public class FileServer {
 	} 
 
 	return false;
-    }
-
-   
-    // Place a watch on the children of a given path
-    private void listenToPathChildren(final String path){
-	try {
-	    requests = zk.getChildren(
-				      path, 
-				      new Watcher() {       // Anonymous Watcher
-					  @Override
-					      public void process(WatchedEvent event) {
-					      try{
-						  requestSem.release();
-					      } catch (Exception e){
-						  debug("Couldn't release semaphore");
-					      }
-					  }
-			  
-				      });
-
-	    debug("listenToPathChildren: Created a watch on " + path + " children.");
-	} catch(Exception e) {
-	    e.printStackTrace();
-	}                          
-    }
-
-
-    // Return a list of string continue new requests
-    private List<String> getNewRequests(){
-	List<String> newRequests = new ArrayList();
-	List<String> removedRequests = new ArrayList();
-	Stat status;
-	String dataStr;
-	byte[] data;
-
-	debug("getNewRequests: Traversing through requests.");
-
-	for (String path : requests) {
-	    try{
-		debug("getNewRequests: " + path);
-
-		status = new Stat();
-		data = zk.getData(requestsPath + "/" + path, false, status);
-
-		if (status != null) {
-		    dataStr = byteToString(data);
-
-		    // Add requests that are new
-		    if(!oldRequests.contains(dataStr)){
-			newRequests.add(dataStr);
-		    }
-		}
-	    } catch (Exception e){
-		debug("getNewRequests: A path has been deleted! " + path);
-
-		// This request has been deleted!
-		oldRequests.remove(path);
-	    }
-	}
-
-	for (String path : newRequests){
-	    requests.remove(path);
-	}
-
-	return newRequests;
-    }
-
-
-    // Handle all new requests
-    private void handle(List <String> newRequests){
-	for(String path : newRequests){
-	    debug("handle: Handling request " + path);
-	    // Get packet
-	    // Stat status = new Stat();
-	    // byte[] data = zk.getData(requestsPath + "/" + path, false, null);
-
-	    
-	    // Get ID
-
-	    // Get number of workers
-
-	    // Split the dictionary
-
-
-	    // Place that dictionary into the request folder
-	}
-    }
-
-    public String byteToString(byte[] b) {
-	String s = null;
-	if (b != null) {
-	    try {
-		s = new String(b, "UTF-8");
-	    } catch (UnsupportedEncodingException e) {
-		e.printStackTrace();
-	    }
-	}
-	return s;
-    }
+    } 
 
     private static void debug (String s) {
 	if (debug && mode != null) {
@@ -270,47 +155,3 @@ public class FileServer {
 
 }
 
-
-
-// // Create a thread when a new request (ie. a child in the /Request node) has been created
-// // Place a watch on /Request
-// // Sequential, so keep track of the counter
-// // When a new request spawns, create a new thread FileServerHandler
-// private boolean listenRequests() {
-//     Stat stat = zkc.exists(requestsPath, watcher);
-//     if (stat == null) {              // znode doesn't exist; let's try creating it
-//         System.out.println("Creating " + myPath);
-//         Code ret = zkc.create(
-//                     myPath,         // Path of znode
-//                     null,           // Data not needed.
-//                     CreateMode.EPHEMERAL   // Znode type, set to EPHEMERAL.
-//                     );
-//         if (ret == Code.OK){
-// 		System.out.println("I'm the boss!");
-// 		return true;
-// 	    } 
-//     } 
-
-// 	return false;
-// }
-
-// // Give out partitions of the dictionary depending on the request.
-//    private void start(){
-// 	while(true){
-// 	    listenToPathChildren(requestsPath);
-	    
-// 	    // Wait until children of path are modified
-// 	    try{
-// 		requestSem.acquire();
-// 	    } catch (Exception e){
-// 		debug("Couldn't release semaphore");
-// 	    }
-
-// 	    // Get any new request
-// 	    List <String> newRequests;
-// 	    newRequests = getNewRequests();
-
-// 	    // Work on new request
-// 	    handle(newRequests);
-// 	}
-//}

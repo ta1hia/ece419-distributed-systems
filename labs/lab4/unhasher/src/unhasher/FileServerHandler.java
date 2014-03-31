@@ -10,6 +10,7 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.List;
 import java.util.ArrayList;
+import java.security.SecureRandom;
 
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
@@ -17,7 +18,8 @@ import org.apache.zookeeper.ZooKeeper;
 
 public class FileServerHandler extends Thread {
 	
-    String dictionaryPath = "dictionary/lowercase.rand";
+    File dictionaryFile;
+    String dictionaryPath = "unhasher/src/unhasher/dictionary/lowercase.rand";
     List <String> dictionary;
 
     InputStream is;
@@ -56,14 +58,18 @@ public class FileServerHandler extends Thread {
         }
     }
 
+    public FileServerHandler(boolean debug){
+	getDictionary();
+    }
+
     private void getDictionary(){
 	debug("Retrieving dictionary");
 
 	dictionary = new <String>ArrayList();
 
 	try{
-	    is = new FileInputStream(dictionaryPath);
-	    br = new BufferedReader(new InputStreamReader(is));
+	    //is = new FileInputStream(dictionaryPath);
+	    br = new BufferedReader(new FileReader(dictionaryPath));
 
 	    String line = null;
 	    int i = 0;
@@ -74,6 +80,7 @@ public class FileServerHandler extends Thread {
 	    }
 	} catch(Exception e){
 	    debug("Boo-hoo. Couldn't import dictionary");
+	    e.printStackTrace();
 	}
 	
     }
