@@ -72,34 +72,38 @@ public class WorkerHandler extends Thread{
     //Get to work
     // Start traversing through the partition and find the hash!
     public void run(){
-	// // Hash each word in the partition.
-	// // Check if it exists
-	// Object[] keys = dictionary.keySet().toArray();
-	// int size = dictionary.size(); 
+	// Hash each word in the partition.
+	// Check if it exists
+	Object[] keys = dictionary.keySet().toArray();
+	int size = dictionary.size(); 
 
-	// for(int i = 0; i < size; i++){
-	//     if(isNewPartition){
-	// 	i = 0;
+	for(int i = 0; i < size; i++){
+	    if(isNewPartition){
+		dlock.lock();
 
-	// 	keys = dictionary.keySet().toArray();
-	// 	size = dictionary.size();
+		i = 0;
 
-	// 	isNewPartition = false;
+		keys = dictionary.keySet().toArray();
+		size = dictionary.size();
 
-	// 	listenToPathChildren(myPath);
-	//     }
+		isNewPartition = false;
 
-	//     String key = keys[i].toString();
-	//     String word = dictionary.get(key);
+		listenToPathChildren(myPath);
 
-	//     String hash = getHash(word);
+		dlock.unlock();
+	    }
 
-	//     // if(hash == client_hash){
-	//     // 	// The client's hash is the same as one in the dictionary!
-	//     // 	// Return the password!
+	    String key = keys[i].toString();
+	    String word = dictionary.get(key);
+
+	    String hash = getHash(word);
+
+	    // if(hash == client_hash){
+	    // 	// The client's hash is the same as one in the dictionary!
+	    // 	// Return the password!
 		
-	//     // }
-	// }
+	    // }
+	}
 
     }
 

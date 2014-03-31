@@ -231,20 +231,22 @@ public class FileServer {
     // Handle all new requests
     private void handle(List <String> newRequests){
 	for(String path : newRequests){
-	    debug("handle: Sending job " + path);
+	    debug("handle: Handling request " + path);
+	    // Get packet
+	    // Stat status = new Stat();
+	    // byte[] data = zk.getData(requestsPath + "/" + path, false, null);
 
-	    // Spawn a thread
-	    try{
-		new WorkerHandler(zkc,requestsPath + "/" + path).start();
-	    } catch (Exception e){
-		debug("handle: Couldn't spawn WorkerHandler");
-	    }
+	    
+	    // Get ID
 
-	    // Add to oldRequests list
-	    oldRequests.add(path);
+	    // Get number of workers
+
+	    // Split the dictionary
+
+
+	    // Place that dictionary into the request folder
 	}
     }
-
 
     public String byteToString(byte[] b) {
 	String s = null;
