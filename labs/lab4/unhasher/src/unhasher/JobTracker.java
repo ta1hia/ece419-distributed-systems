@@ -25,8 +25,6 @@ import org.apache.zookeeper.data.Stat;
 
 public class JobTracker extends Thread implements Watcher {
 
-	private static final String ZK_PRIMARY = null;
-
 	// ZooKeeper resources 
 	static ZkConnector zkc;
 	static ZooKeeper zk; 
@@ -49,14 +47,16 @@ public class JobTracker extends Thread implements Watcher {
 	static String TRACKER_PRIMARY = "primary";
 	static String TRACKER_BACKUP = "backup";
 	static String mode;
-    static CountDownLatch modeSignal = new CountDownLatch(1);
-    
-    // Client tracking
-    static HashMap <String, ArrayList<String>> clientJobs = 
-    		new HashMap<String, ArrayList<String>>(); // id: [hash1, hash2, hash3...]
+	static CountDownLatch modeSignal = new CountDownLatch(1);
 
+	// Client tracking
+	static ArrayList<String> clientList = new ArrayList<String>();
+	static HashMap <String, ArrayList<String>> clientJobs = 
+			new HashMap<String, ArrayList<String>>(); // id: [hash1, hash2, hash3...]
+	private Semaphore clientSem = new Semaphore(1);
 
 	static boolean debug = true;
+	static Lock debugLock = new ReentrantLock();
 
 
 	/**
@@ -127,7 +127,7 @@ public class JobTracker extends Thread implements Watcher {
 					debug("in /tracker znode set self as backup");	
 				}
 			}
-			
+
 			// create /client
 			if (zk.exists(ZK_CLIENTS, false) == null) {
 				zk.create(ZK_CLIENTS, 
@@ -192,60 +192,177 @@ public class JobTracker extends Thread implements Watcher {
 		}	
 	}
 
-	public Runnable listenForTasks() throws KeeperException, InterruptedException, UnsupportedEncodingException {
-		List<String> tasks;
-		Stat status;
-		String dataStr;
-		byte[] data;
-
-		jobSem.acquire();
-		while (true) {
-
-			tasks = zk.getChildren(ZK_TASKS, new Watcher() {
-				@Override
-				public void process(WatchedEvent event) {
-					// TODO Auto-generated method stub
-					if (event.getType() == Event.EventType.NodeChildrenChanged) {
-						jobSem.release();
-					}					
-				}
-			});
-
-			if (tasks.isEmpty()) {
-				debug("No current tasks in /tasks");
+	public class RunListenForClients implements Runnable, Watcher {
+		@Override
+		public void run() {
+			try {
+				listenForClients();
+			} catch (UnsupportedEncodingException e) {
+				e.printStackTrace();
+			} catch (KeeperException e) {
+				e.printStackTrace();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
 			}
 
-			//handle tasks 
-			// for now listing tasks
-			Collections.sort(tasks);
-			debug(tasks.toString());
+		}
 
-			for (String path : tasks) {
-				status = new Stat();
-				data = zk.getData("/tasks/" + path, false, status);
-				if (status != null) {
-					dataStr = byteToString(data);
-					//debug(String.format("task in path %s/%s is %s", ZK_TASKS, path, dataStr));
-					handleTask(new TaskPacket(dataStr), path);
+		public void listenForClients() throws KeeperException, InterruptedException, UnsupportedEncodingException {
+			List<String> clients;
+			Stat status;
+			String dataStr;
+			byte[] data;
+
+			clientSem.acquire();
+			while (true) {
+
+				clients = zk.getChildren(ZK_CLIENTS, new Watcher() {
+					@Override
+					public void process(WatchedEvent event) {
+						// TODO Auto-generated method stub
+						if (event.getType() == Event.EventType.NodeChildrenChanged) {
+							clientSem.release();
+						}					
+					}
+				});
+
+				if (clients.isEmpty()) {
+					debug("No clients in /clients");
 				}
-			}
 
-			debug("--------------------");		
+				//handle clients 
+				Collections.sort(clients);
+				debug("clients: " + clients.toString());
+
+				for (String id : clients) {
+					if (!clientList.contains(id)) {
+						clientList.add(id);
+						String clientPath = ZK_CLIENTS + "/" + id;
+						zk.exists(clientPath, this);	// watch for client disconnect
+					}
+				}
+
+				debug("--------------------");		
+
+				clientSem.acquire();
+			}
+		}
+		
+		@Override
+		public void process(WatchedEvent event) {
+			// TODO Auto-generated method stut
+			try {
+				boolean isNodeDeleted = event.getType().equals(EventType.NodeDeleted);
+				String nodeName = event.getPath().split("/")[2];
+
+				if (isNodeDeleted && !nodeName.equals(TRACKER_PRIMARY)) {
+					debug("client " + nodeName + " disconnected, clearing its usecounts");
+					ArrayList<String> jobs = clientJobs.get(nodeName);
+					if (jobs != null) {
+						for (String job : jobs) {
+							String jobPath = ZK_JOBS + "/" + job;
+							debug ("clearing " + nodeName + "'s job at " + jobPath);
+							UseCount ucount = new UseCount(jobPath);
+							debug("usecount " + ucount.count);
+							ucount.decrementUseCount();
+							debug("usecount " + ucount.count);
+							// if use count is now 0, delete the job
+							if (ucount.count == 0) {
+								debug("usecount=0 for job at " + jobPath + ", deleting job");
+								zk.delete(jobPath, ucount.version);
+							}
+						}
+					} else {
+						debug("client " + nodeName + " had no jobs to clear");
+					}
+					clientJobs.remove(nodeName);
+					clientList.remove(nodeName);
+					debug("clientJobs: " + clientJobs.toString());
+					debug("clientList: " + clientList.toString());
+				} 
+			} catch (KeeperException e) {
+				e.printStackTrace();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+
+	}
+	
+	public class RunListenForTasks implements Runnable {
+
+		@Override
+		public void run() {
+			try {
+				listenForTasks();
+			} catch (UnsupportedEncodingException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (KeeperException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		public void listenForTasks() throws KeeperException, InterruptedException, UnsupportedEncodingException {
+			List<String> tasks;
+			Stat status;
+			String dataStr;
+			byte[] data;
 
 			jobSem.acquire();
+			while (true) {
+
+				tasks = zk.getChildren(ZK_TASKS, new Watcher() {
+					@Override
+					public void process(WatchedEvent event) {
+						// TODO Auto-generated method stub
+						if (event.getType() == Event.EventType.NodeChildrenChanged) {
+							jobSem.release();
+						}					
+					}
+				});
+
+				if (tasks.isEmpty()) {
+					debug("No current tasks in /tasks");
+				}
+
+				//handle tasks 
+				// for now listing tasks
+				Collections.sort(tasks);
+				debug("tasks :" + tasks.toString());
+
+				for (String path : tasks) {
+					status = new Stat();
+					data = zk.getData("/tasks/" + path, false, status);
+					if (status != null) {
+						dataStr = byteToString(data);
+						//debug(String.format("task in path %s/%s is %s", ZK_TASKS, path, dataStr));
+						handleTask(new TaskPacket(dataStr), path);
+					}
+				}
+
+				debug("--------------------");		
+
+				jobSem.acquire();
+			}
 		}
 	}
+
 
 	private void handleTask(TaskPacket p, String path) {
 
 		// check if task is job or query
-		
+		debug("client " + p.c_id + " sent a request");
 		if (p.packet_type == TaskPacket.TASK_SUBMIT) handleJob(p, path);
 		else if (p.packet_type == TaskPacket.TASK_QUERY) handleQuery(p, path);
 		else debug("packet type could not be recognized");
 
 	}
-	
+
 	private void handleQuery(TaskPacket p, String path) {
 		debug(String.format("handling query on '%s'", p.hash));
 		String resultPath = ZK_RESULTS + "/" + p.hash;
@@ -254,7 +371,7 @@ public class JobTracker extends Thread implements Watcher {
 		try {
 			// for query, check /result/[hash]
 			Stat stat = zk.exists(resultPath, false);
-			
+
 			if (stat == null) {
 				// if not in result, return "still in progress"
 				response = "job in progress";
@@ -269,7 +386,7 @@ public class JobTracker extends Thread implements Watcher {
 					ZooDefs.Ids.OPEN_ACL_UNSAFE, 
 					CreateMode.EPHEMERAL);
 			//debug("created in " + res);
-						
+
 		} catch (KeeperException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -279,7 +396,7 @@ public class JobTracker extends Thread implements Watcher {
 		}
 
 	}
-	
+
 	private void handleJob(TaskPacket p, String tpath) {
 		// check if task already exists in /job/[hash]
 		// if not, create /job/[hash]
@@ -288,28 +405,32 @@ public class JobTracker extends Thread implements Watcher {
 
 		try {
 			// check if task already exists in /job/[hash]
-			addJobToMap(p);
 			Stat stat = zk.exists(jobPath, false);
-			
+
 			if (stat == null) {
-				// if not in result, return "still in progress"
+				addJobToMap(p);
 				String res = zk.create(jobPath, 
-						p.hash.getBytes(),  //redundant to put hash here again
+						String.valueOf(1).getBytes(),  //1 node is using this job
 						ZooDefs.Ids.OPEN_ACL_UNSAFE, 
 						CreateMode.PERSISTENT);
 			} else {
 				// if in result, return result
-				debug("job for '"+ p.hash + "' already exists");
+				if (!clientJobs.get(p.c_id).contains(p.hash)) {
+					addJobToMap(p);
+					UseCount ucount = new UseCount(jobPath);
+					debug(String.format("job for %s exists with usecount %d, incrementing count", p.hash, ucount.count));
+					boolean success = ucount.incrementUseCount(jobPath);
+				} else {
+					debug("client " + p.c_id + " already submitted " + p.hash);
+				}
 			}
-			
+
 			zk.delete(ZK_TASKS + "/" + tpath, 0);		//delete job from /tasks/t#			
 		} catch (KeeperException e) {
 			e.printStackTrace();
 		} catch (InterruptedException e) {
 			e.printStackTrace();
-		}
-
-		
+		}		
 	}
 
 	public String byteToString(byte[] b) {
@@ -323,14 +444,17 @@ public class JobTracker extends Thread implements Watcher {
 		}
 		return s;
 	}
-	
-	private void addJobToMap(TaskPacket p) {
-		if (clientJobs.get(p.c_id) == null) {
-			clientJobs.put(p.c_id, new ArrayList<String>()); //no ArrayList assigned, create new ArrayList
-		}
-		clientJobs.get(p.c_id).add(p.hash); 
-	}
 
+	private void addJobToMap(TaskPacket p) {
+		if (clientList.contains(p.c_id)) {
+			if ( clientJobs.get(p.c_id) == null) {
+				clientJobs.put(p.c_id, new ArrayList<String>()); //no ArrayList assigned, create new ArrayList
+			}
+			clientJobs.get(p.c_id).add(p.hash); 
+		} else {
+			debug("cant find client " + p.c_id + " in list");
+		}
+	}
 
 	@Override
 	public void process(WatchedEvent event) {
@@ -340,11 +464,27 @@ public class JobTracker extends Thread implements Watcher {
 			isNodeDeleted = event.getType().equals(EventType.NodeDeleted);
 			String nodeName = event.getPath().split("/")[1];
 			Stat trackerStat = zk.exists(ZK_TRACKER, false);
-			
+
 			if (isNodeDeleted 
 					&& !nodeName.equals(TRACKER_PRIMARY)) {
-				debug("client " + nodeName + "disconnected");
-				
+				debug("client " + nodeName + "disconnected, clearing its usecounts");
+				ArrayList<String> jobs = clientJobs.get(nodeName);
+				if (jobs != null) {
+					for (String job : jobs) {
+						String jobPath = ZK_JOBS + "/" + job;
+						debug ("clearing " + nodeName + "'s job at " + jobPath);
+						UseCount ucount = new UseCount(jobPath);
+						ucount.decrementUseCount();
+						// if use count is now 0, delete the job
+						if (ucount.count == 0) {
+							zk.delete(jobPath, 0);
+						}
+					}
+				} else {
+					debug("client " + nodeName + " had no jobs to clear");
+				}
+				clientJobs.remove(nodeName);
+				clientList.remove(nodeName);
 			}
 			if (mode.equals(TRACKER_BACKUP) // primary failure handling
 					&& isNodeDeleted 
@@ -359,13 +499,61 @@ public class JobTracker extends Thread implements Watcher {
 						null, 
 						ZooDefs.Ids.OPEN_ACL_UNSAFE, 
 						CreateMode.EPHEMERAL);
-								
+
 				modeSignal.countDown();
 			}
 		} catch (KeeperException e) {
 			e.printStackTrace();
 		} catch (InterruptedException e) {
 			e.printStackTrace();
+		}
+	}
+
+	public class UseCount {
+
+		public Integer count;
+		public String jobpath;
+		public Integer version = null; 
+
+		public UseCount(String jobPath) {
+			try {
+				this.jobpath = jobPath;
+				byte[] data = zk.getData(jobPath, false, null);
+				String countStr = byteToString(data);
+				this.count = Integer.parseInt(countStr);
+				Stat state = zk.exists(jobpath, false);
+				this.version = state.getVersion();
+			} catch (KeeperException e) {
+				e.printStackTrace();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+
+
+		private boolean setUseCount(Integer newCount) {			
+			try {
+				this.count = newCount;
+				String countStr = String.valueOf(count);
+				Stat stat = zk.setData(jobpath, countStr.getBytes(), version);
+				version = stat.getVersion();
+				return true;
+			} catch (KeeperException e) {
+				e.printStackTrace();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			return false;
+		}
+
+		public boolean incrementUseCount(String jobPath) throws KeeperException, InterruptedException {
+			boolean success = setUseCount(count + 1);	
+			return success;
+		}
+
+		public boolean decrementUseCount() {
+			boolean success = setUseCount(count - 1);	
+			return success;
 		}
 	}
 
@@ -396,9 +584,12 @@ public class JobTracker extends Thread implements Watcher {
 		if (mode == TRACKER_BACKUP) {
 			debug("backup setting watch on " + ZK_TRACKER + "/" + TRACKER_PRIMARY);
 			zk.exists(ZK_TRACKER + "/" + TRACKER_PRIMARY, jt);	// primary watch
-		    modeSignal.await();
+			modeSignal.await();
 		}
-		new Thread(jt.listenForTasks()).start();
+		debug("starting client listerner");
+		new Thread(jt.new RunListenForClients()).start();
+		debug("starting task listerner");
+		new Thread(jt.new RunListenForTasks()).start();
 
 		// handle clients in a loop here		
 		/*while (true) {
@@ -408,11 +599,13 @@ public class JobTracker extends Thread implements Watcher {
 	}
 
 	private static void debug (String s) {
+		debugLock.lock();
 		if (debug && mode != null) {
 			System.out.println(String.format("TRACKER_%s: %s", mode.toUpperCase(), s));
 		} else {
 			System.out.println(String.format("TRACKER_?: %s", s));		
 		}
+		debugLock.unlock();
 	}
 
 
