@@ -125,6 +125,9 @@ public class Worker{
     // Try to spawn a worker thread when a new job is created
     private boolean start() {
 	while(true){	    
+
+	    jobs = new ArrayList();
+
 	    // Wait until job path is created
 	    listenToPathChildren(jobsPath);
 	
@@ -141,7 +144,6 @@ public class Worker{
 	    
 	    // Work on new job
 	    handle(newJobs);
-
 	}
     }
 
@@ -162,7 +164,7 @@ public class Worker{
 			  
 		      });
 
-	    debug("Worker: Created a watch on " + path + " children.");
+	    debug("listenToPathChildren: Created a watch on " + path + " children.");
 	} catch(Exception e) {
 	    e.printStackTrace();
 	}                          
@@ -171,12 +173,17 @@ public class Worker{
     // Return a list of string continue new jobs
     private List<String> getNewJobs(){
 	List<String> newJobs = new ArrayList();
+	List<String> removedJobs = new ArrayList();
 	Stat status;
 	String dataStr;
 	byte[] data;
 
+	debug("getNewJobs: Traversing through jobs.");
+
 	for (String path : jobs) {
 	    try{
+		debug("getNewJobs: " + path);
+
 		status = new Stat();
 		data = zk.getData(jobsPath + "/" + path, false, status);
 
@@ -189,9 +196,15 @@ public class Worker{
 		    }
 		}
 	    } catch (Exception e){
+		debug("getNewJobs: A path has been deleted! " + path);
 
-		e.printStackTrace();
+		// This job has been deleted!
+		oldJobs.remove(path);
 	    }
+	}
+
+	for (String path : newJobs){
+	    jobs.remove(path);
 	}
 
 	return newJobs;
@@ -212,8 +225,14 @@ public class Worker{
     // Handle all new jobs
     private void handle(List <String> newJobs){
 	for(String path : newJobs){
+	    debug("handle: Sending job " + path);
+
 	    // Spawn a thread
-	    //new WorkerHandler(zkc,jobsPath + "/" + path).start();
+	    try{
+		new WorkerHandler(zkc,jobsPath + "/" + path).start();
+	    } catch (Exception e){
+		debug("handle: Couldn't spawn WorkerHandler");
+	    }
 
 	    // Add to oldJobs list
 	    oldJobs.add(path);
