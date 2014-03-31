@@ -15,6 +15,10 @@ import java.util.ArrayList;
 	public int numWorkers;
 	public int packet_type;
 	public List dictionary;
+
+	// Index for the dictionary
+	public int i;
+	public int end;
 	
 	public PartitionPacket (int type, int id, int numWorkers) {
 	    this.w_id = id;

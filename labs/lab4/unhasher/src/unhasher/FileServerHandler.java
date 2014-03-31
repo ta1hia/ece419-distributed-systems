@@ -58,6 +58,7 @@ public class FileServerHandler extends Thread {
         }
     }
 
+    // Debugging
     public FileServerHandler(boolean debug){
 	getDictionary();
     }
@@ -93,11 +94,26 @@ public class FileServerHandler extends Thread {
 	    while((packetFromWorker = (PartitionPacket) cin.readObject()) != null){
 		// Got a packet!
 		// Reply back with a partition.
-
 		PartitionPacket packetToWorker = new PartitionPacket(PartitionPacket.PARTITION_REPLY);
 	    
-	    
+		int w_id = packetFromWorker.w_id;
+		int numWorkers = packetFromWorker.numWorkers;
 
+		int size = dictionary.size();
+		int partitionSize = (size / numWorkers);
+
+		// Find partition size
+		packetToWorker.i = partitionSize * w_id;
+		packetToWorker.end = partitionSize * (w_id + 1);
+
+		// Save partition dictionary
+		packetToWorker.dictionary = dictionary.subList(packetToWorker.i,packetToWorker.end);
+
+		// Send packet
+		cout.writeObject(packetToWorker);
+
+		// Your job is done!
+		break;
 	    }
 	} catch (Exception e){
 	    debug("Oh no! Could not work out PartitionPacket");
