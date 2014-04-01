@@ -50,8 +50,11 @@ public class WorkerHandler extends Thread{
     static boolean debug = true;
 
     String FS_path = "/FileServer";
+    Socket FS_socket;
     int FS_port;
     String FS_hostname;
+    ObjectInputStream FS_in;
+    ObjectOutputStream FS_out;
 
     /**
      * @param args
@@ -94,6 +97,16 @@ public class WorkerHandler extends Thread{
 	}
     }
 
+    private void connectToFileServer(){
+	try{
+	    FS_socket = new Socket(FS_hostname,FS_port);
+
+	    FS_in = new ObjectInputStream(FS_socket.getInputStream());
+	    FS_out = new ObjectOutputStream(FS_socket.getOutputStream());
+	} catch (Exception e){
+	    debug("connectToFileServer: Couldn't add the streams.");
+	}
+    }
 
 	public String byteToString(byte[] b) {
 		String s = null;
