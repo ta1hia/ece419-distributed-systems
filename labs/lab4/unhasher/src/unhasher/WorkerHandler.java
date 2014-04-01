@@ -65,6 +65,8 @@ public class WorkerHandler extends Thread{
     PartitionPacket packet;
     boolean isNewPartition = false;
 
+    String client_hash;
+
     /**
      * @param args
      */
@@ -78,6 +80,7 @@ public class WorkerHandler extends Thread{
 	zk = zkc.getZooKeeper();
 
 	this.path = path;
+	this.client_hash = path.split("/")[1];
 
 	this.w_id = w_id;
 
