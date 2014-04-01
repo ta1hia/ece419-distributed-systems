@@ -82,13 +82,13 @@ public class WorkerHandler extends Thread{
 	this.w_id = w_id;
 
 	// Get hostname and port of fileserver from Zookeeper
-	// getFileServerInfo();
+	getFileServerInfo();
 
 	// Connect to FileServer
-	// connectToFileServer();
+	connectToFileServer();
 
 	// Request for a library partition
-	//getDictPartition();
+	getDictPartition();
 
 	// Keep a watch on the workers for any changes
 	listenToPathChildren(myPath);
@@ -199,16 +199,16 @@ public class WorkerHandler extends Thread{
 			  @Override
 			      public void process(WatchedEvent event) {
 			      
-			      // dlock.lock();
+			      dlock.lock();
 			      
-			      // isNewPartition = true;
+			      isNewPartition = true;
 
-			      // // Oh no! The amount of workers has scaled.
-			      // // Request a new patition.
-			      // //getDictPartition();
+			      // Oh no! The amount of workers has scaled.
+			      // Request a new patition.
+			      //getDictPartition();
 
 			      
-			      // dlock.unlock();
+			      dlock.unlock();
 
 			      }
 			  
