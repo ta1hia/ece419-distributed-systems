@@ -28,6 +28,7 @@ import org.apache.zookeeper.CreateMode;
 public class WorkerHandler extends Thread{
 	
     static String myPath = "/Workers";
+    static String resultsPath = "/resulsts";
 
     Socket cSocket = null;
     ObjectInputStream cin;
@@ -178,12 +179,19 @@ public class WorkerHandler extends Thread{
 
 	    String hash = getHash(word);
 
-	    // if(hash == client_hash){
-	    // 	// The client's hash is the same as one in the dictionary!
-	    // 	// Return the password!
-		
-	    // }
-	}
+	    if(hash == client_hash){
+	    	// The client's hash is the same as one in the dictionary!
+	    	// Return the password!
+		try{
+		    zk.setData(resultsPath + "/" + client_hash, "1".getBytes(), -1);
+		} catch (Exception e){
+		    debug("run: Couldn't send success message.");
+		}
+
+		// Exit
+		return;
+	    }
+	}       
 
     }
 
