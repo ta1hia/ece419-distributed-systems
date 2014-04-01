@@ -115,13 +115,22 @@ public class Worker{
     // Keep track of all workers currently present
     private void registerWorker(){
 	// Create your folder in the path
-	zkc.create(
-		   myPath,         // Path of znode
+	try{
+	String path;
+	path = zk.create(
+		   myPath + "/",         // Path of znode
 		   null,           // Data not needed.
+		   ZooDefs.Ids.OPEN_ACL_UNSAFE,
 		   CreateMode.EPHEMERAL_SEQUENTIAL   
 		   );
 
 	debug("Successfuly registered as a /Worker/wX");
+
+	// Save your worker ID!
+	w_id = Integer.parseInt(path.split("/")[2]);
+	} catch (Exception e){
+	    debug("registerWorker: Couldn't register :(");
+	}
     }
 
     // Try to spawn a worker thread when a new job is created

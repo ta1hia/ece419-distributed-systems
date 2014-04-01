@@ -205,7 +205,7 @@ public class WorkerHandler extends Thread{
 
 			      // Oh no! The amount of workers has scaled.
 			      // Request a new patition.
-			      //getDictPartition();
+			      getDictPartition();
 
 			      
 			      dlock.unlock();
