@@ -75,6 +75,8 @@ public class Worker{
     static String mode;
     static boolean debug = true;
 	
+    int w_id;
+
     /**
      * @param args
      * 
@@ -229,7 +231,7 @@ public class Worker{
 
 	    // Spawn a thread
 	    try{
-		new WorkerHandler(zkc,jobsPath + "/" + path).start();
+		new WorkerHandler(zkc,jobsPath + "/" + path, w_id).start();
 	    } catch (Exception e){
 		debug("handle: Couldn't spawn WorkerHandler");
 	    }

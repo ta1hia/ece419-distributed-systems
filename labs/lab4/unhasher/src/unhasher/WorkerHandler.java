@@ -40,14 +40,19 @@ public class WorkerHandler extends Thread{
     ZkConnector zkc;
     String path;
 
-    ConcurrentHashMap <String,String> dictionary;
+    List <String> dictionary;
     Lock dlock = new ReentrantLock();
 
-    boolean isNewPartition = false;
     List <String> workers;
 
     static String mode;
     static boolean debug = true;
+
+    int w_id;
+    int numWorkers;
+
+    int i;
+    int end;
 
     String FS_path = "/FileServer";
     Socket FS_socket;
@@ -56,10 +61,14 @@ public class WorkerHandler extends Thread{
     ObjectInputStream FS_in;
     ObjectOutputStream FS_out;
 
+    PartitionPacket FS_packet;
+    PartitionPacket packet;
+    boolean isNewPartition = false;
+
     /**
      * @param args
      */
-    public WorkerHandler (ZkConnector zkc, String path) throws IOException {
+    public WorkerHandler (ZkConnector zkc, String path, int w_id) throws IOException {
         super("WorkerHandler");
 
 	debug("WorkherHandler thread created for " + path);
@@ -69,6 +78,8 @@ public class WorkerHandler extends Thread{
 	zk = zkc.getZooKeeper();
 
 	this.path = path;
+
+	this.w_id = w_id;
 
 	// Get hostname and port of fileserver from Zookeeper
 	// getFileServerInfo();
@@ -108,6 +119,27 @@ public class WorkerHandler extends Thread{
 	}
     }
 
+
+    private void getDictPartition(){
+	// Create dictionary request packet
+	packet = new PartitionPacket(PartitionPacket.PARTITION_REQUEST, w_id, numWorkers);
+
+	try{
+	    // Send out packet
+	    FS_out.writeObject(packet);
+
+	    // Read reply
+	    FS_packet = (PartitionPacket) FS_in.readObject();
+	} catch (Exception e){
+	    debug("getDictPartition: Gulp. Didn't work!");
+	}
+
+	dictionary = FS_packet.dictionary;
+	i = FS_packet.i;
+	end = FS_packet.end;
+	
+    }
+
 	public String byteToString(byte[] b) {
 		String s = null;
 		if (b != null) {
@@ -125,17 +157,12 @@ public class WorkerHandler extends Thread{
     public void run(){
 	// Hash each word in the partition.
 	// Check if it exists
-	Object[] keys = dictionary.keySet().toArray();
-	int size = dictionary.size(); 
 
-	for(int i = 0; i < size; i++){
+	for(int index = i; index < end; index++){
 	    if(isNewPartition){
 		dlock.lock();
 
-		i = 0;
-
-		keys = dictionary.keySet().toArray();
-		size = dictionary.size();
+		index = i;
 
 		isNewPartition = false;
 
@@ -144,8 +171,7 @@ public class WorkerHandler extends Thread{
 		dlock.unlock();
 	    }
 
-	    String key = keys[i].toString();
-	    String word = dictionary.get(key);
+	    String word = dictionary.get(index);
 
 	    String hash = getHash(word);
 
