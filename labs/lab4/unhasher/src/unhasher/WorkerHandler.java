@@ -10,6 +10,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
+import java.lang.String;
 
 // Hashing library
 import java.security.MessageDigest;
@@ -48,6 +49,10 @@ public class WorkerHandler extends Thread{
     static String mode;
     static boolean debug = true;
 
+    String FS_path = "/FileServer";
+    int FS_port;
+    String FS_hostname;
+
     /**
      * @param args
      */
@@ -62,12 +67,45 @@ public class WorkerHandler extends Thread{
 
 	this.path = path;
 
+	// Get hostname and port of fileserver from Zookeeper
+	// getFileServerInfo();
+
+	// Connect to FileServer
+	// connectToFileServer();
+
 	// Request for a library partition
 	//getDictPartition();
 
 	// Keep a watch on the workers for any changes
 	listenToPathChildren(myPath);
     }
+
+    // Get hostname and port of fileserver
+    private void getFileServerInfo(){
+	try{
+	    byte[] data = zk.getData(FS_path, false, null);
+
+	    String string_data = byteToString(data);
+
+	    FS_hostname = string_data.split(":")[0];	 
+	    FS_port = Integer.parseInt(string_data.split(":")[1]);  
+	} catch (Exception e){
+	    debug("getFileServerInfo: Abort! Didn't work.");
+	}
+    }
+
+
+	public String byteToString(byte[] b) {
+		String s = null;
+		if (b != null) {
+			try {
+				s = new String(b, "UTF-8");
+			} catch (UnsupportedEncodingException e) {
+				e.printStackTrace();
+			}
+		}
+		return s;
+	}
 
     //Get to work
     // Start traversing through the partition and find the hash!

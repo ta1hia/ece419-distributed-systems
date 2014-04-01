@@ -137,6 +137,14 @@ public class FileServer {
 				  );
 	    if (ret == Code.OK){
 		System.out.println("I'm the primary backup.");
+
+		// Place hostname and port into that folder
+		try{
+		    String data = InetAddress.getLocalHost().getHostName() + ":" + port;
+		    stat = zk.setData(myPath, data.getBytes(), -1);
+		} catch (Exception e){
+		    debug("setPrimary: Woops. Couldn't get hostname.");
+		}
 		return true;
 	    } 
 	} 
