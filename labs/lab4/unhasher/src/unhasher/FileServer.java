@@ -103,8 +103,6 @@ public class FileServer {
 	}
 
 	private void start(){
-		// Store whole dictionary as a list
-		getDictionary();
 
 		ServerSocket serverSocket = null;
 		boolean listening = true;
@@ -141,9 +139,12 @@ public class FileServer {
 			int i = 0;
 			// Traverse through dictionary and save it into the list
 			while((line = br.readLine()) != null){
-				//debug(line);
-				dictionary.add(i,line);
+			    //debug(line);
+			    dictionary.add(i,line);
+			    i++;
 			}
+
+			debug((i-1) + " == " + dictionary.get(i-1));
 
 			debug("getDictionary: Finished retrieving dictionary");
 		} catch(Exception e){
@@ -172,6 +173,9 @@ public class FileServer {
 	}
 
 	private boolean setPrimary() {
+		// Store whole dictionary as a list
+		getDictionary();
+
 		Stat stat = zkc.exists(myPath, watcher);
 		if (stat == null) {              // znode doesn't exist; let's try creating it
 			System.out.println("Creating " + myPath);
@@ -181,7 +185,7 @@ public class FileServer {
 					CreateMode.EPHEMERAL   // Znode type, set to EPHEMERAL.
 					);
 			if (ret == Code.OK){
-				System.out.println("setPrimary: I'm the primary backup.");
+				System.out.println("setPrimary: I'm the primary file server.");
 
 				// Place hostname and port into that folder
 				try{
