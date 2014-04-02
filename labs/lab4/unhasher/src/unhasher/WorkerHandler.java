@@ -12,6 +12,9 @@ import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 import java.lang.String;
 
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Semaphore;
+
 // Hashing library
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -21,6 +24,20 @@ import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.CreateMode;
+
+import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.WatchedEvent;
+import org.apache.zookeeper.Watcher;
+import org.apache.zookeeper.ZooDefs;
+import org.apache.zookeeper.ZooKeeper;
+
+import org.apache.zookeeper.KeeperException.Code;
+import org.apache.zookeeper.WatchedEvent;
+import org.apache.zookeeper.Watcher;
+import org.apache.zookeeper.ZooDefs.Ids;
+import org.apache.zookeeper.data.Stat;
+import org.apache.zookeeper.Watcher.Event.EventType;
 
 
 // Each WorkerHandler is assigned a job
@@ -65,8 +82,13 @@ public class WorkerHandler extends Thread{
     PartitionPacket FS_packet;
     PartitionPacket packet;
     boolean isNewPartition = false;
+    boolean isDiffWorkers = false;
 
     String client_hash;
+
+    boolean finishedWorking = false;
+
+    Semaphore sem = new Semaphore(1);
 
     /**
      * @param args
@@ -125,6 +147,14 @@ public class WorkerHandler extends Thread{
 	}
     }
 
+    private int getNumWorkers(){	
+	int numWorkers = 0;
+	for(String worker : workers){
+	    debug(worker);
+	    numWorkers++;
+	}
+	return numWorkers;
+    }
 
     private void getDictPartition(){
 	try{
@@ -181,6 +211,51 @@ public class WorkerHandler extends Thread{
     //Get to work
     // Start traversing through the partition and find the hash!
     public void run(){
+	boolean wordMatched;
+	wordMatched = checkWord();
+
+	postResult(wordMatched);
+    }
+
+    private void postResult(boolean wordMatched){
+	debug("postResult: " + wordMatched);
+
+	if(wordMatched){
+	    // Return the password!
+	    try{
+		zk.setData(resultsPath + "/" + client_hash, "success".getBytes(), -1);
+	    } catch (Exception e){
+		debug("run: Couldn't post success message.");
+	    }
+	} else {
+	    // Couldn't find password
+	    try{
+		byte[] data;
+		Stat status = new Stat();
+
+		data = zk.getData(resultsPath, false, status);
+		
+
+		if(status != null){
+		    String dataStr = byteToString(data);
+		    if(dataStr == "success")
+			return;
+
+		    int dataInt = Integer.parseInt(dataStr);
+		    Integer newData = dataInt + 1;
+
+		    if(newData == numWorkers)			
+			zk.setData(resultsPath, "fail".toString().getBytes(), -1);
+		    else
+			zk.setData(resultsPath, newData.toString().getBytes(), -1);
+		}
+	    } catch (Exception e) {
+		debug("postResult: Couldn't post result");
+	    }
+	}
+    }
+
+    private boolean checkWord(){
 	// Hash each word in the partition.
 	// Check if it exists
 
@@ -192,6 +267,14 @@ public class WorkerHandler extends Thread{
 
 		isNewPartition = false;
 
+		dlock.unlock();
+	    }
+
+
+	    if(isDiffWorkers){
+		dlock.lock();
+
+		isDiffWorkers = false;
 		listenToPathChildren(myPath);
 
 		dlock.unlock();
@@ -202,23 +285,14 @@ public class WorkerHandler extends Thread{
 	    String hash = getHash(word);
 
 	    if(hash == client_hash){
-	    	// The client's hash is the same as one in the dictionary!
-	    	// Return the password!
-		try{
-		    zk.setData(resultsPath + "/" + client_hash, "1".getBytes(), -1);
-		} catch (Exception e){
-		    debug("run: Couldn't send success message.");
-		}
-
-		// Exit
-		return;
+	    	// The client's hash is the same as one in the dictionary!	    	
+		return true;
 	    }
 	}       
+
 	debug("run: Couldn't find the hashed password!");
+	return false;
     }
-
-
-    
 
     // Place a watch on the children of a given path
     // Watch the other workers
@@ -234,12 +308,16 @@ public class WorkerHandler extends Thread{
 			      
 			      dlock.lock();
 			      
-			      isNewPartition = true;
+			      isDiffWorkers = true;
 
-			      // Oh no! The amount of workers has scaled.
-			      // Request a new patition.
-			      getDictPartition();
+			      int num = getNumWorkers();
+			      if(num < numWorkers){
+				  isNewPartition = true;
 
+				  // Oh no! The amount of workers has scaled.
+				  // Request a new patition.
+				  getDictPartition();
+			      }
 			      
 			      dlock.unlock();
 
