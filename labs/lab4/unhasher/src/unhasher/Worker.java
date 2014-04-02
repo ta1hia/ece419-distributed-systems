@@ -38,7 +38,7 @@ public class Worker{
 
     ZkConnector zkc;
 
-    static String myPath = "/Workers/w";
+    static String myPath = "/Workers";
     static String jobsPath = "/jobs";
     int counter = 1;
 
@@ -124,10 +124,11 @@ public class Worker{
 		   CreateMode.EPHEMERAL_SEQUENTIAL   
 		   );
 
-	debug("Successfuly registered as a /Worker/wX");
-
 	// Save your worker ID!
 	w_id = Integer.parseInt(path.split("/")[2]);
+	debug("Successfuly registered with ID " + w_id);
+
+
 	} catch (Exception e){
 	    debug("registerWorker: Couldn't register :(");
 	}
@@ -252,9 +253,9 @@ public class Worker{
 
     private static void debug (String s) {
 	if (debug && mode != null) {
-	    System.out.println(String.format("TRACKER_%s: %s", mode.toUpperCase(), s));
+	    System.out.println(String.format("WORKER_%s: %s", mode.toUpperCase(), s));
 	} else {
-	    System.out.println(String.format("TRACKER_?: %s", s));		
+	    System.out.println(String.format("WORKER_?: %s", s));		
 	}
     }
 

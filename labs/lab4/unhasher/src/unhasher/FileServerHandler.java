@@ -11,6 +11,7 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.ArrayList;
 import java.security.SecureRandom;
+import java.io.Serializable;
 
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
@@ -18,12 +19,7 @@ import org.apache.zookeeper.ZooKeeper;
 
 public class FileServerHandler extends Thread {
 	
-    File dictionaryFile;
-    String dictionaryPath = "unhasher/src/unhasher/dictionary/lowercase.rand";
     List <String> dictionary;
-
-    InputStream is;
-    BufferedReader br;
 
     ZkConnector zkc;
 
@@ -38,8 +34,10 @@ public class FileServerHandler extends Thread {
     static boolean debug = true;
 
     // Setup
-    public FileServerHandler (Socket socket, ZkConnector zkc, ZooKeeper zk) throws IOException {
-        super("FileServerHandler");
+    public FileServerHandler (Socket socket, ZkConnector zkc, ZooKeeper zk, List <String> dictionary) throws IOException {
+        super("FileServerHandler");	
+	debug("FileServerHandler created.");
+
         try {
 	    // Store variables
             this.cSocket = socket;
@@ -49,41 +47,12 @@ public class FileServerHandler extends Thread {
             this.zk = zk;
 	    this.zkc = zkc;
 
-	    // Store whole dictionary as a list
-	    getDictionary();
-	    
+	    this.dictionary = dictionary;
+
             debug("Created new FileServerHandler to handle remote client");
         } catch (IOException e) {
             System.out.println("IO Exception");
         }
-    }
-
-    // Debugging
-    public FileServerHandler(boolean debug){
-	getDictionary();
-    }
-
-    private void getDictionary(){
-	debug("Retrieving dictionary");
-
-	dictionary = new <String>ArrayList();
-
-	try{
-	    //is = new FileInputStream(dictionaryPath);
-	    br = new BufferedReader(new FileReader(dictionaryPath));
-
-	    String line = null;
-	    int i = 0;
-	    // Traverse through dictionary and save it into the list
-	    while((line = br.readLine()) != null){
-		debug(line);
-		dictionary.add(i,line);
-	    }
-	} catch(Exception e){
-	    debug("Boo-hoo. Couldn't import dictionary");
-	    e.printStackTrace();
-	}
-	
     }
 
     public void run(){
@@ -94,30 +63,38 @@ public class FileServerHandler extends Thread {
 	    while((packetFromWorker = (PartitionPacket) cin.readObject()) != null){
 		// Got a packet!
 		// Reply back with a partition.
+		debug("run: Retrieved packet from a worker");
 		PartitionPacket packetToWorker = new PartitionPacket(PartitionPacket.PARTITION_REPLY);
 	    
-		int w_id = packetFromWorker.w_id;
+		int partition_id = packetFromWorker.partition_id;
 		int numWorkers = packetFromWorker.numWorkers;
+		debug("run: partition_id = " + partition_id + " numWorkers: " + numWorkers);
 
 		int size = dictionary.size();
 		int partitionSize = (size / numWorkers);
+		debug("partitionSize: " + partitionSize);
 
 		// Find partition size
-		packetToWorker.i = partitionSize * w_id;
-		packetToWorker.end = partitionSize * (w_id + 1);
+		packetToWorker.i = partitionSize * (partition_id - 1);
+		packetToWorker.end = partitionSize * (partition_id) - 1;
 
 		// Save partition dictionary
-		packetToWorker.dictionary = dictionary.subList(packetToWorker.i,packetToWorker.end);
+		packetToWorker.dictionary = new ArrayList(dictionary.subList(packetToWorker.i,packetToWorker.end));
+		//packetToWorker.dictionary = ;
 
 		// Send packet
 		cout.writeObject(packetToWorker);
+		debug("run: Sent packet");
 
 		// Your job is done!
 		break;
 	    }
 	} catch (Exception e){
 	    debug("Oh no! Could not work out PartitionPacket");
+	    e.printStackTrace();
 	}
+
+	debug("run: Exitting");
     }
 
 

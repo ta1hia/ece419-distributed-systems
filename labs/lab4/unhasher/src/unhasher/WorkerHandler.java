@@ -104,11 +104,13 @@ public class WorkerHandler extends Thread{
 	    byte[] data = zk.getData(FS_path, false, null);
 
 	    String string_data = byteToString(data);
+	    debug("getFileServerInfo: " + string_data);
 
 	    FS_hostname = string_data.split(":")[0];	 
 	    FS_port = Integer.parseInt(string_data.split(":")[1]);  
 	} catch (Exception e){
 	    debug("getFileServerInfo: Abort! Didn't work.");
+	    e.printStackTrace();
 	}
     }
 
@@ -125,10 +127,30 @@ public class WorkerHandler extends Thread{
 
 
     private void getDictPartition(){
-	// Create dictionary request packet
-	packet = new PartitionPacket(PartitionPacket.PARTITION_REQUEST, w_id, numWorkers);
-
 	try{
+	    // Count amount of workers
+	    List <String> workers;
+	    int partition_id = 1;
+
+	    workers = zk.getChildren(myPath, null);
+	
+	    numWorkers = 0;
+	    for(String worker : workers){
+		debug(worker);
+		numWorkers++;
+
+		if(Integer.parseInt(worker) == w_id){
+		    partition_id = numWorkers;
+		}
+	    }
+	    
+	    debug("getDictPartition: partition_id = " + partition_id + " numWorkers = " + numWorkers);
+
+
+
+	    // Create dictionary request packet
+	    packet = new PartitionPacket(PartitionPacket.PARTITION_REQUEST, partition_id, numWorkers);
+
 	    // Send out packet
 	    FS_out.writeObject(packet);
 
@@ -192,7 +214,7 @@ public class WorkerHandler extends Thread{
 		return;
 	    }
 	}       
-
+	debug("run: Couldn't find the hashed password!");
     }
 
 

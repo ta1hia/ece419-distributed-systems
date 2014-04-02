@@ -11,7 +11,7 @@ import java.util.ArrayList;
 	public static final int PARTITION_REQUEST = 100;
 	public static final int PARTITION_REPLY = 101;
 
-	public int w_id;
+	public int partition_id;
 	public int numWorkers;
 	public int packet_type;
 	public List dictionary;
@@ -21,7 +21,7 @@ import java.util.ArrayList;
 	public int end;
 	
 	public PartitionPacket (int type, int id, int numWorkers) {
-	    this.w_id = id;
+	    this.partition_id = id;
 	    this.numWorkers = numWorkers;
 
 	    this.packet_type = type;

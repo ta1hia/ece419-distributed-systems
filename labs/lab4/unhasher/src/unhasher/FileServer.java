@@ -8,6 +8,11 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.List;
 import java.util.ArrayList;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.Socket;
+
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
@@ -38,21 +43,25 @@ public class FileServer {
 
     ZkConnector zkc;
     static String myPath = "/FileServer";
-    static String requestsPath = "/request";
+    static String requestsPath = "/requests";
 
     boolean isPrimary = false;
 
     Watcher watcher;
     Semaphore requestSem = new Semaphore(1);
 
+    File dictionaryFile;
+    String dictionaryPath = "unhasher/src/unhasher/dictionary/lowercase.rand";
+    InputStream is;
+    BufferedReader br;
 
     List <String> requests;
     List <String> oldRequests = new ArrayList();
+    List <String> dictionary;
 
     private static Integer port;
     private static String addrId;
     static ServerSocket sock = null;
-	
 	
     // ZooKeeper resources 
     static Integer zkport;
@@ -84,26 +93,31 @@ public class FileServer {
             return;
         }
 
-	FileServer fs = new FileServer(args[0]);
+	FileServer fs = new FileServer(args[0],args[1]);
 	fs.setPrimary();
 
 	// You've reached this far into the code
 	// You are the primary!
 	// Now, get to work.
-	fs.start(args[1]);
+	fs.start();
     }
 
-    private void start(String port){
+    private void start(){
+	// Store whole dictionary as a list
+	getDictionary();
+
         ServerSocket serverSocket = null;
         boolean listening = true;
 
         try {
-	    serverSocket = new ServerSocket(Integer.parseInt(port));
+	    serverSocket = new ServerSocket(port);
         
-	    new FileServerHandler(true);
-
+	    // Debug
+	    //new FileServerHandler(true);
+	    
+	    debug("start: Listening for incoming connections...");
 	    while (listening) {
-	    	new FileServerHandler(serverSocket.accept(), zkc, zk).start();
+	    	new FileServerHandler(serverSocket.accept(), zkc, zk, dictionary).start();
 	    }
 
 	    serverSocket.close();
@@ -113,14 +127,45 @@ public class FileServer {
         }
     }
 
+
+    private void getDictionary(){
+	debug("getDictionary: Retrieving dictionary");
+
+	dictionary = new <String>ArrayList();
+
+	try{
+	    //is = new FileInputStream(dictionaryPath);
+	    br = new BufferedReader(new FileReader(dictionaryPath));
+
+	    String line = null;
+	    int i = 0;
+	    // Traverse through dictionary and save it into the list
+	    while((line = br.readLine()) != null){
+		//debug(line);
+		dictionary.add(i,line);
+	    }
+
+	    debug("getDictionary: Finished retrieving dictionary");
+	} catch(Exception e){
+	    debug("getDictionary:Boo-hoo. Couldn't import dictionary");
+	    e.printStackTrace();
+	}
+	
+    }
+
+
     // Start up ZooKeeper connection
-    public FileServer(String hosts){
+    public FileServer(String hosts, String port){
+	debug("Connecting to Zookeeper");
+
+	this.port = Integer.parseInt(port);
+
 	// Try to connect to ZkConnector
 	zkc = new ZkConnector();		
 	try {
 	    zkc.connect(hosts);
 	} catch(Exception e) {
-	    System.out.println("Zookeeper connect "+ e.getMessage());
+	    System.out.println("FileServer: Zookeeper connect "+ e.getMessage());
 	}
 
 	zk = zkc.getZooKeeper();        		    
@@ -136,11 +181,13 @@ public class FileServer {
 				  CreateMode.EPHEMERAL   // Znode type, set to EPHEMERAL.
 				  );
 	    if (ret == Code.OK){
-		System.out.println("I'm the primary backup.");
+		System.out.println("setPrimary: I'm the primary backup.");
 
 		// Place hostname and port into that folder
 		try{
 		    String data = InetAddress.getLocalHost().getHostName() + ":" + port;
+		    debug("setPrimary: " + data);
+
 		    stat = zk.setData(myPath, data.getBytes(), -1);
 		} catch (Exception e){
 		    debug("setPrimary: Woops. Couldn't get hostname.");
@@ -154,9 +201,9 @@ public class FileServer {
 
     private static void debug (String s) {
 	if (debug && mode != null) {
-	    System.out.println(String.format("TRACKER_%s: %s", mode.toUpperCase(), s));
+	    System.out.println(String.format("FS_%s: %s", mode.toUpperCase(), s));
 	} else {
-	    System.out.println(String.format("TRACKER_?: %s", s));		
+	    System.out.println(String.format("FS_?: %s", s));		
 	}
     }
 

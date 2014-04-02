@@ -2,7 +2,7 @@ JOBTRACKER=unhasher/src
 LIBRARY_ZK=unhasher/lib/zookeeper-3.3.2.jar
 LIBRARY_LOG=unhasher/lib/log4j-1.2.15.jar
 
-echo -n "Enter hostname:port of Zookeeer: "
+echo -n "Enter hostname:port of Zookeeper: "
 read zk
 echo -n "Enter port to listen into: "
 read port
