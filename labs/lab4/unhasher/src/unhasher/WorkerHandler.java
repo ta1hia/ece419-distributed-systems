@@ -295,7 +295,7 @@ public class WorkerHandler extends Thread{
 
 		if(status != null){
 		    String dataStr = byteToString(data);
-		    if(dataStr.equals("success"))
+		    if(dataStr.contains("success"))
 			return;
 
 		    int dataInt = Integer.parseInt(dataStr);
@@ -321,7 +321,7 @@ public class WorkerHandler extends Thread{
 	// Hash each word in the partition.
 	// Check if it exists
 
-	for(int index = 0; index <= size; index++){
+	for(int index = 0; index < size; index++){
 	    if(isNewPartition){
 		dlock.lock();
 

@@ -75,7 +75,7 @@ public class FileServerHandler extends Thread {
 
 				// Find partition size
 				int i = partitionSize * (partition_id - 1);
-				int end = partitionSize * (partition_id) - 1;
+				int end = partitionSize * (partition_id);
 
 				if(packetToWorker.end > (size - 1))
 					packetToWorker.end = size - 1;
