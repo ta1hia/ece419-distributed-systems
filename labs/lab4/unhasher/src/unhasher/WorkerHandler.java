@@ -234,7 +234,7 @@ public class WorkerHandler extends Thread{
 		
 		if(status != null){
 		    String dataStr = byteToString(data);
-		    if(dataStr == "success")
+		    if(dataStr.equals("success"))
 			return;
 		    
 		    int dataInt = Integer.parseInt(dataStr);

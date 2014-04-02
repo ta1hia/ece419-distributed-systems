@@ -40,6 +40,7 @@ public class Worker{
 
     static String myPath = "/Workers";
     static String jobsPath = "/jobs";
+    static String resultsPath = "/results";
     int counter = 1;
 
     boolean isPrimary = false;
@@ -196,20 +197,14 @@ public class Worker{
 	    try{
 		debug("getNewJobs: " + path);
 
-		// status = new Stat();
-		// data = zk.getData(jobsPath + "/" + path, false, status);
+		// Check if job is done
+		boolean isJobComplete;
+		isJobComplete = isJobDone(path);
 
-		// if (status != null) {
-		//     dataStr = byteToString(data);
-
-		//     // Add jobs that are new
-		//     if(!oldJobs.contains(dataStr)){
-		// 	newJobs.add(dataStr);
-		//     }
-		// }
-
-		if(!oldJobs.contains(path))
+		if(!isJobComplete && !oldJobs.contains(path)){
+		    debug("getNewJobs: Adding job " + path);
 		    newJobs.add(path);
+		}
 
 	    } catch (Exception e){
 		debug("getNewJobs: A path has been deleted! " + path);
@@ -224,6 +219,24 @@ public class Worker{
 	}
 
 	return newJobs;
+    }
+    
+    private boolean isJobDone(String path){
+	try{
+	    String p = resultsPath + "/" + path;
+	    byte[] data = zk.getData(p, false, null);
+
+	    String dataStr = byteToString(data);
+
+	    debug("isJobDone: " + p + " dataStr: " + dataStr);
+	    if(dataStr.equals("success") || dataStr.equals("fail"))
+		return true;
+
+	} catch(Exception e){
+	    debug("isJobDone: Didn't work.");
+	}
+
+	return false;	
     }
 
     public String byteToString(byte[] b) {
