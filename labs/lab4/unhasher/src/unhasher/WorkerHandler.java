@@ -220,6 +220,7 @@ public class WorkerHandler extends Thread{
 	if(wordMatched){
 	    // Return the password!
 	    try{
+		debug("postResult: Congrats! The password exists.");
 		zk.setData(resultsPath + "/" + client_hash, "success".getBytes(), -1);
 	    } catch (Exception e){
 		debug("run: Couldn't post success message.");
@@ -285,7 +286,7 @@ public class WorkerHandler extends Thread{
 
 	    String hash = getHash(word);
 
-	    if(hash == client_hash){
+	    if(hash.equals(client_hash)){
 	    	// The client's hash is the same as one in the dictionary!	    	
 		return true;
 	    }
