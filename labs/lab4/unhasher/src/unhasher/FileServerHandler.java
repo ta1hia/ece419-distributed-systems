@@ -72,15 +72,19 @@ public class FileServerHandler extends Thread {
 
 		int size = dictionary.size();
 		int partitionSize = (size / numWorkers);
-		debug("partitionSize: " + partitionSize);
 
 		// Find partition size
-		packetToWorker.i = partitionSize * (partition_id - 1);
-		packetToWorker.end = partitionSize * (partition_id) - 1;
+		int i = partitionSize * (partition_id - 1);
+		int end = partitionSize * (partition_id) - 1;
 
+		if(packetToWorker.end > (size - 1))
+		    packetToWorker.end = size - 1;
+		debug("run: i = " + i + " end = " + end);
+
+		packetToWorker.size = end - i;
+		
 		// Save partition dictionary
-		packetToWorker.dictionary = new ArrayList(dictionary.subList(packetToWorker.i,packetToWorker.end));
-		//packetToWorker.dictionary = ;
+		packetToWorker.dictionary = new ArrayList(dictionary.subList(i,end));
 
 		// Send packet
 		cout.writeObject(packetToWorker);

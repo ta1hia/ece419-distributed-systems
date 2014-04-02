@@ -39,13 +39,12 @@ import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.data.Stat;
 import org.apache.zookeeper.Watcher.Event.EventType;
 
-
 // Each WorkerHandler is assigned a job
 // Try and find if the password hash is equal to the word hash in worker's dictionary partition
 public class WorkerHandler extends Thread{
 	
     static String myPath = "/Workers";
-    static String resultsPath = "/resulsts";
+    static String resultsPath = "/results";
 
     Socket cSocket = null;
     ObjectInputStream cin;
@@ -71,6 +70,7 @@ public class WorkerHandler extends Thread{
 
     int i;
     int end;
+    int size; 
 
     String FS_path = "/FileServer";
     Socket FS_socket;
@@ -103,7 +103,7 @@ public class WorkerHandler extends Thread{
 	zk = zkc.getZooKeeper();
 
 	this.path = path;
-	this.client_hash = path.split("/")[1];
+	this.client_hash = path.split("/")[2];
 
 	this.w_id = w_id;
 
@@ -176,8 +176,6 @@ public class WorkerHandler extends Thread{
 	    
 	    debug("getDictPartition: partition_id = " + partition_id + " numWorkers = " + numWorkers);
 
-
-
 	    // Create dictionary request packet
 	    packet = new PartitionPacket(PartitionPacket.PARTITION_REQUEST, partition_id, numWorkers);
 
@@ -191,8 +189,7 @@ public class WorkerHandler extends Thread{
 	}
 
 	dictionary = FS_packet.dictionary;
-	i = FS_packet.i;
-	end = FS_packet.end;
+	size = FS_packet.size;
 	
     }
 
@@ -233,24 +230,28 @@ public class WorkerHandler extends Thread{
 		byte[] data;
 		Stat status = new Stat();
 
-		data = zk.getData(resultsPath, false, status);
+		data = zk.getData(resultsPath + "/" + client_hash, false, status);
 		
-
 		if(status != null){
 		    String dataStr = byteToString(data);
 		    if(dataStr == "success")
 			return;
-
+		    
 		    int dataInt = Integer.parseInt(dataStr);
 		    Integer newData = dataInt + 1;
 
-		    if(newData == numWorkers)			
-			zk.setData(resultsPath, "fail".toString().getBytes(), -1);
+		    String result;
+		    if(newData == numWorkers)
+			result = "fail";
 		    else
-			zk.setData(resultsPath, newData.toString().getBytes(), -1);
+			result = newData.toString();
+		    debug("postResult: result = " + result);
+
+		    zk.setData(resultsPath + "/" + client_hash, result.getBytes(), -1); 
 		}
 	    } catch (Exception e) {
 		debug("postResult: Couldn't post result");
+		e.printStackTrace();
 	    }
 	}
     }
@@ -259,11 +260,11 @@ public class WorkerHandler extends Thread{
 	// Hash each word in the partition.
 	// Check if it exists
 
-	for(int index = i; index < end; index++){
+	for(int index = 0; index < size; index++){
 	    if(isNewPartition){
 		dlock.lock();
 
-		index = i;
+		index = 0;
 
 		isNewPartition = false;
 
@@ -348,9 +349,9 @@ public class WorkerHandler extends Thread{
 
     private static void debug (String s) {
 	if (debug && mode != null) {
-	    System.out.println(String.format("TRACKER_%s: %s", mode.toUpperCase(), s));
+	    System.out.println(String.format("WORKER_HANDLER_%s: %s", mode.toUpperCase(), s));
 	} else {
-	    System.out.println(String.format("TRACKER_?: %s", s));		
+	    System.out.println(String.format("WORKER_HANDLER_?: %s", s));		
 	}
     }
 }

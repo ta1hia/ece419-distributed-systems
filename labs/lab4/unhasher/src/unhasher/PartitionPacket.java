@@ -19,6 +19,7 @@ import java.util.ArrayList;
 	// Index for the dictionary
 	public int i;
 	public int end;
+	public int size;
 	
 	public PartitionPacket (int type, int id, int numWorkers) {
 	    this.partition_id = id;

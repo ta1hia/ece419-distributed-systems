@@ -196,17 +196,21 @@ public class Worker{
 	    try{
 		debug("getNewJobs: " + path);
 
-		status = new Stat();
-		data = zk.getData(jobsPath + "/" + path, false, status);
+		// status = new Stat();
+		// data = zk.getData(jobsPath + "/" + path, false, status);
 
-		if (status != null) {
-		    dataStr = byteToString(data);
+		// if (status != null) {
+		//     dataStr = byteToString(data);
 
-		    // Add jobs that are new
-		    if(!oldJobs.contains(dataStr)){
-			newJobs.add(dataStr);
-		    }
-		}
+		//     // Add jobs that are new
+		//     if(!oldJobs.contains(dataStr)){
+		// 	newJobs.add(dataStr);
+		//     }
+		// }
+
+		if(!oldJobs.contains(path))
+		    newJobs.add(path);
+
 	    } catch (Exception e){
 		debug("getNewJobs: A path has been deleted! " + path);
 
