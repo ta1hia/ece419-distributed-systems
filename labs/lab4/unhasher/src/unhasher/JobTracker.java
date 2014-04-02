@@ -146,16 +146,6 @@ public class JobTracker extends Thread implements Watcher {
 				debug("Created /worker znode");
 			}
 
-			// create /fserver
-			if (zk.exists(ZK_FSERVER, false) == null) {
-				zk.create(ZK_FSERVER, 
-						null, 
-						ZooDefs.Ids.OPEN_ACL_UNSAFE, 
-						CreateMode.PERSISTENT);
-				debug("Created /fserver znode");
-			}
-
-
 			// create /tasks
 			if (zk.exists(ZK_TASKS, false) == null) {
 				zk.create(ZK_TASKS, 

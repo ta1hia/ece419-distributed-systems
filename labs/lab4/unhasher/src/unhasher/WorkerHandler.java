@@ -65,7 +65,7 @@ public class WorkerHandler extends Thread{
 	static String mode;
 	static boolean debug = true;
 
-	int w_id;
+	static Integer w_id = null;
 	int numWorkers;
 
 	int i;
@@ -352,8 +352,8 @@ public class WorkerHandler extends Thread{
 
 
 	private static void debug (String s) {
-		if (debug && mode != null) {
-			System.out.println(String.format("WORKER_HANDLER_%s: %s", mode.toUpperCase(), s));
+		if (debug && w_id != null) {
+			System.out.println(String.format("WORKER_HANDLER_%d: %s", w_id, s));
 		} else {
 			System.out.println(String.format("WORKER_HANDLER_?: %s", s));		
 		}
