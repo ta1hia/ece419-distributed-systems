@@ -98,9 +98,14 @@ public class ClientDriver {
 		String data = p.taskToString();
 		
 		Code ret = createTaskPath(data);
-		
+				
 		if (ret != Code.OK) { // debug("task sent!"); 
 			System.out.println("request could not be sent!");
+			return;
+		}
+		
+		if (p.packet_type == TaskPacket.TASK_SUBMIT) {
+			System.out.println("job submitted");
 		}
 	}
 	

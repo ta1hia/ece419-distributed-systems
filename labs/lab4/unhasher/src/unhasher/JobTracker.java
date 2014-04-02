@@ -374,11 +374,12 @@ public class JobTracker extends Thread implements Watcher {
 			
 			if (stat != null) {
 				byte[] data = zk.getData(resultPath, false, null);
+				
 				String[] tokens = byteToString(data).split(":");
 				
-				Integer yo = Integer.parseInt(tokens[0]);
-				
-				if (tokens[0].equals("success")) {
+				if (tokens[0].equals("0")) {
+					response = "error: job '" + p.hash + "' could not be processed";
+				} else if (tokens[0].equals("success")) {
 					response = "password found: " + tokens[1];
 				} else if (tokens[0].equals("fail")) {
 					response = "error: job could not be processed";
@@ -390,26 +391,14 @@ public class JobTracker extends Thread implements Watcher {
 			}
 			debug(String.format("adding result '%s' to path %s", response, clientResponsePath));
 
-			/*if (stat == null) {
-				// if not in result, return "still in progress"
-				response = "job in progress";
-			} else {
-				// if in result, return result
-				byte[] data = zk.getData(resultPath, false, null);
-				response = "password found: " + byteToString(data);
-			}*/
-			//debug(String.format("adding result '%s' to path %s", response, clientResponsePath));
 			String res = zk.create(clientResponsePath, 
 					response.getBytes(), 
 					ZooDefs.Ids.OPEN_ACL_UNSAFE, 
 					CreateMode.EPHEMERAL);
-			//debug("created in " + res);
 
 		} catch (KeeperException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
