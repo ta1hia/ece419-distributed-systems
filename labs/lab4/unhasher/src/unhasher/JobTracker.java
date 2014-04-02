@@ -33,7 +33,7 @@ public class JobTracker extends Thread implements Watcher {
 	static Integer zkport;
 
 	static String ZK_TRACKER = "/tracker";
-	static String ZK_WORKER = "/worker";
+	static String ZK_WORKER = "/workers";
 	static String ZK_FSERVER = "/fserver";
 	static String ZK_TASKS = "/tasks";  // like an event queue, task can be submit or query
 	static String ZK_JOBS = "/jobs";	// for submit tasks (jobs) only, used by worker
@@ -371,15 +371,33 @@ public class JobTracker extends Thread implements Watcher {
 		try {
 			// for query, check /result/[hash]
 			Stat stat = zk.exists(resultPath, false);
+			
+			if (stat != null) {
+				byte[] data = zk.getData(resultPath, false, null);
+				String[] tokens = byteToString(data).split(":");
+				
+				Integer yo = Integer.parseInt(tokens[0]);
+				
+				if (tokens[0].equals("success")) {
+					response = "password found: " + tokens[1];
+				} else if (tokens[0].equals("fail")) {
+					response = "error: job could not be processed";
+				} else if (Integer.parseInt(tokens[0]) > 0) {
+					response = "job in progress";
+				}
+			} else {
+				response = "job '" + p.hash + "' does not exist";
+			}
+			debug(String.format("adding result '%s' to path %s", response, clientResponsePath));
 
-			if (stat == null) {
+			/*if (stat == null) {
 				// if not in result, return "still in progress"
 				response = "job in progress";
 			} else {
 				// if in result, return result
 				byte[] data = zk.getData(resultPath, false, null);
 				response = "password found: " + byteToString(data);
-			}
+			}*/
 			//debug(String.format("adding result '%s' to path %s", response, clientResponsePath));
 			String res = zk.create(clientResponsePath, 
 					response.getBytes(), 
@@ -402,12 +420,15 @@ public class JobTracker extends Thread implements Watcher {
 		// if not, create /job/[hash]
 		debug(String.format("handling job '%s'", p.hash));
 		String jobPath = ZK_JOBS + "/" + p.hash;
+		String resultPath = ZK_RESULTS + "/" + p.hash;
 
 		try {
 			// check if task already exists in /job/[hash]
-			Stat stat = zk.exists(jobPath, false);
+			Stat statJob = zk.exists(jobPath, false);
+			Stat statResult = zk.exists(resultPath, false);
 
-			if (stat == null) {
+			// create job if it doesn't already exist
+			if (statJob == null) {
 				addJobToMap(p);
 				String res = zk.create(jobPath, 
 						String.valueOf(1).getBytes(),  //1 node is using this job
@@ -423,6 +444,13 @@ public class JobTracker extends Thread implements Watcher {
 				} else {
 					debug("client " + p.c_id + " already submitted " + p.hash);
 				}
+			}
+			
+			if (statResult == null) {
+				String res = zk.create(resultPath, 
+						String.valueOf(0).getBytes(),  //init to 0
+						ZooDefs.Ids.OPEN_ACL_UNSAFE, 
+						CreateMode.PERSISTENT);
 			}
 
 			zk.delete(ZK_TASKS + "/" + tpath, 0);		//delete job from /tasks/t#			
@@ -472,6 +500,7 @@ public class JobTracker extends Thread implements Watcher {
 				if (jobs != null) {
 					for (String job : jobs) {
 						String jobPath = ZK_JOBS + "/" + job;
+						String resultPath = ZK_RESULTS + "/" + job;
 						debug ("clearing " + nodeName + "'s job at " + jobPath);
 						UseCount ucount = new UseCount(jobPath);
 						ucount.decrementUseCount();

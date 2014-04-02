@@ -42,7 +42,7 @@ import java.util.concurrent.Semaphore;
 public class FileServer {
 
     ZkConnector zkc;
-    static String myPath = "/FileServer";
+    static String myPath = "/fserver";
     static String requestsPath = "/requests";
 
     boolean isPrimary = false;
@@ -131,7 +131,7 @@ public class FileServer {
     private void getDictionary(){
 	debug("getDictionary: Retrieving dictionary");
 
-	dictionary = new <String>ArrayList();
+	dictionary = new ArrayList<String>();
 
 	try{
 	    //is = new FileInputStream(dictionaryPath);

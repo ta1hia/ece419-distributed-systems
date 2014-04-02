@@ -43,7 +43,7 @@ import org.apache.zookeeper.Watcher.Event.EventType;
 // Try and find if the password hash is equal to the word hash in worker's dictionary partition
 public class WorkerHandler extends Thread{
 	
-    static String myPath = "/Workers";
+    static String myPath = "/workers";
     static String resultsPath = "/results";
 
     Socket cSocket = null;
@@ -72,7 +72,7 @@ public class WorkerHandler extends Thread{
     int end;
     int size; 
 
-    String FS_path = "/FileServer";
+    String FS_path = "/fserver";
     Socket FS_socket;
     int FS_port;
     String FS_hostname;

@@ -38,7 +38,7 @@ public class Worker{
 
     ZkConnector zkc;
 
-    static String myPath = "/Workers";
+    static String myPath = "/workers";
     static String jobsPath = "/jobs";
     static String resultsPath = "/results";
     int counter = 1;
