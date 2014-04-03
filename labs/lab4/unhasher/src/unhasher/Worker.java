@@ -77,6 +77,7 @@ public class Worker{
     static boolean debug = true;
 
     int w_id;
+    String w_id_string;
 
     /**
      * @param args
@@ -171,6 +172,7 @@ public class Worker{
 			     );
 
 	    // Save your worker ID!
+	    w_id_string = path.split("/")[2];
 	    w_id = Integer.parseInt(path.split("/")[2]);
 	    debug("Successfuly registered with ID " + w_id);
 
@@ -272,7 +274,10 @@ public class Worker{
     private boolean isJobDone(String path){
 	try{
 	    String p = resultsPath + "/" + path;
-	    byte[] data = zk.getData(p, false, null);
+	    byte[] data = null;
+
+	    while(data == null)
+		data = zk.getData(p, false, null);
 
 	    String dataStr = byteToString(data);
 	    dataStr = dataStr.split(":")[0];
@@ -307,7 +312,7 @@ public class Worker{
 
 	    // Spawn a thread
 	    try{
-		new WorkerHandler(zkc,jobsPath + "/" + path, w_id).start();
+		new WorkerHandler(zkc,jobsPath + "/" + path, w_id_string).start();
 	    } catch (Exception e){
 		debug("handle: Couldn't spawn WorkerHandler");
 	    }

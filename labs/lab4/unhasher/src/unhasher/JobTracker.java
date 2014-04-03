@@ -363,17 +363,24 @@ public class JobTracker extends Thread implements Watcher {
 			Stat stat = zk.exists(resultPath, false);
 			
 			if (stat != null) {
-				byte[] data = zk.getData(resultPath, false, null);
-				
+			    byte[] data = null;
+
+			    while(data == null)
+				data = zk.getData(resultPath, false, null);
+
+				//debugging
+				String dataStr = byteToString(data);
+				debug("handleQuery: " + dataStr);
+
 				String[] tokens = byteToString(data).split(":");
 				
-				if (tokens[0].equals("0")) {
-					response = "error: job '" + p.hash + "' could not be processed";
-				} else if (tokens[0].equals("success")) {
+				//if (tokens[0].equals("0")) {
+				//	response = "error: job '" + p.hash + "' could not be processed";
+				if (tokens[0].equals("success")){//} else if (tokens[0].equals("success")) {
 					response = "password found: " + tokens[1];
 				} else if (tokens[0].equals("fail")) {
-					response = "error: job could not be processed";
-				} else if (Integer.parseInt(tokens[0]) > 0) {
+				    	response = "password not found; try again."; //response = "error: job could not be processed";
+				} else {//if (Integer.parseInt(tokens[0]) > 0) {
 					response = "job in progress";
 				}
 			} else {

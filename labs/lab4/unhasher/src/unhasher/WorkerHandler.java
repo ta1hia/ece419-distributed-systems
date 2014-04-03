@@ -66,7 +66,9 @@ public class WorkerHandler extends Thread{
     static boolean debug = true;
 
     static Integer w_id = null;
+    String w_id_string;
     int numWorkers;
+    int partition_id;
 
     int i;
     int end;
@@ -94,7 +96,7 @@ public class WorkerHandler extends Thread{
     /**
      * @param args
      */
-    public WorkerHandler (ZkConnector zkc, String path, int w_id) throws IOException {
+    public WorkerHandler (ZkConnector zkc, String path, String w_id_string) throws IOException {
 	super("WorkerHandler");
 
 	debug("WorkherHandler thread created for " + path);
@@ -106,21 +108,58 @@ public class WorkerHandler extends Thread{
 	this.path = path;
 	this.client_hash = path.split("/")[2];
 
-	this.w_id = w_id;
+	this.w_id_string = w_id_string;
+	this.w_id = Integer.parseInt(w_id_string);
 
-	// Get hostname and port of fileserver from Zookeeper
-	getFileServerInfo();
+	// Register to /jobs/[job name]
+	registerToJob();
 
-	// Connect to FileServer
-	connectToFileServer();
+	waitUntilExists(resultsPath + "/" + client_hash);
 
-	// Request for a library partition
-	getDictPartition();
-
+	setup();
 	// Keep a watch on the workers for any changes
-	listenToPathChildren(myPath);
+	//listenToPathChildren(myPath);
     }
 
+    private void setup(){
+	// Save a copy of current workers
+	saveCurrentWorkers();
+
+	boolean gotNewPartition = false;
+
+	while(!gotNewPartition){
+	    // Get hostname and port of fileserver from Zookeeper
+	    getFileServerInfo();
+
+	    // Connect to FileServer
+	    connectToFileServer();
+
+	    // Get num of workers
+	    getNumWorkers();
+
+	    // Request for a library partition
+	    gotNewPartition = getDictPartition();
+	}
+    }
+
+    // Keep track of all workers currently present
+    private void registerToJob(){
+	// Create your folder in the path
+	try{
+	    // Wait until /worker is created
+	    waitUntilExists(path);
+
+	    String p;
+	    p = zk.create(
+			     path + "/" + w_id_string,         // Path of znode
+			     null,           // Data not needed.
+			     ZooDefs.Ids.OPEN_ACL_UNSAFE,
+			     CreateMode.EPHEMERAL  
+			     );
+	} catch (Exception e){
+	    debug("registerWorker: Couldn't register :(");
+	}
+    }
 
     private void waitUntilExists(final String p){
 	final CountDownLatch nodeCreatedSignal = new CountDownLatch(1);
@@ -166,24 +205,31 @@ public class WorkerHandler extends Thread{
 
     // Get hostname and port of fileserver
     private void getFileServerInfo(){
-	try{
+	boolean isConnected = false;
 
-	    // Wait until /fserver is created
-	    waitUntilExists(FS_path);
+	while(!isConnected){
+	    try{
 
-	    byte[] data = null;
+		// Wait until /fserver is created
+		waitUntilExists(FS_path);
 
-	    while(data == null)
-		data = zk.getData(FS_path, false, null);
+		byte[] data = null;
 
-	    String string_data = byteToString(data);
-	    debug("getFileServerInfo: " + string_data);
+		while(data == null)
+		    data = zk.getData(FS_path, false, null);
 
-	    FS_hostname = string_data.split(":")[0];	 
-	    FS_port = Integer.parseInt(string_data.split(":")[1]);  
-	} catch (Exception e){
-	    debug("getFileServerInfo: Abort! Didn't work.");
-	    e.printStackTrace();
+		String string_data = byteToString(data);
+		debug("getFileServerInfo: " + string_data);
+
+		FS_hostname = string_data.split(":")[0];	 
+		FS_port = Integer.parseInt(string_data.split(":")[1]);  
+
+		isConnected = true;
+	    } catch (Exception e){
+		debug("getFileServerInfo: Abort! Didn't work.");
+		e.printStackTrace();
+	    }
+	
 	}
     }
 
@@ -198,20 +244,10 @@ public class WorkerHandler extends Thread{
 	}
     }
 
-    private int getNumWorkers(){	
-	int numWorkers = 0;
-	for(String worker : workers){
-	    debug(worker);
-	    numWorkers++;
-	}
-	return numWorkers;
-    }
-
-    private void getDictPartition(){
+    private int getNumWorkers(){
 	try{
 	    // Count amount of workers
 	    List <String> workers;
-	    int partition_id = 1;
 
 	    workers = zk.getChildren(myPath, null);
 
@@ -224,7 +260,25 @@ public class WorkerHandler extends Thread{
 		    partition_id = numWorkers;
 		}
 	    }
+	    return numWorkers;
+	} catch (Exception e){
+	    debug("getNumWorkers: Didn't work");
+	}
 
+	return -1;
+    }
+
+
+    private void saveCurrentWorkers(){
+	try{
+	    workers = zk.getChildren(myPath, null);
+	} catch (Exception e){
+	    debug("getNumWorkers: Didn't work");
+	}
+    }
+
+    private boolean getDictPartition(){
+	try{
 	    debug("getDictPartition: partition_id = " + partition_id + " numWorkers = " + numWorkers);
 
 	    // Create dictionary request packet
@@ -243,11 +297,13 @@ public class WorkerHandler extends Thread{
 	} catch (Exception e){
 	    debug("getDictPartition: Gulp. Didn't work!");
 	    e.printStackTrace();
+
+	    return false;
 	}
 
 	dictionary = FS_packet.dictionary;
 	size = FS_packet.size;
-
+	return true;
     }
 
     public String byteToString(byte[] b) {
@@ -265,51 +321,159 @@ public class WorkerHandler extends Thread{
     //Get to work
     // Start traversing through the partition and find the hash!
     public void run(){
-	boolean wordMatched;
-	wordMatched = checkWord();
 
-	postResult(wordMatched);
+	while(true){
+	    if(!finishedWorking){
+		boolean wordMatched;
+		wordMatched = checkWord();
+
+		if(wordMatched){
+		    postResult(wordMatched);
+		    exit();
+		    break;
+		} else{
+		    // If it got here, the word didn't match!
+		    // Set /jobs/[job name]/[ID] as -1
+		    debug("run: I couldn't find the hashed code! :C");
+		    setData(path + "/" + w_id_string, "-1");
+		}
+
+		finishedWorking = true;
+	    }
+
+	    // Keep polling 
+	    boolean isNewMembers = checkNewMembers(); // Check if new members have entered
+	    if(isNewMembers){
+		finishedWorking = false;
+
+		// Get partition again
+		setup();
+		continue;
+	    }
+
+	    boolean canExit = mayExit();
+	    if(canExit){
+		exit();
+		break;
+	    }
+	}
+    }
+
+    private void exit(){
+	// Delete your node
+	try{
+	    zk.delete(path + "/" + w_id_string,-1);
+	    debug("exit: " + path);
+	} catch (Exception e){
+	    debug("exit: Couldn't delete node!");
+	    e.printStackTrace();
+
+	}
+    }
+
+    private void setData(String p, String message){
+	try{
+	    debug("setData: " + message);
+	    zk.setData(p, message.getBytes(), -1);
+	} catch (Exception e){
+	    debug("setData: Couldn't post message " + message + " at path " + p);
+	}
+    }
+
+    private boolean mayExit(){
+	// Check results node
+	try{
+	    byte[] data = null;
+
+	    while(data == null)
+		data = zk.getData(resultsPath + "/" + client_hash, false, null);
+
+	    String string_data = byteToString(data);
+	    if(string_data.contains("success") || string_data.equals("fail")){
+		debug("mayExit: The job is either success or fail");
+		return true;
+	    }
+	} catch (Exception e){
+	    // Node has been deleted! You may exit
+	    debug("mayExit: node delete");
+	    e.printStackTrace();
+	    return true;
+	}
+    
+	int num = 0;
+	// Check /jobs/[job name]/[workers] nodes
+	try{
+	    for(String w: workers){
+		// Get data in each worker
+		byte[] data = null;
+
+		data = zk.getData(path + "/" + w, false, null);
+
+		if(data == null)
+		    return false;
+
+		String string_data = byteToString(data);
+		if(string_data.equals("-1"))
+		   num++;		
+	    }
+	
+	    if(num == workers.size()){
+		debug("mayExit: All workers signaled they can't find password");
+		postResult(false);    
+		return true;
+	    }
+	} catch (Exception e){
+	    // A worker has been deleted!
+	    return false;
+	}
+
+	return false;
+    }
+
+
+    private boolean checkNewMembers(){
+	try{
+	    // Count amount of workers
+	    List <String> curWorkers;
+
+	    curWorkers = zk.getChildren(myPath, null);
+
+	    // Check if num of workers went down
+	    if(curWorkers.size() < workers.size())
+	       return true;
+
+	       // Check if new workers joined
+	    for(i = 0; i < curWorkers.size() && i < workers.size(); i++){
+		if(!curWorkers.get(i).contains(workers.get(i))){
+		    return true;
+		}
+	    }
+	    
+	} catch (Exception e){
+	    debug("getNumWorkers: Didn't work");	    
+	}
+
+	return false;
     }
 
     private void postResult(boolean wordMatched){
 	debug("postResult: " + wordMatched);
-	waitUntilExists(resultsPath + "/" + client_hash);
 
 	if(wordMatched){
 	    // Return the password!
 	    try{
-		debug("postResult: Congrats! The password exists.");
 		String result = "success:" + hash_result;
+		debug("postResult: Congrats! The password exists: " + result);
 		zk.setData(resultsPath + "/" + client_hash, result.getBytes(), -1);
 	    } catch (Exception e){
 		debug("run: Couldn't post success message.");
 	    }
-	} else {
+	} else if (!wordMatched){
 	    // Couldn't find password
 	    try{
-		byte[] data = null;
-		Stat status = new Stat();
-
-		while(data == null)
-		    data = zk.getData(resultsPath + "/" + client_hash, false, status);
-
-		if(status != null){
-		    String dataStr = byteToString(data);
-		    if(dataStr.contains("success"))
-			return;
-
-		    int dataInt = Integer.parseInt(dataStr);
-		    Integer newData = dataInt + 1;
-
-		    String result;
-		    if(newData == numWorkers)
-			result = "fail";
-		    else
-			result = newData.toString();
-		    debug("postResult: result = " + result);
-
-		    zk.setData(resultsPath + "/" + client_hash, result.getBytes(), -1); 
-		}
+		debug("postResult: Couldn't find hash " + client_hash);
+		String result = "fail";
+		zk.setData(resultsPath + "/" + client_hash, result.getBytes(), -1);		
 	    } catch (Exception e) {
 		debug("postResult: Couldn't post result");
 		e.printStackTrace();
@@ -337,7 +501,7 @@ public class WorkerHandler extends Thread{
 		dlock.lock();
 
 		isDiffWorkers = false;
-		listenToPathChildren(myPath);
+		//listenToPathChildren(myPath);
 
 		dlock.unlock();
 	    }
