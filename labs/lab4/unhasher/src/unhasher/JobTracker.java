@@ -251,6 +251,7 @@ public class JobTracker extends Thread implements Watcher {
 					if (jobs != null) {
 						for (String job : jobs) {
 							String jobPath = ZK_JOBS + "/" + job;
+							String resultPath = ZK_RESULTS + "/" + job;
 							debug ("clearing " + nodeName + "'s job at " + jobPath);
 							UseCount ucount = new UseCount(jobPath);
 							debug("usecount " + ucount.count);
@@ -260,6 +261,8 @@ public class JobTracker extends Thread implements Watcher {
 							if (ucount.count == 0) {
 								debug("usecount=0 for job at " + jobPath + ", deleting job");
 								zk.delete(jobPath, ucount.version);
+								Stat stat = zk.exists(resultPath, false);
+								zk.delete(resultPath, stat.getVersion());
 							}
 						}
 					} else {
@@ -479,28 +482,6 @@ public class JobTracker extends Thread implements Watcher {
 			String nodeName = event.getPath().split("/")[1];
 			Stat trackerStat = zk.exists(ZK_TRACKER, false);
 
-			if (isNodeDeleted 
-					&& !nodeName.equals(TRACKER_PRIMARY)) {
-				debug("client " + nodeName + "disconnected, clearing its usecounts");
-				ArrayList<String> jobs = clientJobs.get(nodeName);
-				if (jobs != null) {
-					for (String job : jobs) {
-						String jobPath = ZK_JOBS + "/" + job;
-						String resultPath = ZK_RESULTS + "/" + job;
-						debug ("clearing " + nodeName + "'s job at " + jobPath);
-						UseCount ucount = new UseCount(jobPath);
-						ucount.decrementUseCount();
-						// if use count is now 0, delete the job
-						if (ucount.count == 0) {
-							zk.delete(jobPath, 0);
-						}
-					}
-				} else {
-					debug("client " + nodeName + " had no jobs to clear");
-				}
-				clientJobs.remove(nodeName);
-				clientList.remove(nodeName);
-			}
 			if (mode.equals(TRACKER_BACKUP) // primary failure handling
 					&& isNodeDeleted 
 					&& nodeName.equals(TRACKER_PRIMARY)
