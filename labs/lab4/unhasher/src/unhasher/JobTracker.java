@@ -413,6 +413,13 @@ public class JobTracker extends Thread implements Watcher {
 			Stat statJob = zk.exists(jobPath, false);
 			Stat statResult = zk.exists(resultPath, false);
 
+			if (statResult == null) {
+				String res = zk.create(resultPath, 
+						String.valueOf(0).getBytes(),  //init to 0
+						ZooDefs.Ids.OPEN_ACL_UNSAFE, 
+						CreateMode.PERSISTENT);
+			}
+
 			// create job if it doesn't already exist
 			if (statJob == null) {
 				addJobToMap(p);
@@ -432,12 +439,6 @@ public class JobTracker extends Thread implements Watcher {
 				}
 			}
 			
-			if (statResult == null) {
-				String res = zk.create(resultPath, 
-						String.valueOf(0).getBytes(),  //init to 0
-						ZooDefs.Ids.OPEN_ACL_UNSAFE, 
-						CreateMode.PERSISTENT);
-			}
 
 			zk.delete(ZK_TASKS + "/" + tpath, 0);		//delete job from /tasks/t#			
 		} catch (KeeperException e) {
