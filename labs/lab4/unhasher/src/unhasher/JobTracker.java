@@ -416,13 +416,6 @@ public class JobTracker extends Thread implements Watcher {
 			Stat statJob = zk.exists(jobPath, false);
 			Stat statResult = zk.exists(resultPath, false);
 
-			if (statResult == null) {
-				String res = zk.create(resultPath, 
-						String.valueOf(0).getBytes(),  //init to 0
-						ZooDefs.Ids.OPEN_ACL_UNSAFE, 
-						CreateMode.PERSISTENT);
-			}
-
 			// create job if it doesn't already exist
 			if (statJob == null) {
 				addJobToMap(p);
@@ -442,6 +435,12 @@ public class JobTracker extends Thread implements Watcher {
 				}
 			}
 			
+			if (statResult == null) {
+				String res = zk.create(resultPath, 
+						String.valueOf(0).getBytes(),  //init to 0
+						ZooDefs.Ids.OPEN_ACL_UNSAFE, 
+						CreateMode.PERSISTENT);
+			}
 
 			zk.delete(ZK_TASKS + "/" + tpath, 0);		//delete job from /tasks/t#			
 		} catch (KeeperException e) {
@@ -480,14 +479,11 @@ public class JobTracker extends Thread implements Watcher {
 		boolean isNodeDeleted;
 		try {
 			isNodeDeleted = event.getType().equals(EventType.NodeDeleted);
-			String nodeName = event.getPath().split("/")[1];
-			Stat trackerStat = zk.exists(ZK_TRACKER, false);
+			String nodeName = event.getPath().split("/")[2];
 
 			if (mode.equals(TRACKER_BACKUP) // primary failure handling
 					&& isNodeDeleted 
-					&& nodeName.equals(TRACKER_PRIMARY)
-					&& trackerStat != null 
-					&& trackerStat.getNumChildren() == 1) {
+					&& nodeName.equals(TRACKER_PRIMARY)) {
 				debug("detected primary failure, setting self as new primary");
 				zk.delete(myPath, 0); 							// remove self as backup
 				myPath = ZK_TRACKER + "/" + TRACKER_PRIMARY;	// add self as primary
