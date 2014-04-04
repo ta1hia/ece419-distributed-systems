@@ -9,13 +9,14 @@ Assumptions
 
 - ZooKeeper is always running
 - There are initially two JobTrackers and two FileServers (primary and backup)
+- Clients will only submit jobs with alphanumeric input
 
 Usage
 =====
 
 Make the components:
 
-	$ make
+    	$ make
 
 Run ZooKeeper Server:
 
@@ -35,6 +36,6 @@ Run FileServer:
 
 Run Worker:
 
-   	 $ sh runWorker.sh
+    	$ sh runWorker.sh
 
 
