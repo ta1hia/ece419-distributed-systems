@@ -158,6 +158,7 @@ public class WorkerHandler extends Thread{
 			     );
 	} catch (Exception e){
 	    debug("registerWorker: Couldn't register :(");
+	    exit();
 	}
     }
 
@@ -523,52 +524,6 @@ public class WorkerHandler extends Thread{
 
 	debug("run: Couldn't find the hashed password!");
 	return false;
-    }
-
-    // Place a watch on the children of a given path
-    // Watch the other workers
-    private void listenToPathChildren(final String p){
-	debug("listenToPathChildren: " + p);
-
-	try {
-	    workers = zk.getChildren(
-				     p, 
-				     new Watcher() {       
-					 @Override
-					     public void process(WatchedEvent event) {
-
-					     dlock.lock();
-
-					     isDiffWorkers = true;
-
-					     int num = getNumWorkers();
-					     if(num < numWorkers){
-						 isNewPartition = true;
-
-						 // Wait until /fserver is created
-						 waitUntilExists(FS_path);
-
-						 // Get hostname and port of fileserver from Zookeeper
-						 getFileServerInfo();
-
-						 // Connect to FileServer
-						 connectToFileServer();
-
-						 // Oh no! The amount of workers has scaled.
-						 // Request a new patition.
-						 getDictPartition();
-					     }
-
-					     dlock.unlock();
-
-					 }
-
-				     });
-
-	    debug("listenToPathChildren: Created a watch on " + path + " children.");
-	} catch(Exception e) {
-	    e.printStackTrace();
-	}                          
     }
 
     public static String getHash(String word) {
