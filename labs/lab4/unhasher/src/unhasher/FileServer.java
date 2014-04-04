@@ -82,6 +82,8 @@ public class FileServer {
 	static String mode;
 	static boolean debug = true;
 
+    static CountDownLatch modeSignal = new CountDownLatch(1);
+
 	/**
 	 * @param args
 	 * 
@@ -93,8 +95,17 @@ public class FileServer {
 			return;
 		}
 
-		FileServer fs = new FileServer(args[0],args[1]);
-		fs.setPrimary();
+		FileServer fs = new FileServer(args[0],args[1]);		
+		boolean isPrimary = fs.setPrimary();
+
+		try{
+		    if(!isPrimary){
+			debug("main: I am the backup. Waiting to become primary");
+			modeSignal.await();
+		    }
+		} catch (Exception e){
+		    debug("main: Couldn't wait on modeSignal");
+		}
 
 		// You've reached this far into the code
 		// You are the primary!
@@ -169,7 +180,17 @@ public class FileServer {
 			System.out.println("FileServer: Zookeeper connect "+ e.getMessage());
 		}
 
-		zk = zkc.getZooKeeper();        		    
+		zk = zkc.getZooKeeper();    
+
+
+
+		watcher = new Watcher() { // Anonymous Watcher
+			@Override
+                            public void process(WatchedEvent event) {
+			    handleEvent(event);
+                        
+			} };
+    		    
 	}
 
 	private boolean setPrimary() {
@@ -187,6 +208,8 @@ public class FileServer {
 			if (ret == Code.OK){
 				System.out.println("setPrimary: I'm the primary file server.");
 
+				modeSignal.countDown();
+
 				// Place hostname and port into that folder
 				try{
 					String data = InetAddress.getLocalHost().getHostName() + ":" + port;
@@ -196,12 +219,24 @@ public class FileServer {
 				} catch (Exception e){
 					debug("setPrimary: Woops. Couldn't get hostname.");
 				}
+
 				return true;
 			} 
 		} 
 
 		return false;
 	} 
+
+    private void handleEvent(WatchedEvent event) {
+        String path = event.getPath();
+        EventType type = event.getType();
+        if(path.equalsIgnoreCase(myPath)) {
+            if (type == EventType.NodeDeleted) {
+                System.out.println(myPath + " deleted");       
+                setPrimary(); 
+            }
+        }
+    }
 
 	private static void debug (String s) {
 		if (debug && mode != null) {
