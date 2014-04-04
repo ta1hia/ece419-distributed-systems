@@ -9,6 +9,7 @@ Assumptions
 - ZooKeeper is always running
 - There are initially two JobTrackers and two FileServers (primary and backup)
 - Clients will only submit jobs with alphanumeric input
+- Clients will not crash
 
 Usage
 =====
