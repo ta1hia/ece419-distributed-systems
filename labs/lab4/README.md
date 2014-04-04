@@ -1,8 +1,7 @@
-% ECE419 Lab 4
-% Kevin Justin Gumba 	997585117
-% Tahia Khan		998897216
-% Submitted: 		April 3, 2014 (Early Bonus)
-
+ECE419 Lab 4
+Kevin Justin Gumba 	997585117
+Tahia Khan		    998897216
+Submitted: 	    	April 3, 2014 (Early Bonus)
 
 Assumptions
 ===========
@@ -37,5 +36,3 @@ Run FileServer:
 Run Worker:
 
     	$ sh runWorker.sh
-
-
