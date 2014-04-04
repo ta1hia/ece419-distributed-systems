@@ -419,6 +419,10 @@ public class WorkerHandler extends Thread{
 	    }
 	
 	    if(num == workers.size()){
+		int check = getNumWorkers();
+		if(check != workers.size())
+		    return false;
+
 		debug("mayExit: All workers signaled they can't find password");
 		postResult(false);    
 		return true;
