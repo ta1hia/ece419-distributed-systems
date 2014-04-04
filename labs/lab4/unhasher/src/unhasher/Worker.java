@@ -251,7 +251,7 @@ public class Worker{
 		boolean isJobComplete;
 		isJobComplete = isJobDone(path);
 
-		if(!isJobComplete && !oldJobs.contains(path)){
+		if(!isJobComplete){
 		    debug("getNewJobs: Adding job " + path);
 		    newJobs.add(path);
 		}

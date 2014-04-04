@@ -439,12 +439,16 @@ public class WorkerHandler extends Thread{
 	    curWorkers = zk.getChildren(myPath, null);
 
 	    // Check if num of workers went down
-	    if(curWorkers.size() < workers.size())
-	       return true;
+	    if(curWorkers.size() < workers.size()){
+		debug("checkNewMembers: There are less workers!");
+		workers = curWorkers;
+		return true;
+	    }
 
 	       // Check if new workers joined
 	    for(i = 0; i < curWorkers.size() && i < workers.size(); i++){
 		if(!curWorkers.get(i).contains(workers.get(i))){
+		    debug("checkNewMembers: A previous worker quit/failed");
 		    return true;
 		}
 	    }
